@@ -37,6 +37,7 @@ builder.Services.AddScoped<AuthApiClient>();
 builder.Services.AddScoped<BoardApiClient>();
 builder.Services.AddScoped<ColumnApiClient>();
 builder.Services.AddScoped<CardApiClient>();
+builder.Services.AddScoped<CommentApiClient>();
 builder.Services.AddScoped<KanbanDragState>();
 
 await builder.Build().RunAsync();

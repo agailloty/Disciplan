@@ -25,4 +25,9 @@ public static class DomainConstraints
     {
         public const int DisplayNameMaxLength = 50;
     }
+
+    public static class Comment
+    {
+        public const int ContentMaxLength = 2000;
+    }
 }

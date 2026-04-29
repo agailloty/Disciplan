@@ -10,6 +10,7 @@ public sealed class UnitOfWork : IUnitOfWork
     public IBoardRepository Boards { get; }
     public IColumnRepository Columns { get; }
     public ICardRepository Cards { get; }
+    public ICommentRepository Comments { get; }
     public IUserRepository Users { get; }
 
     public UnitOfWork(
@@ -17,12 +18,14 @@ public sealed class UnitOfWork : IUnitOfWork
         IBoardRepository boards,
         IColumnRepository columns,
         ICardRepository cards,
+        ICommentRepository comments,
         IUserRepository users)
     {
         _context = context;
         Boards = boards;
         Columns = columns;
         Cards = cards;
+        Comments = comments;
         Users = users;
     }
 
