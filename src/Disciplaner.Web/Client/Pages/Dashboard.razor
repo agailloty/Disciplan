@@ -20,32 +20,49 @@ else if (_error is not null)
 }
 else if (_boards is not null)
 {
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var board in _boards)
-        {
-            var b = board; @* capture for lambdas *@
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body" style="cursor:pointer" @onclick="() => NavigateToBoard(b.Id)">
-                        <h5 class="card-title">@b.Name</h5>
-                        @if (b.Description is not null)
-                        {
-                            <p class="card-text text-muted small">@b.Description</p>
-                        }
-                    </div>
-                    <div class="card-footer d-flex justify-content-between align-items-center text-muted small">
-                        <span>@b.ColumnCount colonne(s) · @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
-                        <div class="d-flex gap-1" @onclick:stopPropagation>
-                            <button class="btn btn-sm btn-outline-secondary" title="Modifier"
-                                    @onclick="() => ShowEditModal(b)">✎</button>
-                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"
-                                    @onclick="() => ShowDeleteConfirm(b)">✕</button>
+    @if (_boards.Count == 0)
+    {
+        <div class="text-center py-5 text-muted">
+            <div style="font-size:3rem">&#9638;</div>
+            <p class="mt-2">Aucun tableau pour l'instant.</p>
+            <button class="btn btn-primary" @onclick="ShowCreateModal">Créer mon premier tableau</button>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @{int idx = 0;}
+            @foreach (var board in _boards)
+            {
+                var b = board;
+                var accent = _accents[idx % _accents.Length];
+                idx++;
+                <div class="col">
+                    <div class="board-card card h-100 shadow-sm" style="border-top: 4px solid @accent">
+                        <div class="card-body" style="cursor:pointer" @onclick="() => NavigateToBoard(b.Id)">
+                            <h5 class="card-title mb-1">@b.Name</h5>
+                            @if (b.Description is not null)
+                            {
+                                <p class="card-text text-muted small">@b.Description</p>
+                            }
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center text-muted small bg-transparent">
+                            <span>
+                                <span class="badge bg-light text-secondary border me-1">@b.ColumnCount col.</span>
+                                @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                            </span>
+                            <div class="d-flex gap-1" @onclick:stopPropagation>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" title="Modifier"
+                                        @onclick="() => ShowEditModal(b)">✎</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Supprimer"
+                                        @onclick="() => ShowDeleteConfirm(b)">✕</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 }
 
 @* ── Create/Edit modal ── *@
@@ -92,6 +109,9 @@ else if (_boards is not null)
     }
 
     private List<BoardSummaryDto>? _boards;
+
+    private static readonly string[] _accents =
+        ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
     private bool _loading = true;
     private string? _error;
 

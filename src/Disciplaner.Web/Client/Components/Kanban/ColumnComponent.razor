@@ -2,34 +2,36 @@
 @inject ColumnApiClient ColumnApi
 @inject CardApiClient CardApi
 
-<div class="kanban-column card flex-shrink-0 @(_isDragOver ? "drag-over" : "")"
-     style="width:280px; min-height:400px;"
+<div class="kanban-column flex-shrink-0 @(_isDragOver ? "drag-over" : "")"
+     style="width:290px"
      @ondragover:preventDefault
      @ondragenter="OnDragEnter"
      @ondragleave="OnDragLeave"
      @ondrop="OnDrop">
 
-    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-        <span class="text-truncate">@Column.Name</span>
+    <div class="kanban-column-header d-flex justify-content-between align-items-center px-3 py-2">
+        <span class="fw-semibold text-truncate small text-uppercase tracking-wide">@Column.Name</span>
         <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-1">
-            <span class="badge bg-secondary">@Column.Cards.Count</span>
-            <button class="btn btn-sm btn-link p-0 text-muted" title="Renommer" @onclick="ShowEditModal">✎</button>
-            <button class="btn btn-sm btn-link p-0 text-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
+            <span class="badge bg-light text-secondary border" style="font-size:.7rem">@Column.Cards.Count</span>
+            <button class="btn-icon text-muted" title="Renommer" @onclick="ShowEditModal">✎</button>
+            <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
         </div>
     </div>
 
-    <div class="card-body p-2 d-flex flex-column gap-2">
+    <div class="kanban-column-body d-flex flex-column gap-2">
         @foreach (var card in Column.Cards)
         {
-            <CardComponent Card="card" ColumnId="Column.Id" OnChanged="OnChanged" />
+            <CardComponent Card="card" ColumnId="Column.Id" ColumnName="@Column.Name" OnChanged="OnChanged" />
         }
 
         @if (DragState.IsDragging && Column.Cards.Count == 0)
         {
-            <div class="kanban-empty-drop text-muted text-center py-4 small">Drop here</div>
+            <div class="kanban-empty-drop text-muted text-center py-4 small">Déposer ici</div>
         }
+    </div>
 
-        <button class="btn btn-sm btn-outline-secondary mt-1" @onclick="() => _showAddCard = true">
+    <div class="kanban-column-footer px-3 pb-3">
+        <button class="btn btn-sm w-100 btn-add-card" @onclick="() => _showAddCard = true">
             + Ajouter une carte
         </button>
     </div>

@@ -2,33 +2,87 @@
 @inject IJSRuntime JS
 @inject CardApiClient CardApi
 
-<div class="kanban-card card shadow-sm @(_isDragging ? "opacity-50" : "")"
+@* ── Card tile ── *@
+<div class="kanban-card card shadow-sm priority-@PriorityCssName @(_isDragging ? "opacity-50" : "")"
      draggable="true"
      @ondragstart="OnDragStart"
-     @ondragend="OnDragEnd">
+     @ondragend="OnDragEnd"
+     @onclick="() => _showDetail = true"
+     style="cursor:pointer">
     <div class="card-body p-2">
-        <div class="d-flex justify-content-between align-items-start">
-            <span class="fw-medium me-1 flex-grow-1">@Card.Title</span>
-            <div class="d-flex gap-1 flex-shrink-0">
-                <span class="badge @PriorityBadgeClass">@Card.Priority</span>
-                <button class="btn btn-sm btn-link p-0 text-muted lh-1" title="Modifier" @onclick="ShowEditModal"
-                        @onclick:stopPropagation>✎</button>
-                <button class="btn btn-sm btn-link p-0 text-danger lh-1" title="Supprimer" @onclick="ShowDeleteConfirm"
-                        @onclick:stopPropagation>✕</button>
+        <div class="d-flex justify-content-between align-items-start gap-1">
+            <span class="fw-semibold small text-dark flex-grow-1 lh-sm">@Card.Title</span>
+            <div class="card-actions d-flex gap-1 flex-shrink-0" @onclick:stopPropagation>
+                <button class="btn-icon" title="Modifier" @onclick="ShowEditModal">✎</button>
+                <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
             </div>
         </div>
-        @if (Card.Description is not null)
+        @if (!string.IsNullOrWhiteSpace(Card.Description))
         {
-            <p class="text-muted small mb-1 mt-1">@Card.Description</p>
+            <p class="card-desc-preview text-muted mt-1 mb-1">@Card.Description</p>
         }
-        @if (Card.DueDate.HasValue)
-        {
-            <small class="text-muted">&#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</small>
-        }
+        <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-1">
+            <span class="badge @PriorityBadgeClass" style="font-size:.68rem">@PriorityLabel</span>
+            @if (Card.DueDate.HasValue)
+            {
+                var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                <small class="@(overdue ? "text-danger fw-semibold" : "text-muted")">
+                    &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                </small>
+            }
+        </div>
     </div>
 </div>
 
-@* ── Edit card modal ── *@
+@* ── Detail modal ── *@
+<Modal Title="@Card.Title" Visible="_showDetail" OnClose="() => _showDetail = false" SizeClass="modal-lg">
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge @PriorityBadgeClass px-2 py-1">@PriorityLabel</span>
+        @if (!string.IsNullOrWhiteSpace(ColumnName))
+        {
+            <span class="badge bg-light text-dark border px-2 py-1">&#9642; @ColumnName</span>
+        }
+        @if (Card.DueDate.HasValue)
+        {
+            var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+            <span class="badge @(overdue ? "bg-danger" : "bg-secondary") px-2 py-1">
+                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                @(overdue ? " — en retard" : "")
+            </span>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Card.Description))
+    {
+        <div class="mb-3">
+            <p class="form-label fw-semibold text-muted small text-uppercase mb-1">Description</p>
+            <div class="card-detail-description">@Card.Description</div>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted fst-italic small mb-3">Aucune description.</p>
+    }
+
+    <div class="text-muted small mt-2 d-flex gap-3 flex-wrap border-top pt-2">
+        <span>Créée le @Card.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+        @if (Card.UpdatedAt.HasValue)
+        {
+            <span>Modifiée le @Card.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+        }
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <button class="btn btn-sm btn-outline-danger" @onclick="() => { _showDetail = false; ShowDeleteConfirm(); }">
+            Supprimer
+        </button>
+        <button class="btn btn-sm btn-primary" @onclick="() => { _showDetail = false; ShowEditModal(); }">
+            ✎ Modifier
+        </button>
+    </div>
+</Modal>
+
+@* ── Edit modal ── *@
 <Modal Title="Modifier la carte" Visible="_showEdit" OnClose="() => _showEdit = false">
     <EditForm Model="_form" OnValidSubmit="UpdateCardAsync">
         <DataAnnotationsValidator />
@@ -39,26 +93,28 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Description</label>
-            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="3" />
+            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="4" />
         </div>
-        <div class="mb-3">
-            <label class="form-label">Priorité</label>
-            <InputSelect @bind-Value="_form.Priority" class="form-select">
-                @foreach (var p in Enum.GetValues<CardPriority>())
-                {
-                    <option value="@p">@p</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Échéance</label>
-            <InputDate @bind-Value="_form.DueDate" class="form-control" />
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Priorité</label>
+                <InputSelect @bind-Value="_form.Priority" class="form-select">
+                    @foreach (var p in Enum.GetValues<CardPriority>())
+                    {
+                        <option value="@p">@PriorityLabelFor(p)</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Échéance</label>
+                <InputDate @bind-Value="_form.DueDate" class="form-control" />
+            </div>
         </div>
         @if (_editError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_editError</div>
+            <div class="alert alert-danger py-1 small mt-3">@_editError</div>
         }
-        <div class="d-flex justify-content-end gap-2">
+        <div class="d-flex justify-content-end gap-2 mt-3">
             <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
         </div>
@@ -75,6 +131,7 @@
 @code {
     [Parameter, EditorRequired] public CardDto Card { get; set; } = default!;
     [Parameter, EditorRequired] public Guid ColumnId { get; set; }
+    [Parameter] public string ColumnName { get; set; } = string.Empty;
     [Parameter] public EventCallback OnChanged { get; set; }
 
     // ── Drag ──────────────────────────────────────────────────────────────────
@@ -92,6 +149,9 @@
         _isDragging = false;
         if (DragState.IsDragging) DragState.Cancel();
     }
+
+    // ── Detail ────────────────────────────────────────────────────────────────
+    private bool _showDetail;
 
     // ── Edit ──────────────────────────────────────────────────────────────────
     private bool _showEdit;
@@ -137,14 +197,24 @@
 
     private async Task DeleteCardAsync()
     {
-        try
-        {
-            await CardApi.DeleteAsync(Card.Id);
-            await OnChanged.InvokeAsync();
-        }
+        try { await CardApi.DeleteAsync(Card.Id); await OnChanged.InvokeAsync(); }
         catch { }
         finally { _showDelete = false; }
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    private string PriorityCssName => Card.Priority.ToString().ToLower();
+
+    private string PriorityLabel => PriorityLabelFor(Card.Priority);
+
+    private static string PriorityLabelFor(CardPriority p) => p switch
+    {
+        CardPriority.Low      => "Faible",
+        CardPriority.Medium   => "Moyenne",
+        CardPriority.High     => "Haute",
+        CardPriority.Critical => "Critique",
+        _                     => p.ToString()
+    };
 
     private string PriorityBadgeClass => Card.Priority switch
     {
@@ -155,3 +225,4 @@
         _                     => "bg-secondary"
     };
 }
+
