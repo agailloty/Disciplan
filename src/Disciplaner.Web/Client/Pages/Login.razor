@@ -1,0 +1,68 @@
+@page "/login"
+@layout AuthLayout
+@inject AuthApiClient Auth
+@inject NavigationManager Nav
+
+<div class="card shadow-sm" style="max-width:420px; margin:auto; margin-top:6rem;">
+    <div class="card-body p-4">
+        <h1 class="h4 mb-4 text-center">Disciplaner</h1>
+
+        @if (_error is not null)
+        {
+            <div class="alert alert-danger">@_error</div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="HandleLoginAsync">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <InputText @bind-Value="_model.Email" class="form-control" type="email" autocomplete="email" />
+                <ValidationMessage For="() => _model.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <InputText @bind-Value="_model.Password" class="form-control" type="password" autocomplete="current-password" />
+                <ValidationMessage For="() => _model.Password" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@_loading">
+                @(_loading ? "Connexion…" : "Se connecter")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private sealed class LoginForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    private readonly LoginForm _model = new();
+    private string? _error;
+    private bool _loading;
+
+    private async Task HandleLoginAsync()
+    {
+        _loading = true;
+        _error = null;
+        var (_, error) = await Auth.LoginAsync(new LoginRequest(_model.Email, _model.Password));
+        if (error is not null)
+        {
+            _error = error;
+            _loading = false;
+        }
+        else
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+}

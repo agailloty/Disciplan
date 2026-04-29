@@ -1,0 +1,41 @@
+@* Generic modal wrapper. Handles overlay + close button.
+   Usage:
+     <Modal Title="Mon titre" OnClose="() => _show = false">
+         <p>Contenu ici…</p>
+     </Modal>
+*@
+
+@if (Visible)
+{
+    <div class="modal d-block" tabindex="-1" @onkeydown="OnKeyDown" style="background:rgba(0,0,0,.45)">
+        <div class="modal-dialog @SizeClass">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAsync"></button>
+                </div>
+                <div class="modal-body">
+                    @ChildContent
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>"modal-lg" | "modal-sm" | "" (default)</summary>
+    [Parameter] public string SizeClass { get; set; } = string.Empty;
+
+    private Task CloseAsync() => OnClose.InvokeAsync();
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+            await CloseAsync();
+    }
+}

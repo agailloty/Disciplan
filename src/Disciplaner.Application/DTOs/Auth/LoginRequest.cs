@@ -1,0 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Disciplaner.Application.DTOs.Auth;
+
+public sealed record LoginRequest(
+    [Required][EmailAddress] string Email,
+    [Required] string Password
+);

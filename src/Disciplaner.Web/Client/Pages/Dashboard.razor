@@ -1,0 +1,175 @@
+@page "/"
+@attribute [Authorize]
+@inject BoardApiClient Boards
+@inject NavigationManager Nav
+
+<PageTitle>Mes tableaux — Disciplaner</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Mes tableaux</h1>
+    <button class="btn btn-primary" @onclick="ShowCreateModal">+ Nouveau tableau</button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_boards is not null)
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var board in _boards)
+        {
+            var b = board; @* capture for lambdas *@
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body" style="cursor:pointer" @onclick="() => NavigateToBoard(b.Id)">
+                        <h5 class="card-title">@b.Name</h5>
+                        @if (b.Description is not null)
+                        {
+                            <p class="card-text text-muted small">@b.Description</p>
+                        }
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center text-muted small">
+                        <span>@b.ColumnCount colonne(s) · @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                        <div class="d-flex gap-1" @onclick:stopPropagation>
+                            <button class="btn btn-sm btn-outline-secondary" title="Modifier"
+                                    @onclick="() => ShowEditModal(b)">✎</button>
+                            <button class="btn btn-sm btn-outline-danger" title="Supprimer"
+                                    @onclick="() => ShowDeleteConfirm(b)">✕</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@* ── Create/Edit modal ── *@
+<Modal Title="@(_editTarget is null ? "Nouveau tableau" : "Modifier le tableau")"
+       Visible="_showForm" OnClose="CloseForm">
+    <EditForm Model="_form" OnValidSubmit="SubmitBoardFormAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            <InputText @bind-Value="_form.Name" class="form-control" />
+            <ValidationMessage For="() => _form.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description (optionnel)</label>
+            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="2" />
+        </div>
+        @if (_formError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_formError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="CloseForm">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">
+                @(_busy ? "…" : (_editTarget is null ? "Créer" : "Enregistrer"))
+            </button>
+        </div>
+    </EditForm>
+</Modal>
+
+@* ── Delete confirmation ── *@
+<ConfirmModal Title="Supprimer le tableau"
+              Message="@($"Supprimer \"{_deleteTarget?.Name}\" ? Toutes ses colonnes et cartes seront perdues.")"
+              Visible="_showDelete"
+              OnCancel="() => _showDelete = false"
+              OnConfirm="DeleteBoardAsync" />
+
+@code {
+    private sealed class BoardForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    private List<BoardSummaryDto>? _boards;
+    private bool _loading = true;
+    private string? _error;
+
+    private bool _showForm;
+    private bool _showDelete;
+    private bool _busy;
+    private string? _formError;
+
+    private BoardForm _form = new();
+    private BoardSummaryDto? _editTarget;
+    private BoardSummaryDto? _deleteTarget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _boards = await Boards.GetBoardsAsync(); }
+        catch { _error = "Impossible de charger les tableaux."; }
+        finally { _loading = false; }
+    }
+
+    private void ShowCreateModal()
+    {
+        _editTarget = null;
+        _form = new();
+        _formError = null;
+        _showForm = true;
+    }
+
+    private void ShowEditModal(BoardSummaryDto board)
+    {
+        _editTarget = board;
+        _form = new() { Name = board.Name, Description = board.Description };
+        _formError = null;
+        _showForm = true;
+    }
+
+    private void ShowDeleteConfirm(BoardSummaryDto board)
+    {
+        _deleteTarget = board;
+        _showDelete = true;
+    }
+
+    private void CloseForm() { _showForm = false; _formError = null; }
+
+    private void NavigateToBoard(Guid id) => Nav.NavigateTo($"/boards/{id}");
+
+    private async Task SubmitBoardFormAsync()
+    {
+        _busy = true;
+        _formError = null;
+        try
+        {
+            if (_editTarget is null)
+            {
+                var created = await Boards.CreateBoardAsync(new CreateBoardRequest(_form.Name, _form.Description));
+                if (created is not null) { _boards ??= []; _boards.Add(created); }
+            }
+            else
+            {
+                await Boards.UpdateBoardAsync(_editTarget.Id, new UpdateBoardRequest(_form.Name, _form.Description));
+                var idx = _boards!.FindIndex(b => b.Id == _editTarget.Id);
+                if (idx >= 0)
+                    _boards[idx] = _boards[idx] with { Name = _form.Name, Description = _form.Description };
+            }
+            _showForm = false;
+        }
+        catch { _formError = "Une erreur est survenue. Veuillez réessayer."; }
+        finally { _busy = false; }
+    }
+
+    private async Task DeleteBoardAsync()
+    {
+        if (_deleteTarget is null) return;
+        try
+        {
+            await Boards.DeleteBoardAsync(_deleteTarget.Id);
+            _boards?.RemoveAll(b => b.Id == _deleteTarget.Id);
+        }
+        catch { _error = "La suppression a échoué."; }
+        finally { _showDelete = false; _deleteTarget = null; }
+    }
+}

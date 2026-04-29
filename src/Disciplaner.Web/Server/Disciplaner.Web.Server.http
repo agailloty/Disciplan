@@ -1,0 +1,6 @@
+@Disciplaner.Web.Server_HostAddress = http://localhost:5027
+
+GET {{Disciplaner.Web.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

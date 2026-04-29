@@ -1,0 +1,92 @@
+@inject CardApiClient CardApi
+@inject ColumnApiClient ColumnApi
+
+<div class="kanban-board d-flex gap-3 overflow-auto pb-3 align-items-start">
+    @foreach (var column in Board.Columns)
+    {
+        <ColumnComponent Column="column"
+                         BoardId="Board.Id"
+                         OnCardDropped="HandleCardDroppedAsync"
+                         OnChanged="OnBoardChanged" />
+    }
+
+    @* Add column button — always visible at the end of the board *@
+    <div class="kanban-column-add flex-shrink-0">
+        <button class="btn btn-outline-secondary w-100" @onclick="() => _showAddColumn = true">
+            + Ajouter une colonne
+        </button>
+    </div>
+</div>
+
+@if (_moveError is not null)
+{
+    <ErrorAlert Message="@_moveError" />
+}
+
+@* ── Add column modal ── *@
+<Modal Title="Nouvelle colonne" Visible="_showAddColumn" OnClose="() => _showAddColumn = false">
+    <EditForm Model="_columnForm" OnValidSubmit="CreateColumnAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            <InputText @bind-Value="_columnForm.Name" class="form-control" autofocus />
+            <ValidationMessage For="() => _columnForm.Name" />
+        </div>
+        @if (_columnError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_columnError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="() => _showAddColumn = false">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
+                @(_columnBusy ? "…" : "Créer")
+            </button>
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    [Parameter, EditorRequired] public BoardDetailDto Board { get; set; } = default!;
+    [Parameter] public EventCallback OnBoardChanged { get; set; }
+
+    private string? _moveError;
+    private bool _showAddColumn;
+    private bool _columnBusy;
+    private string? _columnError;
+    private ColumnForm _columnForm = new();
+
+    private sealed class ColumnForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private async Task HandleCardDroppedAsync((Guid CardId, Guid TargetColumnId, int TargetPosition) drop)
+    {
+        _moveError = null;
+        try
+        {
+            await CardApi.MoveCardAsync(
+                drop.CardId,
+                new MoveCardRequest(drop.TargetColumnId, drop.TargetPosition));
+            await OnBoardChanged.InvokeAsync();
+        }
+        catch { _moveError = "Le déplacement a échoué. Veuillez réessayer."; }
+    }
+
+    private async Task CreateColumnAsync()
+    {
+        _columnBusy = true;
+        _columnError = null;
+        try
+        {
+            await ColumnApi.CreateAsync(Board.Id, new CreateColumnRequest(_columnForm.Name));
+            _showAddColumn = false;
+            _columnForm = new();
+            await OnBoardChanged.InvokeAsync();
+        }
+        catch { _columnError = "Impossible de créer la colonne."; }
+        finally { _columnBusy = false; }
+    }
+}

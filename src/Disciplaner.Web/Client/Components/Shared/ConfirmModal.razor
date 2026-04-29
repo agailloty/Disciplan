@@ -1,0 +1,29 @@
+@* Confirmation modal for destructive actions. *@
+
+<Modal Title="@Title" Visible="Visible" OnClose="OnCancel">
+    <p>@Message</p>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-secondary" @onclick="OnCancel">Annuler</button>
+        <button class="btn btn-danger" @onclick="OnConfirmAsync" disabled="@_busy">
+            @(_busy ? "Suppression…" : ConfirmLabel)
+        </button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "Confirmer la suppression";
+    [Parameter, EditorRequired] public string Message { get; set; } = string.Empty;
+    [Parameter] public string ConfirmLabel { get; set; } = "Supprimer";
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+    private bool _busy;
+
+    private async Task OnConfirmAsync()
+    {
+        _busy = true;
+        await OnConfirm.InvokeAsync();
+        _busy = false;
+    }
+}

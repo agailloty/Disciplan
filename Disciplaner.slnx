@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Disciplaner.Application/Disciplaner.Application.csproj" />
+    <Project Path="src/Disciplaner.Domain/Disciplaner.Domain.csproj" />
+    <Project Path="src/Disciplaner.Infrastructure/Disciplaner.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Disciplaner.Web/" />
+  <Folder Name="/src/Disciplaner.Web/Client/">
+    <Project Path="src/Disciplaner.Web/Client/Disciplaner.Web.Client.csproj" />
+  </Folder>
+  <Folder Name="/src/Disciplaner.Web/Server/">
+    <Project Path="src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj" />
+  </Folder>
+</Solution>

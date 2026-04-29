@@ -1,0 +1,32 @@
+﻿@inherits LayoutComponentBase
+@inject AuthApiClient Auth
+@inject NavigationManager Nav
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <span class="me-3 text-muted">@context.User.FindFirst("displayName")?.Value</span>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="LogoutAsync">Déconnexion</button>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login", forceLoad: false);
+    }
+}

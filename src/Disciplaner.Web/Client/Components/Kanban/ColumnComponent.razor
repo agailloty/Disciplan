@@ -1,0 +1,210 @@
+@inject KanbanDragState DragState
+@inject ColumnApiClient ColumnApi
+@inject CardApiClient CardApi
+
+<div class="kanban-column card flex-shrink-0 @(_isDragOver ? "drag-over" : "")"
+     style="width:280px; min-height:400px;"
+     @ondragover:preventDefault
+     @ondragenter="OnDragEnter"
+     @ondragleave="OnDragLeave"
+     @ondrop="OnDrop">
+
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span class="text-truncate">@Column.Name</span>
+        <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-1">
+            <span class="badge bg-secondary">@Column.Cards.Count</span>
+            <button class="btn btn-sm btn-link p-0 text-muted" title="Renommer" @onclick="ShowEditModal">✎</button>
+            <button class="btn btn-sm btn-link p-0 text-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
+        </div>
+    </div>
+
+    <div class="card-body p-2 d-flex flex-column gap-2">
+        @foreach (var card in Column.Cards)
+        {
+            <CardComponent Card="card" ColumnId="Column.Id" OnChanged="OnChanged" />
+        }
+
+        @if (DragState.IsDragging && Column.Cards.Count == 0)
+        {
+            <div class="kanban-empty-drop text-muted text-center py-4 small">Drop here</div>
+        }
+
+        <button class="btn btn-sm btn-outline-secondary mt-1" @onclick="() => _showAddCard = true">
+            + Ajouter une carte
+        </button>
+    </div>
+</div>
+
+@* ── Add card modal ── *@
+<Modal Title="Nouvelle carte" Visible="_showAddCard" OnClose="() => _showAddCard = false">
+    <EditForm Model="_cardForm" OnValidSubmit="CreateCardAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Titre</label>
+            <InputText @bind-Value="_cardForm.Title" class="form-control" />
+            <ValidationMessage For="() => _cardForm.Title" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description (optionnel)</label>
+            <InputTextArea @bind-Value="_cardForm.Description" class="form-control" rows="2" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Priorité</label>
+            <InputSelect @bind-Value="_cardForm.Priority" class="form-select">
+                @foreach (var p in Enum.GetValues<CardPriority>())
+                {
+                    <option value="@p">@p</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Échéance (optionnel)</label>
+            <InputDate @bind-Value="_cardForm.DueDate" class="form-control" />
+        </div>
+        @if (_cardError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_cardError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="() => _showAddCard = false">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_cardBusy">
+                @(_cardBusy ? "…" : "Créer")
+            </button>
+        </div>
+    </EditForm>
+</Modal>
+
+@* ── Edit column modal ── *@
+<Modal Title="Renommer la colonne" Visible="_showEdit" OnClose="() => _showEdit = false">
+    <EditForm Model="_columnForm" OnValidSubmit="UpdateColumnAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            <InputText @bind-Value="_columnForm.Name" class="form-control" />
+            <ValidationMessage For="() => _columnForm.Name" />
+        </div>
+        @if (_columnError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_columnError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
+                @(_columnBusy ? "…" : "Enregistrer")
+            </button>
+        </div>
+    </EditForm>
+</Modal>
+
+@* ── Delete confirmation ── *@
+<ConfirmModal Title="Supprimer la colonne"
+              Message="@($"Supprimer \"{Column.Name}\" et toutes ses cartes ?")"
+              Visible="_showDelete"
+              OnCancel="() => _showDelete = false"
+              OnConfirm="DeleteColumnAsync" />
+
+@code {
+    [Parameter, EditorRequired] public ColumnDto Column { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid BoardId { get; set; }
+    [Parameter] public EventCallback<(Guid CardId, Guid TargetColumnId, int TargetPosition)> OnCardDropped { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    // ── Drag state ────────────────────────────────────────────────────────────
+    private bool _isDragOver;
+    private int _dragEnterCount;
+
+    private void OnDragEnter() { _dragEnterCount++; _isDragOver = true; }
+    private void OnDragLeave() { if (--_dragEnterCount <= 0) { _dragEnterCount = 0; _isDragOver = false; } }
+
+    private async Task OnDrop()
+    {
+        _isDragOver = false; _dragEnterCount = 0;
+        var drag = DragState.End();
+        if (drag is null) return;
+        var (card, _) = drag.Value;
+        var targetPosition = Column.Cards.Count;
+        if (card.ColumnId == Column.Id && card.Order == targetPosition - 1) return;
+        await OnCardDropped.InvokeAsync((card.Id, Column.Id, targetPosition));
+    }
+
+    // ── Add card ──────────────────────────────────────────────────────────────
+    private bool _showAddCard;
+    private bool _cardBusy;
+    private string? _cardError;
+    private CardForm _cardForm = new();
+
+    private sealed class CardForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.MaxLength(2000)]
+        public string? Description { get; set; }
+        public CardPriority Priority { get; set; } = CardPriority.Medium;
+        public DateTime? DueDate { get; set; }
+    }
+
+    private async Task CreateCardAsync()
+    {
+        _cardBusy = true; _cardError = null;
+        try
+        {
+            await CardApi.CreateAsync(Column.Id,
+                new CreateCardRequest(_cardForm.Title, _cardForm.Description, _cardForm.Priority, _cardForm.DueDate));
+            _showAddCard = false;
+            _cardForm = new();
+            await OnChanged.InvokeAsync();
+        }
+        catch { _cardError = "Impossible de créer la carte."; }
+        finally { _cardBusy = false; }
+    }
+
+    // ── Edit column ───────────────────────────────────────────────────────────
+    private bool _showEdit;
+    private bool _columnBusy;
+    private string? _columnError;
+    private ColumnForm _columnForm = new();
+
+    private sealed class ColumnForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private void ShowEditModal()
+    {
+        _columnForm = new() { Name = Column.Name };
+        _columnError = null;
+        _showEdit = true;
+    }
+
+    private async Task UpdateColumnAsync()
+    {
+        _columnBusy = true; _columnError = null;
+        try
+        {
+            await ColumnApi.UpdateAsync(Column.Id, new UpdateColumnRequest(_columnForm.Name));
+            _showEdit = false;
+            await OnChanged.InvokeAsync();
+        }
+        catch { _columnError = "Impossible de renommer la colonne."; }
+        finally { _columnBusy = false; }
+    }
+
+    // ── Delete column ─────────────────────────────────────────────────────────
+    private bool _showDelete;
+
+    private void ShowDeleteConfirm() => _showDelete = true;
+
+    private async Task DeleteColumnAsync()
+    {
+        try
+        {
+            await ColumnApi.DeleteAsync(Column.Id);
+            await OnChanged.InvokeAsync();
+        }
+        catch { }
+        finally { _showDelete = false; }
+    }
+}

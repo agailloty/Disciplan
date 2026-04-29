@@ -1,0 +1,157 @@
+@inject KanbanDragState DragState
+@inject IJSRuntime JS
+@inject CardApiClient CardApi
+
+<div class="kanban-card card shadow-sm @(_isDragging ? "opacity-50" : "")"
+     draggable="true"
+     @ondragstart="OnDragStart"
+     @ondragend="OnDragEnd">
+    <div class="card-body p-2">
+        <div class="d-flex justify-content-between align-items-start">
+            <span class="fw-medium me-1 flex-grow-1">@Card.Title</span>
+            <div class="d-flex gap-1 flex-shrink-0">
+                <span class="badge @PriorityBadgeClass">@Card.Priority</span>
+                <button class="btn btn-sm btn-link p-0 text-muted lh-1" title="Modifier" @onclick="ShowEditModal"
+                        @onclick:stopPropagation>✎</button>
+                <button class="btn btn-sm btn-link p-0 text-danger lh-1" title="Supprimer" @onclick="ShowDeleteConfirm"
+                        @onclick:stopPropagation>✕</button>
+            </div>
+        </div>
+        @if (Card.Description is not null)
+        {
+            <p class="text-muted small mb-1 mt-1">@Card.Description</p>
+        }
+        @if (Card.DueDate.HasValue)
+        {
+            <small class="text-muted">&#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</small>
+        }
+    </div>
+</div>
+
+@* ── Edit card modal ── *@
+<Modal Title="Modifier la carte" Visible="_showEdit" OnClose="() => _showEdit = false">
+    <EditForm Model="_form" OnValidSubmit="UpdateCardAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Titre</label>
+            <InputText @bind-Value="_form.Title" class="form-control" />
+            <ValidationMessage For="() => _form.Title" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="3" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Priorité</label>
+            <InputSelect @bind-Value="_form.Priority" class="form-select">
+                @foreach (var p in Enum.GetValues<CardPriority>())
+                {
+                    <option value="@p">@p</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Échéance</label>
+            <InputDate @bind-Value="_form.DueDate" class="form-control" />
+        </div>
+        @if (_editError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_editError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+        </div>
+    </EditForm>
+</Modal>
+
+@* ── Delete confirmation ── *@
+<ConfirmModal Title="Supprimer la carte"
+              Message="@($"Supprimer \"{Card.Title}\" ?")"
+              Visible="_showDelete"
+              OnCancel="() => _showDelete = false"
+              OnConfirm="DeleteCardAsync" />
+
+@code {
+    [Parameter, EditorRequired] public CardDto Card { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid ColumnId { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    // ── Drag ──────────────────────────────────────────────────────────────────
+    private bool _isDragging;
+
+    private void OnDragStart()
+    {
+        _isDragging = true;
+        DragState.Begin(Card, ColumnId);
+        _ = JS.InvokeVoidAsync("kanban.setDragData", Card.Id.ToString());
+    }
+
+    private void OnDragEnd()
+    {
+        _isDragging = false;
+        if (DragState.IsDragging) DragState.Cancel();
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    private bool _showEdit;
+    private bool _busy;
+    private string? _editError;
+    private CardForm _form = new();
+
+    private sealed class CardForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.MaxLength(2000)]
+        public string? Description { get; set; }
+        public CardPriority Priority { get; set; } = CardPriority.Medium;
+        public DateTime? DueDate { get; set; }
+    }
+
+    private void ShowEditModal()
+    {
+        _form = new() { Title = Card.Title, Description = Card.Description, Priority = Card.Priority, DueDate = Card.DueDate };
+        _editError = null;
+        _showEdit = true;
+    }
+
+    private async Task UpdateCardAsync()
+    {
+        _busy = true; _editError = null;
+        try
+        {
+            await CardApi.UpdateAsync(Card.Id,
+                new UpdateCardRequest(_form.Title, _form.Description, _form.Priority, _form.DueDate));
+            _showEdit = false;
+            await OnChanged.InvokeAsync();
+        }
+        catch { _editError = "La mise à jour a échoué."; }
+        finally { _busy = false; }
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    private bool _showDelete;
+    private void ShowDeleteConfirm() => _showDelete = true;
+
+    private async Task DeleteCardAsync()
+    {
+        try
+        {
+            await CardApi.DeleteAsync(Card.Id);
+            await OnChanged.InvokeAsync();
+        }
+        catch { }
+        finally { _showDelete = false; }
+    }
+
+    private string PriorityBadgeClass => Card.Priority switch
+    {
+        CardPriority.Low      => "bg-secondary",
+        CardPriority.Medium   => "bg-info text-dark",
+        CardPriority.High     => "bg-warning text-dark",
+        CardPriority.Critical => "bg-danger",
+        _                     => "bg-secondary"
+    };
+}

@@ -1,0 +1,124 @@
+@page "/boards/{Id:guid}"
+@attribute [Authorize]
+@inject BoardApiClient Boards
+@inject NavigationManager Nav
+
+<PageTitle>@(_board?.Name ?? "Tableau") — Disciplaner</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_board is not null)
+{
+    <div class="d-flex align-items-center mb-3 gap-2">
+        <h1 class="h3 mb-0 flex-grow-1">@_board.Name</h1>
+        @if (_board.Description is not null)
+        {
+            <span class="text-muted small">@_board.Description</span>
+        }
+        <button class="btn btn-sm btn-outline-secondary" @onclick="ShowEditModal">✎ Modifier</button>
+        <button class="btn btn-sm btn-outline-danger" @onclick="() => _showDelete = true">✕ Supprimer</button>
+    </div>
+
+    <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
+}
+
+@* ── Edit board modal ── *@
+<Modal Title="Modifier le tableau" Visible="_showEdit" OnClose="() => _showEdit = false">
+    <EditForm Model="_form" OnValidSubmit="UpdateBoardAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            <InputText @bind-Value="_form.Name" class="form-control" />
+            <ValidationMessage For="() => _form.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description (optionnel)</label>
+            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="2" />
+        </div>
+        @if (_formError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_formError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+        </div>
+    </EditForm>
+</Modal>
+
+@* ── Delete board confirmation ── *@
+<ConfirmModal Title="Supprimer le tableau"
+              Message="@($"Supprimer \"{_board?.Name}\" ? Toutes les colonnes et cartes seront perdues.")"
+              Visible="_showDelete"
+              OnCancel="() => _showDelete = false"
+              OnConfirm="DeleteBoardAsync" />
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private BoardDetailDto? _board;
+    private bool _loading = true;
+    private string? _error;
+
+    private bool _showEdit;
+    private bool _showDelete;
+    private bool _busy;
+    private string? _formError;
+    private BoardForm _form = new();
+
+    private sealed class BoardForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+        => await ReloadBoardAsync();
+
+    private async Task ReloadBoardAsync()
+    {
+        _loading = true; _error = null;
+        try { _board = await Boards.GetBoardAsync(Id); }
+        catch { _error = "Impossible de charger le tableau."; }
+        finally { _loading = false; }
+    }
+
+    private void ShowEditModal()
+    {
+        _form = new() { Name = _board!.Name, Description = _board.Description };
+        _formError = null;
+        _showEdit = true;
+    }
+
+    private async Task UpdateBoardAsync()
+    {
+        _busy = true; _formError = null;
+        try
+        {
+            await Boards.UpdateBoardAsync(Id, new UpdateBoardRequest(_form.Name, _form.Description));
+            _showEdit = false;
+            await ReloadBoardAsync();
+        }
+        catch { _formError = "La mise à jour a échoué."; }
+        finally { _busy = false; }
+    }
+
+    private async Task DeleteBoardAsync()
+    {
+        try
+        {
+            await Boards.DeleteBoardAsync(Id);
+            Nav.NavigateTo("/");
+        }
+        catch { _error = "La suppression a échoué."; }
+        finally { _showDelete = false; }
+    }
+}
