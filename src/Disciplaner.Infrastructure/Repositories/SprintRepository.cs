@@ -20,9 +20,18 @@ internal sealed class SprintRepository : ISprintRepository
             .OrderBy(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
 
+    public async Task AddAsync(Sprint sprint, CancellationToken cancellationToken = default)
+        => await _context.Sprints.AddAsync(sprint, cancellationToken);
+
     public Task UpdateAsync(Sprint sprint, CancellationToken cancellationToken = default)
     {
         _context.Sprints.Update(sprint);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Sprint sprint, CancellationToken cancellationToken = default)
+    {
+        _context.Sprints.Remove(sprint);
         return Task.CompletedTask;
     }
 }

@@ -36,7 +36,7 @@ public sealed class SprintService : ISprintService
         EnsureOwner(project, requestingUserId);
 
         var sprint = project.AddSprint(request.Name, request.Goal);
-        await _uow.Projects.UpdateAsync(project, cancellationToken);
+        await _uow.Sprints.AddAsync(sprint, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return sprint.ToDto(0);
@@ -112,10 +112,7 @@ public sealed class SprintService : ISprintService
             await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         }
 
-        await _uow.Sprints.UpdateAsync(sprint, cancellationToken); // will be removed via cascade or explicit delete
-        // Sprint deletion is handled by removing from project aggregate or direct repo delete
-        // For now mark as closed so it's filtered; a proper delete would need ISprintRepository.DeleteAsync
-        sprint.Close();
+        await _uow.Sprints.DeleteAsync(sprint, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
