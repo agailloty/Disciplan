@@ -12,6 +12,9 @@ public sealed class UnitOfWork : IUnitOfWork
     public ICardRepository Cards { get; }
     public ICommentRepository Comments { get; }
     public IUserRepository Users { get; }
+    public IProjectRepository Projects { get; }
+    public ISprintRepository Sprints { get; }
+    public ITicketRepository Tickets { get; }
 
     public UnitOfWork(
         ApplicationDbContext context,
@@ -19,7 +22,10 @@ public sealed class UnitOfWork : IUnitOfWork
         IColumnRepository columns,
         ICardRepository cards,
         ICommentRepository comments,
-        IUserRepository users)
+        IUserRepository users,
+        IProjectRepository projects,
+        ISprintRepository sprints,
+        ITicketRepository tickets)
     {
         _context = context;
         Boards = boards;
@@ -27,6 +33,9 @@ public sealed class UnitOfWork : IUnitOfWork
         Cards = cards;
         Comments = comments;
         Users = users;
+        Projects = projects;
+        Sprints = sprints;
+        Tickets = tickets;
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

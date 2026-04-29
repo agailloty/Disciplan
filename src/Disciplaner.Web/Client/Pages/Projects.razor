@@ -1,0 +1,156 @@
+@page "/projects"
+@attribute [Authorize]
+@inject ProjectApiClient ProjectApi
+@inject NavigationManager Nav
+
+<PageTitle>Projets - Disciplaner</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Projets</h1>
+        <p class="text-muted mb-0">Organise les tickets, le backlog et les sprints par projet.</p>
+    </div>
+    <button class="btn btn-primary" @onclick="ShowCreateModal">+ Nouveau projet</button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_projects.Count == 0)
+{
+    <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem">&#9670;</div>
+        <p class="mt-2">Aucun projet pour l'instant.</p>
+        <button class="btn btn-primary" @onclick="ShowCreateModal">Creer mon premier projet</button>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var project in _projects)
+        {
+            var p = project;
+            <div class="col">
+                <div class="card h-100 shadow-sm project-card" @onclick="() => NavigateToProject(p.Id)">
+                    <div class="card-body" style="cursor:pointer">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-dark">@p.Key</span>
+                            <h2 class="h5 mb-0">@p.Name</h2>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(p.Description))
+                        {
+                            <p class="text-muted small">@p.Description</p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent d-flex justify-content-between text-muted small">
+                        <span>@p.TicketCount tickets</span>
+                        <span>@p.SprintCount sprints</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<Modal Title="Nouveau projet" Visible="_showCreate" OnClose="CloseCreate">
+    <EditForm Model="_form" OnValidSubmit="CreateProjectAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label class="form-label">Nom</label>
+            <InputText class="form-control" @bind-Value="_form.Name" />
+            <ValidationMessage For="() => _form.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Cle projet</label>
+            <InputText class="form-control text-uppercase" @bind-Value="_form.Key" />
+            <div class="form-text">2 a 10 lettres, ex: DISC.</div>
+            <ValidationMessage For="() => _form.Key" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" rows="3" @bind-Value="_form.Description" />
+        </div>
+        @if (_formError is not null)
+        {
+            <div class="alert alert-danger py-1 small">@_formError</div>
+        }
+        <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="CloseCreate">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "..." : "Creer")</button>
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    private sealed class ProjectForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(10)]
+        public string Key { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+    }
+
+    private readonly List<ProjectSummaryDto> _projects = [];
+    private ProjectForm _form = new();
+    private bool _loading = true;
+    private bool _showCreate;
+    private bool _busy;
+    private string? _error;
+    private string? _formError;
+
+    protected override async Task OnInitializedAsync()
+        => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _projects.Clear();
+            _projects.AddRange(await ProjectApi.GetProjectsAsync() ?? []);
+        }
+        catch { _error = "Impossible de charger les projets."; }
+        finally { _loading = false; }
+    }
+
+    private void ShowCreateModal()
+    {
+        _form = new();
+        _formError = null;
+        _showCreate = true;
+    }
+
+    private void CloseCreate()
+    {
+        _showCreate = false;
+        _formError = null;
+    }
+
+    private async Task CreateProjectAsync()
+    {
+        _busy = true;
+        _formError = null;
+        try
+        {
+            var created = await ProjectApi.CreateProjectAsync(
+                new CreateProjectRequest(_form.Name, _form.Description, _form.Key.ToUpperInvariant()));
+            if (created is not null)
+                Nav.NavigateTo($"/projects/{created.Id}");
+        }
+        catch { _formError = "Creation impossible. Verifie la cle projet et reessaie."; }
+        finally { _busy = false; }
+    }
+
+    private void NavigateToProject(Guid id) => Nav.NavigateTo($"/projects/{id}");
+}
