@@ -82,4 +82,28 @@ public sealed class CommentsController : ControllerBase
         catch (NotFoundException) { return NotFound(); }
         catch (UnauthorizedAccessException) { return Forbid(); }
     }
+
+    // GET api/tickets/{ticketId}/comments
+    [HttpGet("api/tickets/{ticketId:guid}/comments")]
+    [ProducesResponseType(typeof(IReadOnlyList<CommentDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByTicket(Guid ticketId, CancellationToken ct)
+    {
+        try { return Ok(await _comments.GetByTicketAsync(ticketId, UserId, ct)); }
+        catch (NotFoundException) { return NotFound(); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+    }
+
+    // POST api/tickets/{ticketId}/comments
+    [HttpPost("api/tickets/{ticketId:guid}/comments")]
+    [ProducesResponseType(typeof(CommentDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> CreateForTicket(Guid ticketId, CreateCommentRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var comment = await _comments.CreateForTicketAsync(ticketId, UserId, request, ct);
+            return CreatedAtAction(nameof(GetByTicket), new { ticketId }, comment);
+        }
+        catch (NotFoundException) { return NotFound(); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+    }
 }

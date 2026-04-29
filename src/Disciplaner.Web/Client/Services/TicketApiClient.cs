@@ -13,6 +13,12 @@ public sealed class TicketApiClient
     public Task<List<TicketDto>?> GetBacklogAsync(Guid projectId, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<TicketDto>>($"/api/projects/{projectId}/tickets/backlog", ct);
 
+    public Task<TicketDto?> GetByIdAsync(Guid ticketId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<TicketDto>($"/api/tickets/{ticketId}", ct);
+
+    public Task<TicketDto?> GetByRefAsync(string projectKey, int ticketNumber, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<TicketDto>($"/api/tickets/by-ref/{projectKey}/{ticketNumber}", ct);
+
     public Task<List<TicketDto>?> GetBySprintAsync(Guid sprintId, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<TicketDto>>($"/api/sprints/{sprintId}/tickets", ct);
 

@@ -67,6 +67,19 @@ public sealed class TicketsController : ControllerBase
         catch (UnauthorizedAccessException) { return Forbid(); }
     }
 
+    // GET api/tickets/by-ref/{projectKey}/{ticketNumber}  → e.g. /api/tickets/by-ref/GAI/3
+    [HttpGet("api/tickets/by-ref/{projectKey}/{ticketNumber:int}")]
+    [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByRef(string projectKey, int ticketNumber, CancellationToken ct)
+    {
+        try
+        {
+            var ticket = await _tickets.GetByRefAsync(projectKey, ticketNumber, UserId, ct);
+            return ticket is null ? NotFound() : Ok(ticket);
+        }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+    }
+
     [HttpPut("api/tickets/{ticketId:guid}")]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Update(Guid ticketId, UpdateTicketRequest request, CancellationToken ct)

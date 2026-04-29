@@ -137,15 +137,19 @@ else if (_project is not null)
                     <div class="active-sprint-kanban d-flex gap-3 overflow-auto pb-2">
                         @foreach (var status in _project.Statuses.OrderBy(s => s.Order))
                         {
+                            var s = status;
                             var statusTickets = activeTickets
-                                .Where(t => t.Status.Id == status.Id)
+                                .Where(t => t.Status.Id == s.Id)
                                 .OrderBy(t => t.TicketNumber)
                                 .ToList();
 
-                            <section class="active-sprint-column">
+                            <section class="active-sprint-column @(_dragOverStatusId == s.Id ? "sprint-drag-over" : string.Empty)"
+                                     @ondragover:preventDefault
+                                     @ondragenter="() => _dragOverStatusId = s.Id"
+                                     @ondrop="async () => await DropToStatusAsync(s.Id)">
                                 <div class="active-sprint-column-header d-flex align-items-center gap-2">
-                                    <span class="status-dot" style="background:@status.Color"></span>
-                                    <strong>@status.Name</strong>
+                                    <span class="status-dot" style="background:@s.Color"></span>
+                                    <strong>@s.Name</strong>
                                     <span class="badge bg-light text-dark border ms-auto">@statusTickets.Count</span>
                                 </div>
                                 <div class="active-sprint-column-body">
@@ -308,6 +312,13 @@ else if (_project is not null)
     }
 }
 
+<TicketDetailModal Ticket="_detailTicket"
+                   Statuses="@(_project?.Statuses ?? Array.Empty<TicketStatusDto>())"
+                   ActiveSprintId="ActiveSprint?.Id"
+                   Visible="_showTicketDetail"
+                   OnClose="() => { _showTicketDetail = false; _detailTicket = null; }"
+                   OnChanged="OnTicketChangedAsync" />
+
 <Modal Title="Nouveau ticket" Visible="_showTicket" OnClose="() => _showTicket = false">
     <EditForm Model="_ticketForm" OnValidSubmit="CreateTicketAsync">
         <DataAnnotationsValidator />
@@ -449,11 +460,15 @@ else if (_project is not null)
     private bool _showStatus;
     private bool _showEditProject;
     private bool _showDeleteProject;
+    private bool _showTicketDetail;
     private string _tab = "active";
     private string _activeSprintView = "kanban";
     private string? _error;
     private string? _modalError;
     private TicketStatusDto? _editingStatus;
+    private TicketDto? _detailTicket;
+    private Guid? _draggingTicketId;
+    private Guid? _dragOverStatusId;
 
     private TicketForm _ticketForm = new();
     private SprintForm _sprintForm = new();
@@ -522,8 +537,10 @@ else if (_project is not null)
 
     private RenderFragment TicketRow(TicketDto ticket) => @<div>
         <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="fw-semibold">@ticket.TicketRef</span>
-            <span>@ticket.Title</span>
+            <button class="btn btn-link p-0 fw-semibold text-decoration-none text-primary"
+                    @onclick="() => OpenTicketDetail(ticket)">@ticket.TicketRef</button>
+            <button class="btn btn-link p-0 text-decoration-none text-dark"
+                    @onclick="() => OpenTicketDetail(ticket)">@ticket.Title</button>
             <span class="badge bg-light text-dark border">@ticket.Type</span>
             <span class="badge @PriorityClass(ticket.Priority)">@ticket.Priority</span>
         </div>
@@ -548,16 +565,27 @@ else if (_project is not null)
             {
                 <span class="text-muted small">Due @ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
             }
+            @if (ActiveSprint is not null && ticket.SprintId is null)
+            {
+                <button class="btn btn-sm btn-outline-primary py-0" title="Ajouter au sprint actif"
+                        @onclick:stopPropagation @onclick="() => AddTicketToActiveSprintAsync(ticket.Id)">
+                    <i class="bi bi-lightning me-1"></i>Sprint
+                </button>
+            }
+            <button class="btn btn-sm btn-outline-danger py-0" title="Supprimer"
+                    @onclick:stopPropagation @onclick="() => DeleteTicketAsync(ticket.Id)">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     </div>;
 
-    private RenderFragment TicketCard(TicketDto ticket) => @<article class="ticket-card card shadow-sm mb-2">
+    private RenderFragment TicketCard(TicketDto ticket) => @<article class="ticket-card card shadow-sm mb-2 @(_draggingTicketId == ticket.Id ? "opacity-50" : string.Empty)" draggable="true" @ondragstart="() => _draggingTicketId = ticket.Id" @ondragend="() => { _draggingTicketId = null; _dragOverStatusId = null; }">
         <div class="card-body p-3">
-            <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="d-flex justify-content-between align-items-start gap-2" style="cursor:pointer" @onclick="() => OpenTicketDetail(ticket)">
                 <span class="fw-semibold text-primary">@ticket.TicketRef</span>
                 <span class="badge @PriorityClass(ticket.Priority)">@ticket.Priority</span>
             </div>
-            <div class="fw-semibold mt-1">@ticket.Title</div>
+            <div class="fw-semibold mt-1" style="cursor:pointer" @onclick="() => OpenTicketDetail(ticket)">@ticket.Title</div>
             @if (!string.IsNullOrWhiteSpace(ticket.Description))
             {
                 <div class="text-muted small mt-1 ticket-card-description">@ticket.Description</div>
@@ -581,6 +609,13 @@ else if (_project is not null)
                     <option value="@status.Id">@status.Name</option>
                 }
             </select>
+            @if (ActiveSprint is not null && ticket.SprintId is null)
+            {
+                <button class="btn btn-sm btn-outline-primary w-100 mt-2 py-0"
+                        @onclick:stopPropagation @onclick="() => AddTicketToActiveSprintAsync(ticket.Id)">
+                    <i class="bi bi-lightning me-1"></i>Ajouter au sprint
+                </button>
+            }
         </div>
     </article>;
 
@@ -676,6 +711,18 @@ else if (_project is not null)
         await LoadAsync();
     }
 
+    private async Task DeleteTicketAsync(Guid ticketId)
+    {
+        await Tickets.DeleteAsync(ticketId);
+        await LoadAsync();
+    }
+
+    private async Task AddTicketToActiveSprintAsync(Guid ticketId)
+    {
+        if (ActiveSprint is null) return;
+        await MoveTicketToSprintAsync(ticketId, ActiveSprint.Id);
+    }
+
     private async Task ChangeStatusAsync(Guid ticketId, Guid statusId)
     {
         await Tickets.ChangeStatusAsync(ticketId, new ChangeTicketStatusRequest(statusId));
@@ -769,5 +816,33 @@ else if (_project is not null)
     {
         await Projects.DeleteProjectAsync(Id);
         Nav.NavigateTo("/projects");
+    }
+
+    private void OpenTicketDetail(TicketDto ticket)
+    {
+        _detailTicket     = ticket;
+        _showTicketDetail = true;
+    }
+
+    private async Task OnTicketChangedAsync()
+    {
+        var prevId = _detailTicket?.Id;
+        await LoadAsync();
+        if (prevId.HasValue && _showTicketDetail)
+        {
+            var updated = _backlog.FirstOrDefault(t => t.Id == prevId)
+                ?? _ticketsBySprint.Values.SelectMany(t => t).FirstOrDefault(t => t.Id == prevId);
+            _detailTicket = updated;
+            if (_detailTicket is null) _showTicketDetail = false;
+        }
+    }
+
+    private async Task DropToStatusAsync(Guid statusId)
+    {
+        if (_draggingTicketId is null) return;
+        var ticketId     = _draggingTicketId.Value;
+        _draggingTicketId = null;
+        _dragOverStatusId = null;
+        await ChangeStatusAsync(ticketId, statusId);
     }
 }

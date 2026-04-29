@@ -20,6 +20,12 @@ internal sealed class CommentRepository : ICommentRepository
             .OrderBy(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Comment>> GetByTicketIdAsync(Guid ticketId, CancellationToken cancellationToken = default)
+        => await _context.Comments
+            .Where(c => c.TicketId == ticketId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(Comment comment, CancellationToken cancellationToken = default)
         => await _context.Comments.AddAsync(comment, cancellationToken);
 

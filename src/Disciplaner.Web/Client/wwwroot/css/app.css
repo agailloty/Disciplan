@@ -267,6 +267,12 @@ a, .btn-link { color: #0071c1; }
     min-width: 300px;
     max-width: 300px;
     overflow: hidden;
+    transition: border-color .15s, background-color .15s;
+}
+
+.active-sprint-column.sprint-drag-over {
+    border-color: #4f46e5;
+    background-color: #ede9fe;
 }
 
 .active-sprint-column-header {

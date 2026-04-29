@@ -40,6 +40,15 @@ public sealed class TicketService : ITicketService
         return ToDto(ticket);
     }
 
+    public async Task<TicketDto?> GetByRefAsync(
+        string projectKey, int ticketNumber, string requestingUserId, CancellationToken cancellationToken = default)
+    {
+        var ticket = await _uow.Tickets.GetByRefAsync(projectKey, ticketNumber, cancellationToken);
+        if (ticket is null) return null;
+        await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+        return ToDto(ticket);
+    }
+
     public async Task<TicketDto> CreateAsync(
         Guid projectId, string requestingUserId, CreateTicketRequest request,
         CancellationToken cancellationToken = default)

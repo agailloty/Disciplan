@@ -15,6 +15,10 @@ internal sealed class TicketRepository : ITicketRepository
         => await IncludeDetails(_context.Tickets)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
+    public async Task<Ticket?> GetByRefAsync(string projectKey, int ticketNumber, CancellationToken cancellationToken = default)
+        => await IncludeDetails(_context.Tickets)
+            .FirstOrDefaultAsync(t => t.Project!.Key == projectKey && t.TicketNumber == ticketNumber, cancellationToken);
+
     public async Task<IReadOnlyList<Ticket>> GetBacklogAsync(Guid projectId, CancellationToken cancellationToken = default)
         => await IncludeDetails(_context.Tickets)
             .Where(t => t.ProjectId == projectId && t.SprintId == null)
