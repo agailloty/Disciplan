@@ -100,7 +100,9 @@ public sealed class ProjectService : IProjectService
         EnsureOwner(project, requestingUserId);
 
         var status = project.AddStatus(request.Name, request.Category, request.Color);
-        await _uow.Projects.UpdateAsync(project, cancellationToken);
+        // Do NOT call UpdateAsync here — the project and its new child are already
+        // tracked by EF (loaded via GetByIdWithDetailsAsync). Calling Update() would
+        // reset the new TicketStatus state from Added → Modified, causing a failed UPDATE.
         await _uow.SaveChangesAsync(cancellationToken);
 
         return status.ToDto();
@@ -144,7 +146,7 @@ public sealed class ProjectService : IProjectService
         if (inUse) throw ProjectDomainException.StatusInUse();
 
         project.RemoveStatus(statusId);
-        await _uow.Projects.UpdateAsync(project, cancellationToken);
+        // Entities are already tracked; Update() is not needed and would interfere.
         await _uow.SaveChangesAsync(cancellationToken);
     }
 

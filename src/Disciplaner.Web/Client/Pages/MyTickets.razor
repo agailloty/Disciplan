@@ -1,6 +1,7 @@
 @page "/my-tickets"
 @attribute [Authorize]
 @inject TicketApiClient TicketApi
+@inject NavigationManager Nav
 
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Domain.Enums
@@ -40,35 +41,53 @@ else if (_tickets is not null)
         var g = group;
         <div class="mb-4">
             <h6 class="text-muted text-uppercase small mb-2">@CategoryLabel(g.Key)</h6>
-            <div class="list-group shadow-sm">
-                @foreach (var ticket in g.OrderBy(t => t.CreatedAt))
-                {
-                    var t = ticket;
-                    <a href="/tickets/@t.TicketRef"
-                       class="list-group-item list-group-item-action px-3 py-2">
-                        <div class="d-flex align-items-center gap-3 flex-wrap">
-                            <span class="badge bg-dark font-monospace">@t.TicketRef</span>
-                            <span class="flex-grow-1 fw-semibold small">@t.Title</span>
-                            <span class="badge @PriorityClass(t.Priority)">@t.Priority</span>
-                            <span class="d-flex align-items-center gap-1">
-                                <span class="status-dot" style="background:@t.Status.Color;width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-                                <span class="text-muted small">@t.Status.Name</span>
-                            </span>
-                            @if (t.SprintName is not null)
-                            {
-                                <span class="text-muted small"><i class="bi bi-lightning me-1"></i>@t.SprintName</span>
-                            }
-                            @if (t.DueDate.HasValue)
-                            {
-                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                <span class="small @(overdue ? "text-danger fw-semibold" : "text-muted")">
-                                    <i class="bi bi-calendar3 me-1"></i>@t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
-                                </span>
-                            }
-                            <span class="text-muted small">@t.ProjectKey</span>
-                        </div>
-                    </a>
-                }
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table table-hover table-sm align-middle mb-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:90px">Réf.</th>
+                            <th>Titre</th>
+                            <th style="width:90px">Priorité</th>
+                            <th style="width:130px">Statut</th>
+                            <th style="width:130px">Sprint</th>
+                            <th style="width:100px">Échéance</th>
+                            <th style="width:80px">Projet</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in g.OrderBy(t => t.CreatedAt))
+                        {
+                            var t = ticket;
+                            <tr style="cursor:pointer" @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
+                                <td><span class="badge bg-dark font-monospace">@t.TicketRef</span></td>
+                                <td class="fw-semibold small">@t.Title</td>
+                                <td><span class="badge @PriorityClass(t.Priority)">@t.Priority</span></td>
+                                <td>
+                                    <span class="d-inline-flex align-items-center gap-1">
+                                        <span style="width:8px;height:8px;border-radius:50%;background:@t.Status.Color;display:inline-block;flex-shrink:0"></span>
+                                        <span class="small text-muted">@t.Status.Name</span>
+                                    </span>
+                                </td>
+                                <td class="text-muted small">
+                                    @if (t.SprintName is not null)
+                                    {
+                                        <span><i class="bi bi-lightning me-1"></i>@t.SprintName</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (t.DueDate.HasValue)
+                                    {
+                                        var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                        <span class="small @(overdue ? "text-danger fw-semibold" : "text-muted")">
+                                            <i class="bi bi-calendar3 me-1"></i>@t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                        </span>
+                                    }
+                                </td>
+                                <td><span class="badge bg-secondary">@t.ProjectKey</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     }
