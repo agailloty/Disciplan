@@ -12,5 +12,6 @@ public interface ITicketService
     Task<TicketDto> UpdateAsync(Guid ticketId, string requestingUserId, UpdateTicketRequest request, CancellationToken cancellationToken = default);
     Task<TicketDto> ChangeStatusAsync(Guid ticketId, string requestingUserId, ChangeTicketStatusRequest request, CancellationToken cancellationToken = default);
     Task<TicketDto> MoveToSprintAsync(Guid ticketId, string requestingUserId, MoveTicketToSprintRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TicketDto>> GetAssignedToMeAsync(string userId, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid ticketId, string requestingUserId, CancellationToken cancellationToken = default);
 }

@@ -55,6 +55,11 @@ public sealed class TicketsController : ControllerBase
         catch (UnauthorizedAccessException) { return Forbid(); }
     }
 
+    [HttpGet("api/tickets/mine")]
+    [ProducesResponseType(typeof(IReadOnlyList<TicketDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMine(CancellationToken ct)
+        => Ok(await _tickets.GetAssignedToMeAsync(UserId, ct));
+
     [HttpGet("api/tickets/{ticketId:guid}", Name = nameof(GetById))]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid ticketId, CancellationToken ct)

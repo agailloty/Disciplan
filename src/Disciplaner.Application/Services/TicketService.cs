@@ -18,7 +18,7 @@ public sealed class TicketService : ITicketService
     {
         await EnsureProjectAccessAsync(projectId, requestingUserId, cancellationToken);
         var tickets = await _uow.Tickets.GetBacklogAsync(projectId, cancellationToken);
-        return tickets.Select(ToDto).ToList().AsReadOnly();
+        return await ToDtoListAsync(tickets, cancellationToken);
     }
 
     public async Task<IReadOnlyList<TicketDto>> GetBySprintAsync(
@@ -28,7 +28,7 @@ public sealed class TicketService : ITicketService
             ?? throw new NotFoundException(nameof(Sprint), sprintId);
         await EnsureProjectAccessAsync(sprint.ProjectId, requestingUserId, cancellationToken);
         var tickets = await _uow.Tickets.GetBySprintIdAsync(sprintId, cancellationToken);
-        return tickets.Select(ToDto).ToList().AsReadOnly();
+        return await ToDtoListAsync(tickets, cancellationToken);
     }
 
     public async Task<TicketDto?> GetByIdAsync(
@@ -37,7 +37,7 @@ public sealed class TicketService : ITicketService
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken);
         if (ticket is null) return null;
         await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
     }
 
     public async Task<TicketDto?> GetByRefAsync(
@@ -46,7 +46,14 @@ public sealed class TicketService : ITicketService
         var ticket = await _uow.Tickets.GetByRefAsync(projectKey, ticketNumber, cancellationToken);
         if (ticket is null) return null;
         await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TicketDto>> GetAssignedToMeAsync(
+        string userId, CancellationToken cancellationToken = default)
+    {
+        var tickets = await _uow.Tickets.GetAssignedToUserAsync(userId, cancellationToken);
+        return await ToDtoListAsync(tickets, cancellationToken);
     }
 
     public async Task<TicketDto> CreateAsync(
@@ -90,7 +97,7 @@ public sealed class TicketService : ITicketService
         await _uow.Projects.UpdateAsync(project, cancellationToken); // persist incremented ticketNumber
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
     }
 
     public async Task<TicketDto> UpdateAsync(
@@ -117,7 +124,7 @@ public sealed class TicketService : ITicketService
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
     }
 
     public async Task<TicketDto> ChangeStatusAsync(
@@ -138,7 +145,7 @@ public sealed class TicketService : ITicketService
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
     }
 
     public async Task<TicketDto> MoveToSprintAsync(
@@ -153,7 +160,7 @@ public sealed class TicketService : ITicketService
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return ToDto(ticket);
+        return await ToDtoAsync(ticket, cancellationToken);
     }
 
     public async Task DeleteAsync(
@@ -167,11 +174,35 @@ public sealed class TicketService : ITicketService
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
+    private async Task<IReadOnlyList<TicketDto>> ToDtoListAsync(IReadOnlyList<Ticket> tickets, CancellationToken ct)
     {
-        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
-            ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, userId);
+        // Batch-resolve unique user IDs to avoid N+1
+        var userIds = tickets
+            .SelectMany(t => new[] { t.ReporterId, t.AssigneeId })
+            .Where(id => id is not null)
+            .Select(id => id!)
+            .Distinct();
+
+        var names = new Dictionary<string, string>();
+        foreach (var id in userIds)
+        {
+            var u = await _uow.Users.GetByIdAsync(id, ct);
+            if (u is not null) names[id] = u.DisplayName;
+        }
+
+        return tickets
+            .Select(t => ToDto(t,
+                names.GetValueOrDefault(t.ReporterId, t.ReporterId),
+                t.AssigneeId is not null ? names.GetValueOrDefault(t.AssigneeId, t.AssigneeId) : null))
+            .ToList()
+            .AsReadOnly();
+    }
+
+    private async Task<TicketDto> ToDtoAsync(Ticket t, CancellationToken ct)
+    {
+        var reporter = await _uow.Users.GetByIdAsync(t.ReporterId, ct);
+        var assignee = t.AssigneeId is not null ? await _uow.Users.GetByIdAsync(t.AssigneeId, ct) : null;
+        return ToDto(t, reporter?.DisplayName ?? t.ReporterId, assignee?.DisplayName);
     }
 
     private static void EnsureOwner(Project project, string userId)
@@ -179,7 +210,14 @@ public sealed class TicketService : ITicketService
         if (project.OwnerId != userId) throw new UnauthorizedAccessException("Access denied.");
     }
 
-    private static TicketDto ToDto(Ticket t) => new(
+    private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
+    {
+        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
+            ?? throw new NotFoundException(nameof(Project), projectId);
+        EnsureOwner(project, userId);
+    }
+
+    private static TicketDto ToDto(Ticket t, string reporterName, string? assigneeName) => new(
         t.Id,
         t.ProjectId,
         t.Project?.Key ?? string.Empty,
@@ -199,7 +237,9 @@ public sealed class TicketService : ITicketService
         t.ParentTicketId,
         t.ParentTicket is not null ? $"{t.Project?.Key ?? "?"}-{t.ParentTicket.TicketNumber}" : null,
         t.ReporterId,
+        reporterName,
         t.AssigneeId,
+        assigneeName,
         t.CreatedAt,
         t.UpdatedAt
     );

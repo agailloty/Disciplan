@@ -1,5 +1,7 @@
 @inject TicketApiClient TicketApi
 @inject CommentApiClient CommentApi
+@inject UserApiClient UserApi
+@using Disciplaner.Application.DTOs.User
 
 @if (Visible && Ticket is not null)
 {
@@ -80,8 +82,24 @@
                 </div>
             }
 
+            @* Assignee selector *@
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-person-check text-muted flex-shrink-0"></i>
+                <select class="form-select form-select-sm"
+                        value="@(Ticket.AssigneeId ?? string.Empty)"
+                        @onchange="OnAssigneeChangeAsync"
+                        disabled="@_busy">
+                    <option value="">— Non assigné —</option>
+                    @foreach (var u in _users)
+                    {
+                        <option value="@u.Id">@u.DisplayName</option>
+                    }
+                </select>
+            </div>
+
             <div class="text-muted small border-top pt-2 d-flex gap-3 flex-wrap">
-                <span>Créé le @Ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                <span><i class="bi bi-person me-1"></i>Créé par <strong>@(Ticket.ReporterName)</strong></span>
+                <span>le @Ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                 @if (Ticket.UpdatedAt.HasValue)
                 {
                     <span>Modifié le @Ticket.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
@@ -237,6 +255,7 @@
     private bool _busy;
     private string? _error;
     private TicketEditForm _form = new();
+    private List<UserSummaryDto> _users = [];
 
     // Comments state
     private IReadOnlyList<CommentDto> _comments = [];
@@ -255,6 +274,12 @@
             try { _comments = await CommentApi.GetByTicketAsync(Ticket.Id); }
             catch { _comments = []; }
             finally { _commentsLoading = false; }
+
+            if (_users.Count == 0)
+            {
+                try { _users = await UserApi.GetAllAsync() ?? []; }
+                catch { _users = []; }
+            }
         }
         if (!Visible) _lastLoadedTicketId = null;
     }
@@ -359,6 +384,23 @@
             await OnChanged.InvokeAsync();
         }
         catch { _error = "Impossible de changer le sprint."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnAssigneeChangeAsync(ChangeEventArgs e)
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            var raw = e.Value?.ToString();
+            var assigneeId = string.IsNullOrEmpty(raw) ? null : raw;
+            await TicketApi.UpdateAsync(Ticket.Id, new UpdateTicketRequest(
+                Ticket.Title, Ticket.Description, Ticket.Type, Ticket.Priority,
+                Ticket.StoryPoints, Ticket.DueDate, assigneeId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible de changer l'assigné."; }
         finally { _busy = false; }
     }
 

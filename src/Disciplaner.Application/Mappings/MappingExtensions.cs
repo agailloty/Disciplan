@@ -10,7 +10,9 @@ namespace Disciplaner.Application.Mappings;
 
 internal static class MappingExtensions
 {
-    internal static CardDto ToDto(this Card card) => new(
+    internal static CardDto ToDto(this Card card,
+        string? createdByName = null,
+        string? assigneeName = null) => new(
         card.Id,
         card.ColumnId,
         card.Title,
@@ -19,7 +21,11 @@ internal static class MappingExtensions
         card.Priority,
         card.CreatedAt,
         card.UpdatedAt,
-        card.DueDate
+        card.DueDate,
+        card.CreatedById,
+        createdByName,
+        card.AssignedToId,
+        assigneeName
     );
 
     internal static ColumnDto ToDto(this Column column) => new(

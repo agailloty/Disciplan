@@ -31,6 +31,12 @@ internal sealed class TicketRepository : ITicketRepository
             .OrderBy(t => t.TicketNumber)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Ticket>> GetAssignedToUserAsync(string userId, CancellationToken cancellationToken = default)
+        => await IncludeDetails(_context.Tickets)
+            .Where(t => t.AssigneeId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default)
         => await _context.Tickets.AddAsync(ticket, cancellationToken);
 

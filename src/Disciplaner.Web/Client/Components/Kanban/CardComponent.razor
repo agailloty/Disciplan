@@ -2,9 +2,11 @@
 @inject IJSRuntime JS
 @inject CardApiClient CardApi
 @inject CommentApiClient CommentApi
+@inject UserApiClient UserApi
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Comment
+@using Disciplaner.Application.DTOs.User
 
 @* ── Card tile ── *@
 <div class="kanban-card card shadow-sm priority-@PriorityCssName @(_isDragging ? "opacity-50" : "")"
@@ -33,6 +35,10 @@
                 <small class="@(overdue ? "text-danger fw-semibold" : "text-muted")">
                     &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM")
                 </small>
+            }
+            @if (Card.AssigneeName is not null)
+            {
+                <small class="text-muted ms-auto"><i class="bi bi-person-fill me-1"></i>@Card.AssigneeName.Split(' ')[0]</small>
             }
         </div>
     </div>
@@ -73,6 +79,13 @@
         @if (Card.UpdatedAt.HasValue)
         {
             <span>Modifiée le @Card.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+        }
+    </div>
+    <div class="d-flex gap-3 flex-wrap text-muted small mt-2">
+        <span><i class="bi bi-person me-1"></i><strong>Créé par&nbsp;:</strong> @(Card.CreatedByName ?? Card.CreatedById)</span>
+        @if (Card.AssignedToId is not null)
+        {
+            <span><i class="bi bi-person-check me-1"></i><strong>Assigné à&nbsp;:</strong> @(Card.AssigneeName ?? Card.AssignedToId)</span>
         }
     </div>
 
@@ -185,6 +198,16 @@
                 <label class="form-label">Échéance</label>
                 <InputDate @bind-Value="_form.DueDate" class="form-control" />
             </div>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Assigné à</label>
+            <select class="form-select" @bind="_form.AssignedToId">
+                <option value="">— Non assigné —</option>
+                @foreach (var u in _users)
+                {
+                    <option value="@u.Id">@u.DisplayName</option>
+                }
+            </select>
         </div>
         @if (_editError is not null)
         {
@@ -318,13 +341,23 @@
         public string? Description { get; set; }
         public CardPriority Priority { get; set; } = CardPriority.Medium;
         public DateTime? DueDate { get; set; }
+        public string? AssignedToId { get; set; }
     }
+
+    private List<UserSummaryDto> _users = [];
 
     private void ShowEditModal()
     {
-        _form = new() { Title = Card.Title, Description = Card.Description, Priority = Card.Priority, DueDate = Card.DueDate };
+        _form = new() { Title = Card.Title, Description = Card.Description, Priority = Card.Priority, DueDate = Card.DueDate, AssignedToId = Card.AssignedToId };
         _editError = null;
         _showEdit = true;
+        _ = LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        try { _users = await UserApi.GetAllAsync() ?? []; }
+        catch { _users = []; }
     }
 
     private async Task UpdateCardAsync()
@@ -333,7 +366,8 @@
         try
         {
             await CardApi.UpdateAsync(Card.Id,
-                new UpdateCardRequest(_form.Title, _form.Description, _form.Priority, _form.DueDate));
+                new UpdateCardRequest(_form.Title, _form.Description, _form.Priority, _form.DueDate,
+                    string.IsNullOrEmpty(_form.AssignedToId) ? null : _form.AssignedToId));
             _showEdit = false;
             await OnChanged.InvokeAsync();
         }

@@ -12,5 +12,7 @@ public sealed record UpdateCardRequest(
 
     CardPriority Priority,
 
-    DateTime? DueDate
+    DateTime? DueDate,
+
+    string? AssignedToId = null
 );

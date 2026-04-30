@@ -1,0 +1,114 @@
+@page "/my-tickets"
+@attribute [Authorize]
+@inject TicketApiClient TicketApi
+
+@using Disciplaner.Application.DTOs.Ticket
+@using Disciplaner.Domain.Enums
+
+<PageTitle>Mes tickets — Disciplaner</PageTitle>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-person-check me-2"></i>Mes tickets</h1>
+    <span class="badge bg-secondary">@(_tickets?.Count ?? 0) ticket(s)</span>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_tickets is not null && _tickets.Count == 0)
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox display-4 d-block mb-3"></i>
+        <p>Aucun ticket ne vous est assigné pour l'instant.</p>
+    </div>
+}
+else if (_tickets is not null)
+{
+    @* Group by status category *@
+    var groups = _tickets
+        .GroupBy(t => t.Status.Category)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    @foreach (var group in groups)
+    {
+        var g = group;
+        <div class="mb-4">
+            <h6 class="text-muted text-uppercase small mb-2">@CategoryLabel(g.Key)</h6>
+            <div class="list-group shadow-sm">
+                @foreach (var ticket in g.OrderBy(t => t.CreatedAt))
+                {
+                    var t = ticket;
+                    <a href="/tickets/@t.TicketRef"
+                       class="list-group-item list-group-item-action px-3 py-2">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <span class="badge bg-dark font-monospace">@t.TicketRef</span>
+                            <span class="flex-grow-1 fw-semibold small">@t.Title</span>
+                            <span class="badge @PriorityClass(t.Priority)">@t.Priority</span>
+                            <span class="d-flex align-items-center gap-1">
+                                <span class="status-dot" style="background:@t.Status.Color;width:8px;height:8px;border-radius:50%;display:inline-block"></span>
+                                <span class="text-muted small">@t.Status.Name</span>
+                            </span>
+                            @if (t.SprintName is not null)
+                            {
+                                <span class="text-muted small"><i class="bi bi-lightning me-1"></i>@t.SprintName</span>
+                            }
+                            @if (t.DueDate.HasValue)
+                            {
+                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                <span class="small @(overdue ? "text-danger fw-semibold" : "text-muted")">
+                                    <i class="bi bi-calendar3 me-1"></i>@t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                </span>
+                            }
+                            <span class="text-muted small">@t.ProjectKey</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<TicketDto>? _tickets;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _tickets = await TicketApi.GetAssignedToMeAsync() ?? [];
+        }
+        catch
+        {
+            _error = "Impossible de charger vos tickets.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string CategoryLabel(StatusCategory c) => c switch
+    {
+        StatusCategory.Backlog    => "Backlog",
+        StatusCategory.InProgress => "En cours",
+        StatusCategory.Done       => "Terminé",
+        _                         => c.ToString()
+    };
+
+    private static string PriorityClass(CardPriority p) => p switch
+    {
+        CardPriority.Low      => "bg-secondary",
+        CardPriority.Medium   => "bg-info text-dark",
+        CardPriority.High     => "bg-warning text-dark",
+        CardPriority.Critical => "bg-danger",
+        _                     => "bg-secondary"
+    };
+}

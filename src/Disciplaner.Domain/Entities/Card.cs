@@ -18,15 +18,19 @@ public class Card
     public Guid ColumnId { get; private set; }
     public Column Column { get; private set; } = null!;
 
+    public string CreatedById { get; private init; } = string.Empty;
+    public string? AssignedToId { get; private set; }
+
     protected Card() { }
 
-    internal Card(string title, string? description, int order, Column column)
+    internal Card(string title, string? description, int order, Column column, string createdById)
     {
         SetTitle(title);
         SetDescription(description);
         Order = order;
         ColumnId = column.Id;
         Column = column;
+        CreatedById = createdById;
     }
 
     public void UpdateTitle(string title)
@@ -38,6 +42,12 @@ public class Card
     public void UpdateDescription(string? description)
     {
         SetDescription(description);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Assign(string? userId)
+    {
+        AssignedToId = userId;
         UpdatedAt = DateTime.UtcNow;
     }
 

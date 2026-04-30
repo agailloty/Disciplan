@@ -90,10 +90,16 @@ else if (_project is not null)
                         <span class="text-muted small ms-2">@activeTickets.Count tickets</span>
                     }
                 </div>
-                <div class="btn-group btn-group-sm" role="group" aria-label="Choisir l'affichage">
-                    <button class="btn @SprintViewCss("kanban")" @onclick="@(() => _activeSprintView = "kanban")">Kanban</button>
-                    <button class="btn @SprintViewCss("list")" @onclick="@(() => _activeSprintView = "list")">Liste</button>
-                    <button class="btn @SprintViewCss("grid")" @onclick="@(() => _activeSprintView = "grid")">Grille</button>
+                <div class="d-flex align-items-center gap-2">
+                    @if (activeSprint is not null)
+                    {
+                        <button class="btn btn-sm btn-primary" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)"><i class="bi bi-plus-lg me-1"></i>Ticket</button>
+                    }
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Choisir l'affichage">
+                        <button class="btn @SprintViewCss("kanban")" @onclick="@(() => _activeSprintView = "kanban")">Kanban</button>
+                        <button class="btn @SprintViewCss("list")" @onclick="@(() => _activeSprintView = "list")">Liste</button>
+                        <button class="btn @SprintViewCss("grid")" @onclick="@(() => _activeSprintView = "grid")">Grille</button>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -107,7 +113,10 @@ else if (_project is not null)
                 else if (activeTickets.Count == 0)
                 {
                     <div class="text-center text-muted py-5">
-                        Ce sprint ne contient aucun ticket.
+                        <p class="mb-3">Ce sprint ne contient aucun ticket.</p>
+                        <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
+                            <i class="bi bi-plus-lg me-1"></i>Ajouter un ticket
+                        </button>
                     </div>
                 }
                 else if (_activeSprintView == "list")
@@ -119,6 +128,11 @@ else if (_project is not null)
                                 @TicketRow(ticket)
                             </div>
                         }
+                        <div class="list-group-item px-0">
+                            <button class="btn btn-link btn-sm text-muted ps-0" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
+                                <i class="bi bi-plus-lg me-1"></i>Nouveau ticket
+                            </button>
+                        </div>
                     </div>
                 }
                 else if (_activeSprintView == "grid")
@@ -130,6 +144,12 @@ else if (_project is not null)
                                 @TicketCard(ticket)
                             </div>
                         }
+                        <div class="col d-flex align-items-center">
+                            <button class="btn btn-outline-secondary w-100 py-4" style="border-style:dashed"
+                                    @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
+                                <i class="bi bi-plus-lg me-1"></i>Nouveau ticket
+                            </button>
+                        </div>
                     </div>
                 }
                 else
@@ -165,6 +185,10 @@ else if (_project is not null)
                                         }
                                     }
                                 </div>
+                                <button class="btn btn-link btn-sm text-muted w-100 text-start px-2 py-1"
+                                        @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
+                                    <i class="bi bi-plus-lg me-1"></i>Ajouter
+                                </button>
                             </section>
                         }
                     </div>
@@ -663,6 +687,13 @@ else if (_project is not null)
     private void ShowCreateTicket()
     {
         _ticketForm = new();
+        _modalError = null;
+        _showTicket = true;
+    }
+
+    private void ShowCreateTicketForSprint(Guid? sprintId)
+    {
+        _ticketForm = new() { SprintId = sprintId };
         _modalError = null;
         _showTicket = true;
     }

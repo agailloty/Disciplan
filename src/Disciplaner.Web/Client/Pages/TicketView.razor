@@ -147,7 +147,12 @@ else if (_ticket is not null)
                 </div>
 
                 <div class="text-muted small border-top pt-2 d-flex gap-3 flex-wrap">
-                    <span>Créé le @_ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    <span><i class="bi bi-person me-1"></i>Créé par <strong>@_ticket.ReporterName</strong></span>
+                    @if (_ticket.AssigneeName is not null)
+                    {
+                        <span><i class="bi bi-person-check me-1"></i>Assigné à <strong>@_ticket.AssigneeName</strong></span>
+                    }
+                    <span>le @_ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                     @if (_ticket.UpdatedAt.HasValue)
                     {
                         <span>Modifié le @_ticket.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>

@@ -21,7 +21,9 @@ public sealed record TicketDto(
     Guid? ParentTicketId,
     string? ParentTicketRef,
     string ReporterId,
+    string ReporterName,
     string? AssigneeId,
+    string? AssigneeName,
     DateTime CreatedAt,
     DateTime? UpdatedAt
 );

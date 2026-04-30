@@ -22,6 +22,9 @@ public sealed class TicketApiClient
     public Task<List<TicketDto>?> GetBySprintAsync(Guid sprintId, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<TicketDto>>($"/api/sprints/{sprintId}/tickets", ct);
 
+    public Task<List<TicketDto>?> GetAssignedToMeAsync(CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<TicketDto>>("/api/tickets/mine", ct);
+
     public async Task<TicketDto?> CreateAsync(Guid projectId, CreateTicketRequest request)
     {
         var response = await _http.PostAsJsonAsync($"/api/projects/{projectId}/tickets", request);
