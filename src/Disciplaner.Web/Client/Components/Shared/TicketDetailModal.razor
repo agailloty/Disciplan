@@ -56,15 +56,29 @@
                         @(overdue ? " — en retard" : string.Empty)
                     </span>
                 }
-                @if (Ticket.SprintName is not null)
-                {
-                    <span><i class="bi bi-lightning me-1"></i>@Ticket.SprintName</span>
-                }
                 @if (Ticket.ParentTicketRef is not null)
                 {
                     <span><i class="bi bi-diagram-3 me-1"></i>Parent : @Ticket.ParentTicketRef</span>
                 }
             </div>
+
+            @* Sprint selector *@
+            @if (Sprints.Any())
+            {
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-lightning text-muted flex-shrink-0"></i>
+                    <select class="form-select form-select-sm"
+                            value="@(Ticket.SprintId?.ToString() ?? string.Empty)"
+                            @onchange="OnSprintChangeAsync"
+                            disabled="@_busy">
+                        <option value="">— Backlog —</option>
+                        @foreach (var s in Sprints)
+                        {
+                            <option value="@s.Id">@s.Name</option>
+                        }
+                    </select>
+                </div>
+            }
 
             <div class="text-muted small border-top pt-2 d-flex gap-3 flex-wrap">
                 <span>Créé le @Ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
@@ -133,7 +147,7 @@
             }
 
             <div class="d-flex justify-content-between align-items-center mt-4 border-top pt-3">
-                <a href="/tickets/@Ticket.Id" class="btn btn-sm btn-outline-secondary">
+                <a href="/tickets/@Ticket.TicketRef" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir la page
                 </a>
                 <div class="d-flex gap-2">
@@ -213,6 +227,7 @@
 @code {
     [Parameter, EditorRequired] public TicketDto? Ticket { get; set; }
     [Parameter, EditorRequired] public IEnumerable<TicketStatusDto> Statuses { get; set; } = [];
+    [Parameter] public IEnumerable<SprintDto> Sprints { get; set; } = [];
     [Parameter] public bool Visible { get; set; }
     [Parameter] public Guid? ActiveSprintId { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
@@ -329,6 +344,21 @@
             await OnChanged.InvokeAsync();
         }
         catch { _error = "Impossible de changer le statut."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnSprintChangeAsync(ChangeEventArgs e)
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            var raw = e.Value?.ToString();
+            var sprintId = string.IsNullOrEmpty(raw) ? (Guid?)null : Guid.Parse(raw);
+            await TicketApi.MoveToSprintAsync(Ticket.Id, new MoveTicketToSprintRequest(sprintId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible de changer le sprint."; }
         finally { _busy = false; }
     }
 

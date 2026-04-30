@@ -1,4 +1,5 @@
 @page "/tickets/{Id:guid}"
+@page "/tickets/{Ref}"
 @attribute [Authorize]
 @inject TicketApiClient TicketApi
 @inject ProjectApiClient ProjectApi
@@ -226,6 +227,7 @@ else if (_ticket is not null)
 
 @code {
     [Parameter] public Guid Id { get; set; }
+    [Parameter] public string? Ref { get; set; }
 
     private TicketDto? _ticket;
     private readonly List<TicketStatusDto> _statuses = [];
@@ -263,7 +265,25 @@ else if (_ticket is not null)
         _loading = true; _error = null;
         try
         {
-            _ticket = await TicketApi.GetByIdAsync(Id);
+            if (Id != Guid.Empty)
+            {
+                _ticket = await TicketApi.GetByIdAsync(Id);
+            }
+            else if (!string.IsNullOrEmpty(Ref))
+            {
+                var parts = Ref.Split('-');
+                if (parts.Length >= 2 && int.TryParse(parts[^1], out var num))
+                {
+                    var key = string.Join('-', parts[..^1]);
+                    _ticket = await TicketApi.GetByRefAsync(key, num);
+                }
+                else
+                {
+                    _error = $"Référence invalide : {Ref}";
+                    return;
+                }
+            }
+
             if (_ticket is not null)
             {
                 var project = await ProjectApi.GetProjectAsync(_ticket.ProjectId);
@@ -272,9 +292,13 @@ else if (_ticket is not null)
                     _statuses.AddRange(project.Statuses);
 
                 _commentsLoading = true;
-                try { _comments = await CommentApi.GetByTicketAsync(Id); }
+                try { _comments = await CommentApi.GetByTicketAsync(_ticket.Id); }
                 catch { _comments = []; }
                 finally { _commentsLoading = false; }
+            }
+            else if (_error is null)
+            {
+                _error = "Ticket introuvable.";
             }
         }
         catch { _error = "Impossible de charger ce ticket."; }
