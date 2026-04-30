@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @attribute [Authorize]
 @inject TicketApiClient TicketApi
 @inject ActivityApiClient ActivityApi
@@ -10,132 +10,117 @@
 @using Disciplaner.Application.DTOs.Activity
 @using Disciplaner.Domain.Enums
 
-<PageTitle>Tableau de bord — Disciplaner</PageTitle>
+<PageTitle>Tableau de bord â€” Disciplaner</PageTitle>
 
-<div class="mb-4">
-    <h1 class="h3 mb-0">Bonjour, <strong>@_displayName</strong> 👋</h1>
-    <p class="text-muted small mb-0">@DateTime.Now.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"))</p>
+<div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-900">Bonjour, @_displayName</h1>
+    <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"))</p>
 </div>
 
-<div class="row g-4">
-    @* ── Mes tickets ─────────────────────────────────────────────── *@
-    <div class="col-lg-5">
-        <div class="card shadow-sm h-100">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-2">
-                <span class="fw-semibold"><i class="bi bi-person-check me-2"></i>Mes tickets</span>
-                <a href="/my-tickets" class="btn btn-sm btn-link text-decoration-none p-0">
-                    Voir tous <i class="bi bi-arrow-right ms-1"></i>
-                </a>
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    @* â”€â”€ Mes tickets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+    <div class="lg:col-span-2">
+        <div class="surface">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <span class="text-sm font-semibold text-gray-800">Mes tickets</span>
+                <a href="/my-tickets" class="text-xs text-blue-600 hover:text-blue-800 transition-colors">Voir tous â†’</a>
             </div>
 
-            <div class="card-body p-0">
-                @if (_ticketsLoading)
-                {
-                    <div class="p-3 text-muted small text-center"><LoadingSpinner /></div>
-                }
-                else if (_ticketsError is not null)
-                {
-                    <div class="p-3"><ErrorAlert Message="@_ticketsError" /></div>
-                }
-                else if (_tickets is null || _tickets.Count == 0)
-                {
-                    <div class="p-4 text-center text-muted small">
-                        <i class="bi bi-inbox d-block mb-2" style="font-size:1.8rem"></i>
-                        Aucun ticket assigné.
-                    </div>
-                }
-                else
-                {
-                    <table class="table table-hover table-sm align-middle mb-0">
-                        <tbody>
-                            @foreach (var ticket in _tickets.Take(7))
+            @if (_ticketsLoading)
+            {
+                <LoadingSpinner />
+            }
+            else if (_ticketsError is not null)
+            {
+                <div class="p-4"><ErrorAlert Message="@_ticketsError" /></div>
+            }
+            else if (_tickets is null || _tickets.Count == 0)
+            {
+                <div class="py-12 text-center text-gray-400 text-sm">
+                    <i class="bi bi-inbox text-3xl block mb-2"></i>
+                    Aucun ticket assignÃ©.
+                </div>
+            }
+            else
+            {
+                <div class="divide-y divide-gray-50">
+                    @foreach (var ticket in _tickets.Take(7))
+                    {
+                        var t = ticket;
+                        var ticketUrl = $"/tickets/{t.TicketRef}";
+                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                             @onclick="() => Nav.NavigateTo(ticketUrl)">
+                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                            <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
+                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                            <span class="flex items-center gap-1 shrink-0">
+                                <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
+                                <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
+                            </span>
+                            @if (t.DueDate.HasValue)
                             {
-                                var t = ticket;
-                                <tr style="cursor:pointer" @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
-                                    <td style="width:80px">
-                                        <span class="badge bg-dark font-monospace">@t.TicketRef</span>
-                                    </td>
-                                    <td class="small fw-semibold">@t.Title</td>
-                                    <td style="width:80px">
-                                        <span class="badge @PriorityClass(t.Priority)">@t.Priority</span>
-                                    </td>
-                                    <td style="width:110px">
-                                        <span class="d-inline-flex align-items-center gap-1">
-                                            <span style="width:7px;height:7px;border-radius:50%;background:@t.Status.Color;display:inline-block;flex-shrink:0"></span>
-                                            <span class="text-muted" style="font-size:.7rem">@t.Status.Name</span>
-                                        </span>
-                                    </td>
-                                    <td style="width:60px" class="text-end">
-                                        @if (t.DueDate.HasValue)
-                                        {
-                                            var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                            <span class="small @(overdue ? "text-danger" : "text-muted")">
-                                                @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
-                                            </span>
-                                        }
-                                    </td>
-                                </tr>
+                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                    @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                                </span>
                             }
-                        </tbody>
-                    </table>
-                }
-            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 
-    @* ── Activité récente ─────────────────────────────────────────── *@
-    <div class="col-lg-7">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-transparent py-2">
-                <span class="fw-semibold"><i class="bi bi-clock-history me-2"></i>Activité récente</span>
+    @* â”€â”€ ActivitÃ© rÃ©cente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+    <div class="lg:col-span-3">
+        <div class="surface">
+            <div class="px-4 py-3 border-b border-gray-100">
+                <span class="text-sm font-semibold text-gray-800">ActivitÃ© rÃ©cente</span>
             </div>
 
-            <div class="card-body p-0" style="max-height:520px;overflow-y:auto">
+            <div class="overflow-y-auto" style="max-height:520px">
                 @if (_activityLoading)
                 {
-                    <div class="p-3 text-center"><LoadingSpinner /></div>
+                    <LoadingSpinner />
                 }
                 else if (_activityError is not null)
                 {
-                    <div class="p-3"><ErrorAlert Message="@_activityError" /></div>
+                    <div class="p-4"><ErrorAlert Message="@_activityError" /></div>
                 }
                 else if (_activity is null || _activity.Count == 0)
                 {
-                    <div class="p-4 text-center text-muted small">
-                        <i class="bi bi-calendar-x d-block mb-2" style="font-size:1.8rem"></i>
-                        Aucune activité récente.
+                    <div class="py-12 text-center text-gray-400 text-sm">
+                        <i class="bi bi-calendar-x text-3xl block mb-2"></i>
+                        Aucune activitÃ© rÃ©cente.
                     </div>
                 }
                 else
                 {
-                    <ul class="list-group list-group-flush">
+                    <div class="divide-y divide-gray-50">
                         @foreach (var item in _activity)
                         {
                             var a = item;
-                            <li class="list-group-item px-3 py-2">
-                                <div class="d-flex align-items-start gap-2">
-                                    <span class="activity-icon flex-shrink-0 mt-1 @ActivityIconClass(a.Kind)"
-                                          title="@ActivityLabel(a.Kind)">
-                                        <i class="bi @ActivityIcon(a.Kind)"></i>
-                                    </span>
-                                    <div class="flex-grow-1 min-w-0">
-                                        <div class="small fw-semibold">@ActivityLabel(a.Kind)</div>
-                                        <div class="text-muted small text-truncate">@a.Summary</div>
-                                    </div>
-                                    <div class="text-end flex-shrink-0">
-                                        @if (a.TicketRef is not null && a.TicketId.HasValue)
-                                        {
-                                            <a href="/tickets/@a.TicketRef"
-                                               class="badge bg-dark font-monospace text-decoration-none me-1">
-                                                @a.TicketRef
-                                            </a>
-                                        }
-                                        <div class="text-muted" style="font-size:.7rem">@RelativeTime(a.OccurredAt)</div>
-                                    </div>
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="mt-0.5 shrink-0 @ActivityIconColor(a.Kind)">
+                                    <i class="bi @ActivityIcon(a.Kind) text-sm"></i>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-semibold text-gray-700">@ActivityLabel(a.Kind)</div>
+                                    <div class="text-xs text-gray-500 truncate">@a.Summary</div>
                                 </div>
-                            </li>
+                                <div class="text-right shrink-0">
+                                    @if (a.TicketRef is not null && a.TicketId.HasValue)
+                                    {
+                                        <a href="/tickets/@a.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">
+                                            @a.TicketRef
+                                        </a>
+                                    }
+                                    <div class="text-gray-400" style="font-size:.68rem;margin-top:.1rem">@RelativeTime(a.OccurredAt)</div>
+                                </div>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 }
             </div>
         </div>
@@ -146,7 +131,6 @@
     private string? _displayName;
     private List<TicketDto>? _tickets;
     private List<ActivityItemDto>? _activity;
-
     private bool _ticketsLoading = true;
     private bool _activityLoading = true;
     private string? _ticketsError;
@@ -159,10 +143,7 @@
                     ?? authState.User.FindFirst(ClaimTypes.Name)?.Value
                     ?? authState.User.FindFirst(ClaimTypes.Email)?.Value
                     ?? "vous";
-
-        var ticketsTask = LoadTicketsAsync();
-        var activityTask = LoadActivityAsync();
-        await Task.WhenAll(ticketsTask, activityTask);
+        await Task.WhenAll(LoadTicketsAsync(), LoadActivityAsync());
     }
 
     private async Task LoadTicketsAsync()
@@ -175,17 +156,17 @@
     private async Task LoadActivityAsync()
     {
         try { _activity = await ActivityApi.GetRecentAsync(20); }
-        catch { _activityError = "Impossible de charger l'activité."; }
+        catch { _activityError = "Impossible de charger l'activitÃ©."; }
         finally { _activityLoading = false; }
     }
 
-    private static string PriorityClass(CardPriority p) => p switch
+    private static string PriorityBadge(CardPriority p) => p switch
     {
-        CardPriority.Low      => "bg-secondary",
-        CardPriority.Medium   => "bg-info text-dark",
-        CardPriority.High     => "bg-warning text-dark",
-        CardPriority.Critical => "bg-danger",
-        _                     => "bg-secondary"
+        CardPriority.Low      => "badge-prio-low",
+        CardPriority.Medium   => "badge-prio-medium",
+        CardPriority.High     => "badge-prio-high",
+        CardPriority.Critical => "badge-prio-critical",
+        _                     => "badge-gray"
     };
 
     private static string ActivityIcon(string kind) => kind switch
@@ -195,27 +176,24 @@
         "comment_added"  => "bi-chat-left-fill",
         _                => "bi-activity"
     };
-
-    private static string ActivityIconClass(string kind) => kind switch
+    private static string ActivityIconColor(string kind) => kind switch
     {
-        "ticket_created" => "text-success",
-        "ticket_updated" => "text-warning",
-        "comment_added"  => "text-primary",
-        _                => "text-secondary"
+        "ticket_created" => "text-green-500",
+        "ticket_updated" => "text-amber-500",
+        "comment_added"  => "text-blue-500",
+        _                => "text-gray-400"
     };
-
     private static string ActivityLabel(string kind) => kind switch
     {
-        "ticket_created" => "Ticket créé",
-        "ticket_updated" => "Ticket modifié",
-        "comment_added"  => "Commentaire ajouté",
+        "ticket_created" => "Ticket crÃ©Ã©",
+        "ticket_updated" => "Ticket modifiÃ©",
+        "comment_added"  => "Commentaire ajoutÃ©",
         _                => kind
     };
-
     private static string RelativeTime(DateTime utc)
     {
         var diff = DateTime.UtcNow - utc;
-        if (diff.TotalMinutes < 1)  return "à l'instant";
+        if (diff.TotalMinutes < 1)  return "Ã  l'instant";
         if (diff.TotalMinutes < 60) return $"il y a {(int)diff.TotalMinutes} min";
         if (diff.TotalHours < 24)   return $"il y a {(int)diff.TotalHours} h";
         if (diff.TotalDays < 7)     return $"il y a {(int)diff.TotalDays} j";

@@ -15,14 +15,14 @@ else if (_error is not null)
 }
 else if (_board is not null)
 {
-    <div class="d-flex align-items-center mb-3 gap-2">
-        <h1 class="h3 mb-0 flex-grow-1">@_board.Name</h1>
+    <div class="flex items-center mb-4 gap-2">
+        <h1 class="text-2xl font-semibold text-gray-900 flex-1">@_board.Name</h1>
         @if (_board.Description is not null)
         {
-            <span class="text-muted small">@_board.Description</span>
+            <span class="text-gray-400 text-sm">@_board.Description</span>
         }
-        <button class="btn btn-sm btn-outline-secondary" @onclick="ShowEditModal">✎ Modifier</button>
-        <button class="btn btn-sm btn-outline-danger" @onclick="() => _showDelete = true">✕ Supprimer</button>
+        <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">✎ Modifier</button>
+        <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">✕ Supprimer</button>
     </div>
 
     <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
@@ -34,19 +34,19 @@ else if (_board is not null)
         <DataAnnotationsValidator />
         <div class="mb-3">
             <label class="form-label">Nom</label>
-            <InputText @bind-Value="_form.Name" class="form-control" />
+            <InputText @bind-Value="_form.Name" class="form-input" />
             <ValidationMessage For="() => _form.Name" />
         </div>
         <div class="mb-3">
             <label class="form-label">Description (optionnel)</label>
-            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="2" />
+            <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="2" />
         </div>
         @if (_formError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_formError</div>
+            <ErrorAlert Message="@_formError" />
         }
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
         </div>
     </EditForm>

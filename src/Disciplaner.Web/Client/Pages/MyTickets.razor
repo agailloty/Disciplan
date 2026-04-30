@@ -8,9 +8,12 @@
 
 <PageTitle>Mes tickets — Disciplaner</PageTitle>
 
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0"><i class="bi bi-person-check me-2"></i>Mes tickets</h1>
-    <span class="badge bg-secondary">@(_tickets?.Count ?? 0) ticket(s)</span>
+<div class="flex items-center justify-between mb-6">
+    <h1 class="page-title">Mes tickets</h1>
+    @if (_tickets is not null)
+    {
+        <span class="badge badge-gray">@_tickets.Count ticket(s)</span>
+    }
 </div>
 
 @if (_loading)
@@ -23,67 +26,64 @@ else if (_error is not null)
 }
 else if (_tickets is not null && _tickets.Count == 0)
 {
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-inbox display-4 d-block mb-3"></i>
-        <p>Aucun ticket ne vous est assigné pour l'instant.</p>
+    <div class="text-center py-20 text-gray-400">
+        <i class="bi bi-inbox text-5xl block mb-3"></i>
+        <p class="text-sm">Aucun ticket ne vous est assigné pour l'instant.</p>
     </div>
 }
 else if (_tickets is not null)
 {
-    @* Group by status category *@
-    var groups = _tickets
-        .GroupBy(t => t.Status.Category)
-        .OrderBy(g => g.Key)
-        .ToList();
+    var groups = _tickets.GroupBy(t => t.Status.Category).OrderBy(g => g.Key).ToList();
 
     @foreach (var group in groups)
     {
         var g = group;
-        <div class="mb-4">
-            <h6 class="text-muted text-uppercase small mb-2">@CategoryLabel(g.Key)</h6>
-            <div class="table-responsive shadow-sm rounded">
-                <table class="table table-hover table-sm align-middle mb-0 bg-white">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width:90px">Réf.</th>
-                            <th>Titre</th>
-                            <th style="width:90px">Priorité</th>
-                            <th style="width:130px">Statut</th>
-                            <th style="width:130px">Sprint</th>
-                            <th style="width:100px">Échéance</th>
-                            <th style="width:80px">Projet</th>
+        <div class="mb-6">
+            <div class="section-label mb-2">@CategoryLabel(g.Key)</div>
+            <div class="surface overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 text-left">
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">Réf.</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500">Titre</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">Priorité</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">Statut</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">Sprint</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-28">Échéance</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-20">Projet</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-gray-50">
                         @foreach (var ticket in g.OrderBy(t => t.CreatedAt))
                         {
                             var t = ticket;
-                            <tr style="cursor:pointer" @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
-                                <td><span class="badge bg-dark font-monospace">@t.TicketRef</span></td>
-                                <td class="fw-semibold small">@t.Title</td>
-                                <td><span class="badge @PriorityClass(t.Priority)">@t.Priority</span></td>
-                                <td>
-                                    <span class="d-inline-flex align-items-center gap-1">
-                                        <span style="width:8px;height:8px;border-radius:50%;background:@t.Status.Color;display:inline-block;flex-shrink:0"></span>
-                                        <span class="small text-muted">@t.Status.Name</span>
+                            <tr class="hover:bg-gray-50 cursor-pointer transition-colors"
+                                @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
+                                <td class="px-4 py-2.5"><span class="badge badge-dark font-mono">@t.TicketRef</span></td>
+                                <td class="px-4 py-2.5 font-medium text-gray-900">@t.Title</td>
+                                <td class="px-4 py-2.5"><span class="badge @PriorityBadge(t.Priority)">@t.Priority</span></td>
+                                <td class="px-4 py-2.5">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full shrink-0" style="background:@t.Status.Color"></span>
+                                        <span class="text-xs text-gray-600">@t.Status.Name</span>
                                     </span>
                                 </td>
-                                <td class="text-muted small">
+                                <td class="px-4 py-2.5 text-xs text-gray-500">
                                     @if (t.SprintName is not null)
                                     {
-                                        <span><i class="bi bi-lightning me-1"></i>@t.SprintName</span>
+                                        <span><i class="bi bi-lightning mr-1"></i>@t.SprintName</span>
                                     }
                                 </td>
-                                <td>
+                                <td class="px-4 py-2.5">
                                     @if (t.DueDate.HasValue)
                                     {
                                         var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                        <span class="small @(overdue ? "text-danger fw-semibold" : "text-muted")">
-                                            <i class="bi bi-calendar3 me-1"></i>@t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                        <span class="text-xs @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                            @t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
                                         </span>
                                     }
                                 </td>
-                                <td><span class="badge bg-secondary">@t.ProjectKey</span></td>
+                                <td class="px-4 py-2.5"><span class="badge badge-gray">@t.ProjectKey</span></td>
                             </tr>
                         }
                     </tbody>
@@ -100,18 +100,9 @@ else if (_tickets is not null)
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _tickets = await TicketApi.GetAssignedToMeAsync() ?? [];
-        }
-        catch
-        {
-            _error = "Impossible de charger vos tickets.";
-        }
-        finally
-        {
-            _loading = false;
-        }
+        try { _tickets = await TicketApi.GetAssignedToMeAsync() ?? []; }
+        catch { _error = "Impossible de charger vos tickets."; }
+        finally { _loading = false; }
     }
 
     private static string CategoryLabel(StatusCategory c) => c switch
@@ -122,12 +113,12 @@ else if (_tickets is not null)
         _                         => c.ToString()
     };
 
-    private static string PriorityClass(CardPriority p) => p switch
+    private static string PriorityBadge(CardPriority p) => p switch
     {
-        CardPriority.Low      => "bg-secondary",
-        CardPriority.Medium   => "bg-info text-dark",
-        CardPriority.High     => "bg-warning text-dark",
-        CardPriority.Critical => "bg-danger",
-        _                     => "bg-secondary"
+        CardPriority.Low      => "badge-prio-low",
+        CardPriority.Medium   => "badge-prio-medium",
+        CardPriority.High     => "badge-prio-high",
+        CardPriority.Critical => "badge-prio-critical",
+        _                     => "badge-gray"
     };
 }

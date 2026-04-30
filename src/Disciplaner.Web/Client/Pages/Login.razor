@@ -1,34 +1,42 @@
-@page "/login"
+﻿@page "/login"
 @layout AuthLayout
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
 
-<div class="card shadow-sm" style="max-width:420px; margin:auto; margin-top:6rem;">
-    <div class="card-body p-4">
-        <h1 class="h4 mb-4 text-center">Disciplaner</h1>
+<div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
+    @* Logo *@
+    <div class="text-center mb-8">
+        <span style="font-size:2rem">&#9654;</span>
+        <h1 class="text-xl font-semibold text-gray-900 mt-2">Disciplaner</h1>
+        <p class="text-sm text-gray-500 mt-1">Connectez-vous pour continuer</p>
+    </div>
 
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
         @if (_error is not null)
         {
-            <div class="alert alert-danger">@_error</div>
+            <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                <i class="bi bi-exclamation-circle shrink-0"></i>
+                <span>@_error</span>
+            </div>
         }
 
         <EditForm Model="_model" OnValidSubmit="HandleLoginAsync">
             <DataAnnotationsValidator />
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <InputText @bind-Value="_model.Email" class="form-control" type="email" autocomplete="email" />
+            <div class="mb-4">
+                <label class="form-label">Adresse e-mail</label>
+                <InputText @bind-Value="_model.Email" class="form-input" type="email" autocomplete="email" />
                 <ValidationMessage For="() => _model.Email" />
             </div>
 
-            <div class="mb-3">
+            <div class="mb-6">
                 <label class="form-label">Mot de passe</label>
-                <InputText @bind-Value="_model.Password" class="form-control" type="password" autocomplete="current-password" />
+                <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="current-password" />
                 <ValidationMessage For="() => _model.Password" />
             </div>
 
-            <button type="submit" class="btn btn-primary w-100" disabled="@_loading">
-                @(_loading ? "Connexion…" : "Se connecter")
+            <button type="submit" class="btn btn-primary btn-full" disabled="@_loading">
+                @(_loading ? "Connexionâ€¦" : "Se connecter")
             </button>
         </EditForm>
     </div>

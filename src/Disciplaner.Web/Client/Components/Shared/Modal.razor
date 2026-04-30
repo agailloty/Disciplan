@@ -1,22 +1,23 @@
-@* Generic modal wrapper. Handles overlay + close button.
-   Usage:
-     <Modal Title="Mon titre" OnClose="() => _show = false">
-         <p>Contenu ici…</p>
-     </Modal>
-*@
-
 @if (Visible)
 {
-    <div class="modal d-block" tabindex="-1" @onkeydown="OnKeyDown" style="background:rgba(0,0,0,.45)">
-        <div class="modal-dialog @SizeClass">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@Title</h5>
-                    <button type="button" class="btn-close" @onclick="CloseAsync"></button>
-                </div>
-                <div class="modal-body">
-                    @ChildContent
-                </div>
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
+         style="background:rgba(0,0,0,.45); padding-top:3rem; padding-bottom:3rem"
+         @onclick="OnOverlayClick">
+        <div class="bg-white rounded-xl shadow-2xl w-full @MaxWidthClass mx-4 flex flex-col"
+             style="max-height:90vh"
+             @onclick:stopPropagation
+             @onkeydown="OnKeyDown" tabindex="-1">
+            @* Header *@
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h2 class="font-semibold text-base text-gray-900">@Title</h2>
+                <button class="text-gray-400 hover:text-gray-600 transition-colors ml-4"
+                        @onclick="CloseAsync" type="button" aria-label="Fermer">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+            @* Body *@
+            <div class="px-6 py-5 overflow-y-auto flex-1">
+                @ChildContent
             </div>
         </div>
     </div>
@@ -27,15 +28,23 @@
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-
     /// <summary>"modal-lg" | "modal-sm" | "" (default)</summary>
     [Parameter] public string SizeClass { get; set; } = string.Empty;
 
+    private string MaxWidthClass => SizeClass switch
+    {
+        "modal-lg" => "max-w-3xl",
+        "modal-xl" => "max-w-5xl",
+        "modal-sm" => "max-w-sm",
+        _          => "max-w-lg"
+    };
+
     private Task CloseAsync() => OnClose.InvokeAsync();
+
+    private async Task OnOverlayClick() => await CloseAsync();
 
     private async Task OnKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Escape")
-            await CloseAsync();
+        if (e.Key == "Escape") await CloseAsync();
     }
 }
