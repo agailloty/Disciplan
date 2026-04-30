@@ -1,0 +1,224 @@
+@page "/"
+@attribute [Authorize]
+@inject TicketApiClient TicketApi
+@inject ActivityApiClient ActivityApi
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+@using System.Security.Claims
+@using Disciplaner.Application.DTOs.Ticket
+@using Disciplaner.Application.DTOs.Activity
+@using Disciplaner.Domain.Enums
+
+<PageTitle>Tableau de bord — Disciplaner</PageTitle>
+
+<div class="mb-4">
+    <h1 class="h3 mb-0">Bonjour, <strong>@_displayName</strong> 👋</h1>
+    <p class="text-muted small mb-0">@DateTime.Now.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"))</p>
+</div>
+
+<div class="row g-4">
+    @* ── Mes tickets ─────────────────────────────────────────────── *@
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-2">
+                <span class="fw-semibold"><i class="bi bi-person-check me-2"></i>Mes tickets</span>
+                <a href="/my-tickets" class="btn btn-sm btn-link text-decoration-none p-0">
+                    Voir tous <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+                @if (_ticketsLoading)
+                {
+                    <div class="p-3 text-muted small text-center"><LoadingSpinner /></div>
+                }
+                else if (_ticketsError is not null)
+                {
+                    <div class="p-3"><ErrorAlert Message="@_ticketsError" /></div>
+                }
+                else if (_tickets is null || _tickets.Count == 0)
+                {
+                    <div class="p-4 text-center text-muted small">
+                        <i class="bi bi-inbox d-block mb-2" style="font-size:1.8rem"></i>
+                        Aucun ticket assigné.
+                    </div>
+                }
+                else
+                {
+                    <table class="table table-hover table-sm align-middle mb-0">
+                        <tbody>
+                            @foreach (var ticket in _tickets.Take(7))
+                            {
+                                var t = ticket;
+                                <tr style="cursor:pointer" @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
+                                    <td style="width:80px">
+                                        <span class="badge bg-dark font-monospace">@t.TicketRef</span>
+                                    </td>
+                                    <td class="small fw-semibold">@t.Title</td>
+                                    <td style="width:80px">
+                                        <span class="badge @PriorityClass(t.Priority)">@t.Priority</span>
+                                    </td>
+                                    <td style="width:110px">
+                                        <span class="d-inline-flex align-items-center gap-1">
+                                            <span style="width:7px;height:7px;border-radius:50%;background:@t.Status.Color;display:inline-block;flex-shrink:0"></span>
+                                            <span class="text-muted" style="font-size:.7rem">@t.Status.Name</span>
+                                        </span>
+                                    </td>
+                                    <td style="width:60px" class="text-end">
+                                        @if (t.DueDate.HasValue)
+                                        {
+                                            var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                            <span class="small @(overdue ? "text-danger" : "text-muted")">
+                                                @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── Activité récente ─────────────────────────────────────────── *@
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent py-2">
+                <span class="fw-semibold"><i class="bi bi-clock-history me-2"></i>Activité récente</span>
+            </div>
+
+            <div class="card-body p-0" style="max-height:520px;overflow-y:auto">
+                @if (_activityLoading)
+                {
+                    <div class="p-3 text-center"><LoadingSpinner /></div>
+                }
+                else if (_activityError is not null)
+                {
+                    <div class="p-3"><ErrorAlert Message="@_activityError" /></div>
+                }
+                else if (_activity is null || _activity.Count == 0)
+                {
+                    <div class="p-4 text-center text-muted small">
+                        <i class="bi bi-calendar-x d-block mb-2" style="font-size:1.8rem"></i>
+                        Aucune activité récente.
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in _activity)
+                        {
+                            var a = item;
+                            <li class="list-group-item px-3 py-2">
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="activity-icon flex-shrink-0 mt-1 @ActivityIconClass(a.Kind)"
+                                          title="@ActivityLabel(a.Kind)">
+                                        <i class="bi @ActivityIcon(a.Kind)"></i>
+                                    </span>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="small fw-semibold">@ActivityLabel(a.Kind)</div>
+                                        <div class="text-muted small text-truncate">@a.Summary</div>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        @if (a.TicketRef is not null && a.TicketId.HasValue)
+                                        {
+                                            <a href="/tickets/@a.TicketRef"
+                                               class="badge bg-dark font-monospace text-decoration-none me-1">
+                                                @a.TicketRef
+                                            </a>
+                                        }
+                                        <div class="text-muted" style="font-size:.7rem">@RelativeTime(a.OccurredAt)</div>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _displayName;
+    private List<TicketDto>? _tickets;
+    private List<ActivityItemDto>? _activity;
+
+    private bool _ticketsLoading = true;
+    private bool _activityLoading = true;
+    private string? _ticketsError;
+    private string? _activityError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _displayName = authState.User.FindFirst("displayName")?.Value
+                    ?? authState.User.FindFirst(ClaimTypes.Name)?.Value
+                    ?? authState.User.FindFirst(ClaimTypes.Email)?.Value
+                    ?? "vous";
+
+        var ticketsTask = LoadTicketsAsync();
+        var activityTask = LoadActivityAsync();
+        await Task.WhenAll(ticketsTask, activityTask);
+    }
+
+    private async Task LoadTicketsAsync()
+    {
+        try { _tickets = await TicketApi.GetAssignedToMeAsync(); }
+        catch { _ticketsError = "Impossible de charger les tickets."; }
+        finally { _ticketsLoading = false; }
+    }
+
+    private async Task LoadActivityAsync()
+    {
+        try { _activity = await ActivityApi.GetRecentAsync(20); }
+        catch { _activityError = "Impossible de charger l'activité."; }
+        finally { _activityLoading = false; }
+    }
+
+    private static string PriorityClass(CardPriority p) => p switch
+    {
+        CardPriority.Low      => "bg-secondary",
+        CardPriority.Medium   => "bg-info text-dark",
+        CardPriority.High     => "bg-warning text-dark",
+        CardPriority.Critical => "bg-danger",
+        _                     => "bg-secondary"
+    };
+
+    private static string ActivityIcon(string kind) => kind switch
+    {
+        "ticket_created" => "bi-plus-circle-fill",
+        "ticket_updated" => "bi-pencil-fill",
+        "comment_added"  => "bi-chat-left-fill",
+        _                => "bi-activity"
+    };
+
+    private static string ActivityIconClass(string kind) => kind switch
+    {
+        "ticket_created" => "text-success",
+        "ticket_updated" => "text-warning",
+        "comment_added"  => "text-primary",
+        _                => "text-secondary"
+    };
+
+    private static string ActivityLabel(string kind) => kind switch
+    {
+        "ticket_created" => "Ticket créé",
+        "ticket_updated" => "Ticket modifié",
+        "comment_added"  => "Commentaire ajouté",
+        _                => kind
+    };
+
+    private static string RelativeTime(DateTime utc)
+    {
+        var diff = DateTime.UtcNow - utc;
+        if (diff.TotalMinutes < 1)  return "à l'instant";
+        if (diff.TotalMinutes < 60) return $"il y a {(int)diff.TotalMinutes} min";
+        if (diff.TotalHours < 24)   return $"il y a {(int)diff.TotalHours} h";
+        if (diff.TotalDays < 7)     return $"il y a {(int)diff.TotalDays} j";
+        return utc.ToLocalTime().ToString("dd/MM/yyyy");
+    }
+}

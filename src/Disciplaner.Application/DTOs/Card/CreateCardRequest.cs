@@ -12,5 +12,7 @@ public sealed record CreateCardRequest(
 
     CardPriority Priority = CardPriority.Medium,
 
-    DateTime? DueDate = null
+    DateTime? DueDate = null,
+
+    string? AssignedToId = null
 );

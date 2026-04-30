@@ -53,10 +53,19 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AssignedToId")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("ColumnId")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasMaxLength(450)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -127,7 +136,7 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CardId")
+                    b.Property<Guid?>("CardId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
@@ -138,6 +147,9 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("TicketId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -145,7 +157,189 @@ namespace Disciplaner.Infrastructure.Data.Migrations
 
                     b.HasIndex("CardId", "CreatedAt");
 
+                    b.HasIndex("TicketId", "CreatedAt");
+
                     b.ToTable("Comments", (string)null);
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Project", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("_nextTicketNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1)
+                        .HasColumnName("NextTicketNumber");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Projects", (string)null);
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Sprint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Goal")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Sprints");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Ticket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AssigneeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ParentTicketId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReporterId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SprintId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("StatusId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("StoryPoints")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TicketNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentTicketId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("SprintId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.TicketStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("TicketStatuses");
                 });
 
             modelBuilder.Entity("Disciplaner.Infrastructure.Identity.ApplicationUser", b =>
@@ -377,10 +571,69 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.HasOne("Disciplaner.Domain.Entities.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Disciplaner.Domain.Entities.Ticket", "Ticket")
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Sprint", b =>
+                {
+                    b.HasOne("Disciplaner.Domain.Entities.Project", "Project")
+                        .WithMany("Sprints")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Card");
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Ticket", b =>
+                {
+                    b.HasOne("Disciplaner.Domain.Entities.Ticket", "ParentTicket")
+                        .WithMany()
+                        .HasForeignKey("ParentTicketId");
+
+                    b.HasOne("Disciplaner.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Disciplaner.Domain.Entities.Sprint", "Sprint")
+                        .WithMany()
+                        .HasForeignKey("SprintId");
+
+                    b.HasOne("Disciplaner.Domain.Entities.TicketStatus", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentTicket");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Sprint");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.TicketStatus", b =>
+                {
+                    b.HasOne("Disciplaner.Domain.Entities.Project", "Project")
+                        .WithMany("Statuses")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -442,6 +695,13 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             modelBuilder.Entity("Disciplaner.Domain.Entities.Column", b =>
                 {
                     b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.Project", b =>
+                {
+                    b.Navigation("Sprints");
+
+                    b.Navigation("Statuses");
                 });
 #pragma warning restore 612, 618
         }

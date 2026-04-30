@@ -16,9 +16,22 @@ public sealed class CommentApiClient
         return result?.AsReadOnly() ?? (IReadOnlyList<CommentDto>)[];
     }
 
+    public async Task<IReadOnlyList<CommentDto>> GetByTicketAsync(Guid ticketId)
+    {
+        var result = await _http.GetFromJsonAsync<List<CommentDto>>($"/api/tickets/{ticketId}/comments");
+        return result?.AsReadOnly() ?? (IReadOnlyList<CommentDto>)[];
+    }
+
     public async Task<CommentDto?> CreateAsync(Guid cardId, CreateCommentRequest request)
     {
         var response = await _http.PostAsJsonAsync($"/api/cards/{cardId}/comments", request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CommentDto>();
+    }
+
+    public async Task<CommentDto?> CreateForTicketAsync(Guid ticketId, CreateCommentRequest request)
+    {
+        var response = await _http.PostAsJsonAsync($"/api/tickets/{ticketId}/comments", request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<CommentDto>();
     }

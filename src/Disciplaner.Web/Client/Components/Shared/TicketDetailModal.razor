@@ -1,0 +1,458 @@
+@inject TicketApiClient TicketApi
+@inject CommentApiClient CommentApi
+@inject UserApiClient UserApi
+@using Disciplaner.Application.DTOs.User
+
+@if (Visible && Ticket is not null)
+{
+    <Modal Title="@Ticket.TicketRef" Visible="true" OnClose="CloseAsync" SizeClass="modal-lg">
+
+        @if (!_editing)
+        {
+            @* ── Detail view ─────────────────────────────────────────────────── *@
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <span class="badge bg-dark">@Ticket.TicketRef</span>
+                <span class="fw-semibold flex-grow-1 fs-6">@Ticket.Title</span>
+                <span class="badge bg-light text-dark border">@Ticket.Type</span>
+                <span class="badge @PriorityClass(Ticket.Priority)">@Ticket.Priority</span>
+            </div>
+
+            @* Status selector *@
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="status-dot flex-shrink-0" style="background:@Ticket.Status.Color"></span>
+                <select class="form-select form-select-sm ticket-status-select"
+                        value="@Ticket.Status.Id"
+                        @onchange="OnStatusChangeAsync"
+                        disabled="@_busy">
+                    @foreach (var s in Statuses.OrderBy(s => s.Order))
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                </select>
+            </div>
+
+            @* Description *@
+            @if (!string.IsNullOrWhiteSpace(Ticket.Description))
+            {
+                <div class="mb-3">
+                    <p class="form-label fw-semibold text-muted small text-uppercase mb-1">Description</p>
+                    <div class="card-detail-description">@Ticket.Description</div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted fst-italic small mb-3">Aucune description.</p>
+            }
+
+            @* Meta *@
+            <div class="d-flex flex-wrap gap-3 text-muted small mb-3">
+                @if (Ticket.StoryPoints.HasValue)
+                {
+                    <span><i class="bi bi-stars me-1"></i>@Ticket.StoryPoints pts</span>
+                }
+                @if (Ticket.DueDate.HasValue)
+                {
+                    var overdue = Ticket.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                    <span class="@(overdue ? "text-danger fw-semibold" : string.Empty)">
+                        <i class="bi bi-calendar3 me-1"></i>@Ticket.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                        @(overdue ? " — en retard" : string.Empty)
+                    </span>
+                }
+                @if (Ticket.ParentTicketRef is not null)
+                {
+                    <span><i class="bi bi-diagram-3 me-1"></i>Parent : @Ticket.ParentTicketRef</span>
+                }
+            </div>
+
+            @* Sprint selector *@
+            @if (Sprints.Any())
+            {
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-lightning text-muted flex-shrink-0"></i>
+                    <select class="form-select form-select-sm"
+                            value="@(Ticket.SprintId?.ToString() ?? string.Empty)"
+                            @onchange="OnSprintChangeAsync"
+                            disabled="@_busy">
+                        <option value="">— Backlog —</option>
+                        @foreach (var s in Sprints)
+                        {
+                            <option value="@s.Id">@s.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            @* Assignee selector *@
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-person-check text-muted flex-shrink-0"></i>
+                <select class="form-select form-select-sm"
+                        value="@(Ticket.AssigneeId ?? string.Empty)"
+                        @onchange="OnAssigneeChangeAsync"
+                        disabled="@_busy">
+                    <option value="">— Non assigné —</option>
+                    @foreach (var u in _users)
+                    {
+                        <option value="@u.Id">@u.DisplayName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="text-muted small border-top pt-2 d-flex gap-3 flex-wrap">
+                <span><i class="bi bi-person me-1"></i>Créé par <strong>@(Ticket.ReporterName)</strong></span>
+                <span>le @Ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                @if (Ticket.UpdatedAt.HasValue)
+                {
+                    <span>Modifié le @Ticket.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                }
+            </div>
+
+            @* ── Comments ────────────────────────────────────────────────────── *@
+            <div class="mt-4">
+                <p class="fw-semibold text-muted small text-uppercase mb-2"><i class="bi bi-chat-left-text me-1"></i>Commentaires</p>
+
+                @if (_commentsLoading)
+                {
+                    <p class="text-muted small">Chargement…</p>
+                }
+                else
+                {
+                    @foreach (var c in _comments)
+                    {
+                        <div class="d-flex gap-2 mb-3">
+                            <div class="flex-shrink-0 rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:30px;height:30px;font-size:.75rem">
+                                @(c.AuthorName.Length > 0 ? c.AuthorName[0].ToString().ToUpper() : "?")
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex gap-2 align-items-baseline mb-1">
+                                    <span class="fw-semibold small">@c.AuthorName</span>
+                                    <span class="text-muted" style="font-size:.72rem">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                @if (_editingCommentId == c.Id)
+                                {
+                                    <textarea class="form-control form-control-sm" rows="2" @bind="_editCommentContent"></textarea>
+                                    <div class="d-flex gap-1 mt-1">
+                                        <button class="btn btn-sm btn-primary py-0" @onclick="() => SaveCommentEditAsync(c.Id)">Sauvegarder</button>
+                                        <button class="btn btn-sm btn-secondary py-0" @onclick="() => _editingCommentId = null">Annuler</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="small">@c.Content</div>
+                                    <div class="d-flex gap-2 mt-1">
+                                        <button class="btn btn-link btn-sm p-0 text-muted" style="font-size:.72rem" @onclick="() => StartEditComment(c)">Modifier</button>
+                                        <button class="btn btn-link btn-sm p-0 text-danger" style="font-size:.72rem" @onclick="() => DeleteCommentAsync(c.Id)">Supprimer</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @* Add comment *@
+                    <div class="d-flex gap-2 mt-2">
+                        <div class="flex-grow-1">
+                            <textarea class="form-control form-control-sm" rows="2" placeholder="Ajouter un commentaire…" @bind="_newCommentContent"></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-primary align-self-end" @onclick="AddCommentAsync" disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="alert alert-danger py-1 small mt-2">@_error</div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mt-4 border-top pt-3">
+                <a href="/tickets/@Ticket.TicketRef" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir la page
+                </a>
+                <div class="d-flex gap-2">
+                    @if (ActiveSprintId.HasValue && Ticket.SprintId is null)
+                    {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="OnAddToSprintAsync" disabled="@_busy">
+                            <i class="bi bi-lightning me-1"></i>Sprint
+                        </button>
+                    }
+                    <button class="btn btn-sm btn-outline-danger" @onclick="OnDeleteAsync" disabled="@_busy">
+                        <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                    <button class="btn btn-sm btn-primary" @onclick="EnterEdit">
+                        <i class="bi bi-pencil me-1"></i>Modifier
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* ── Edit form ────────────────────────────────────────────────────── *@
+            <EditForm Model="_form" OnValidSubmit="OnSaveAsync">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Titre</label>
+                    <InputText class="form-control" @bind-Value="_form.Title" />
+                    <ValidationMessage For="() => _form.Title" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <InputTextArea class="form-control" rows="4" @bind-Value="_form.Description" />
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Type</label>
+                        <InputSelect class="form-select" @bind-Value="_form.Type">
+                            @foreach (var type in Enum.GetValues<TicketType>())
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Priorité</label>
+                        <InputSelect class="form-select" @bind-Value="_form.Priority">
+                            @foreach (var priority in Enum.GetValues<CardPriority>())
+                            {
+                                <option value="@priority">@priority</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Story points</label>
+                        <InputNumber class="form-control" @bind-Value="_form.StoryPoints" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Échéance</label>
+                        <InputDate class="form-control" @bind-Value="_form.DueDate" />
+                    </div>
+                </div>
+
+                @if (_error is not null)
+                {
+                    <div class="alert alert-danger py-1 small mt-3">@_error</div>
+                }
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn btn-secondary" @onclick="() => _editing = false" disabled="@_busy">Annuler</button>
+                    <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+                </div>
+            </EditForm>
+        }
+
+    </Modal>
+}
+
+@code {
+    [Parameter, EditorRequired] public TicketDto? Ticket { get; set; }
+    [Parameter, EditorRequired] public IEnumerable<TicketStatusDto> Statuses { get; set; } = [];
+    [Parameter] public IEnumerable<SprintDto> Sprints { get; set; } = [];
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public Guid? ActiveSprintId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private bool _editing;
+    private bool _busy;
+    private string? _error;
+    private TicketEditForm _form = new();
+    private List<UserSummaryDto> _users = [];
+
+    // Comments state
+    private IReadOnlyList<CommentDto> _comments = [];
+    private bool _commentsLoading;
+    private string _newCommentContent = string.Empty;
+    private Guid? _editingCommentId;
+    private string _editCommentContent = string.Empty;
+    private Guid? _lastLoadedTicketId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && Ticket is not null && Ticket.Id != _lastLoadedTicketId)
+        {
+            _lastLoadedTicketId = Ticket.Id;
+            _commentsLoading = true;
+            try { _comments = await CommentApi.GetByTicketAsync(Ticket.Id); }
+            catch { _comments = []; }
+            finally { _commentsLoading = false; }
+
+            if (_users.Count == 0)
+            {
+                try { _users = await UserApi.GetAllAsync() ?? []; }
+                catch { _users = []; }
+            }
+        }
+        if (!Visible) _lastLoadedTicketId = null;
+    }
+
+    private async Task AddCommentAsync()
+    {
+        if (Ticket is null || string.IsNullOrWhiteSpace(_newCommentContent)) return;
+        try
+        {
+            var comment = await CommentApi.CreateForTicketAsync(Ticket.Id, new CreateCommentRequest(_newCommentContent));
+            if (comment is not null) _comments = [.. _comments, comment];
+            _newCommentContent = string.Empty;
+        }
+        catch { /* silently ignore */ }
+    }
+
+    private void StartEditComment(CommentDto c)
+    {
+        _editingCommentId   = c.Id;
+        _editCommentContent = c.Content;
+    }
+
+    private async Task SaveCommentEditAsync(Guid commentId)
+    {
+        try
+        {
+            var updated = await CommentApi.UpdateAsync(commentId, new UpdateCommentRequest(_editCommentContent));
+            if (updated is not null)
+                _comments = _comments.Select(c => c.Id == commentId ? updated : c).ToList().AsReadOnly();
+            _editingCommentId = null;
+        }
+        catch { /* silently ignore */ }
+    }
+
+    private async Task DeleteCommentAsync(Guid commentId)
+    {
+        try
+        {
+            await CommentApi.DeleteAsync(commentId);
+            _comments = _comments.Where(c => c.Id != commentId).ToList().AsReadOnly();
+        }
+        catch { /* silently ignore */ }
+    }
+
+    private sealed class TicketEditForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public TicketType Type { get; set; } = TicketType.Story;
+        public CardPriority Priority { get; set; } = CardPriority.Medium;
+        public int? StoryPoints { get; set; }
+        public DateTime? DueDate { get; set; }
+    }
+
+    private void EnterEdit()
+    {
+        if (Ticket is null) return;
+        _form = new()
+        {
+            Title       = Ticket.Title,
+            Description = Ticket.Description,
+            Type        = Ticket.Type,
+            Priority    = Ticket.Priority,
+            StoryPoints = Ticket.StoryPoints,
+            DueDate     = Ticket.DueDate
+        };
+        _error   = null;
+        _editing = true;
+    }
+
+    private async Task CloseAsync()
+    {
+        _editing = false;
+        _error   = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task OnStatusChangeAsync(ChangeEventArgs e)
+    {
+        if (Ticket is null || !Guid.TryParse(e.Value?.ToString(), out var statusId)) return;
+        _busy = true; _error = null;
+        try
+        {
+            await TicketApi.ChangeStatusAsync(Ticket.Id, new ChangeTicketStatusRequest(statusId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible de changer le statut."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnSprintChangeAsync(ChangeEventArgs e)
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            var raw = e.Value?.ToString();
+            var sprintId = string.IsNullOrEmpty(raw) ? (Guid?)null : Guid.Parse(raw);
+            await TicketApi.MoveToSprintAsync(Ticket.Id, new MoveTicketToSprintRequest(sprintId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible de changer le sprint."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnAssigneeChangeAsync(ChangeEventArgs e)
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            var raw = e.Value?.ToString();
+            var assigneeId = string.IsNullOrEmpty(raw) ? null : raw;
+            await TicketApi.UpdateAsync(Ticket.Id, new UpdateTicketRequest(
+                Ticket.Title, Ticket.Description, Ticket.Type, Ticket.Priority,
+                Ticket.StoryPoints, Ticket.DueDate, assigneeId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible de changer l'assigné."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnSaveAsync()
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            await TicketApi.UpdateAsync(Ticket.Id, new UpdateTicketRequest(
+                _form.Title, _form.Description, _form.Type, _form.Priority,
+                _form.StoryPoints, _form.DueDate, Ticket.AssigneeId));
+            _editing = false;
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "La mise à jour a échoué."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnDeleteAsync()
+    {
+        if (Ticket is null) return;
+        _busy = true; _error = null;
+        try
+        {
+            await TicketApi.DeleteAsync(Ticket.Id);
+            await OnChanged.InvokeAsync();
+            await CloseAsync();
+        }
+        catch { _error = "Impossible de supprimer ce ticket."; }
+        finally { _busy = false; }
+    }
+
+    private async Task OnAddToSprintAsync()
+    {
+        if (Ticket is null || !ActiveSprintId.HasValue) return;
+        _busy = true; _error = null;
+        try
+        {
+            await TicketApi.MoveToSprintAsync(Ticket.Id, new MoveTicketToSprintRequest(ActiveSprintId));
+            await OnChanged.InvokeAsync();
+        }
+        catch { _error = "Impossible d'ajouter au sprint."; }
+        finally { _busy = false; }
+    }
+
+    private static string PriorityClass(CardPriority priority) => priority switch
+    {
+        CardPriority.Low      => "bg-secondary",
+        CardPriority.Medium   => "bg-info text-dark",
+        CardPriority.High     => "bg-warning text-dark",
+        CardPriority.Critical => "bg-danger",
+        _                     => "bg-secondary"
+    };
+}

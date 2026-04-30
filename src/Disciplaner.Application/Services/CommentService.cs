@@ -34,6 +34,30 @@ public sealed class CommentService : ICommentService
         return await ToDtoAsync(comment, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CommentDto>> GetByTicketAsync(
+        Guid ticketId, string requestingUserId, CancellationToken cancellationToken = default)
+    {
+        var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Ticket), ticketId);
+        await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+        var comments = await _uow.Comments.GetByTicketIdAsync(ticketId, cancellationToken);
+        return await ToDtosAsync(comments, cancellationToken);
+    }
+
+    public async Task<CommentDto> CreateForTicketAsync(
+        Guid ticketId, string authorId, CreateCommentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Ticket), ticketId);
+        await EnsureProjectAccessAsync(ticket.ProjectId, authorId, cancellationToken);
+
+        var comment = Comment.CreateForTicket(request.Content, authorId, ticketId);
+        await _uow.Comments.AddAsync(comment, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+        return await ToDtoAsync(comment, cancellationToken);
+}
+
     public async Task<CommentDto> UpdateAsync(
         Guid commentId, string requestingUserId, UpdateCommentRequest request,
         CancellationToken cancellationToken = default)
@@ -66,6 +90,14 @@ public sealed class CommentService : ICommentService
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
+    {
+        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
+            ?? throw new NotFoundException(nameof(Project), projectId);
+        if (project.OwnerId != userId)
+            throw new UnauthorizedAccessException("Access denied.");
+    }
 
     private async Task<Card> EnsureCardAccessAsync(
         Guid cardId, string userId, CancellationToken cancellationToken)

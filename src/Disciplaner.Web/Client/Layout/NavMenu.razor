@@ -1,6 +1,6 @@
 ﻿<div class="sidebar d-flex flex-column h-100">
     <div class="sidebar-brand px-3 py-3 d-flex align-items-center gap-2">
-        <span class="fw-bold fs-5 text-white">&#9654; Disciplaner</span>
+        <a href="/" class="fw-bold fs-5 text-white text-decoration-none">&#9654; Disciplaner</a>
         <button class="btn btn-sm text-white ms-auto d-md-none" @onclick="ToggleNavMenu" title="Menu">
             &#9776;
         </button>
@@ -9,7 +9,16 @@
     <div class="@NavMenuCssClass flex-grow-1 overflow-auto">
         <nav class="nav flex-column px-2 py-2 gap-1">
             <NavLink class="nav-link sidebar-link" href="" Match="NavLinkMatch.All">
+                <i class="bi bi-house me-1"></i>Accueil
+            </NavLink>
+            <NavLink class="nav-link sidebar-link" href="boards">
                 &#9632; Tableaux
+            </NavLink>
+            <NavLink class="nav-link sidebar-link" href="projects">
+                &#9670; Projets
+            </NavLink>
+            <NavLink class="nav-link sidebar-link" href="my-tickets">
+                <i class="bi bi-person-check me-1"></i>Mes tickets
             </NavLink>
             <AuthorizeView Roles="Admin">
                 <Authorized>

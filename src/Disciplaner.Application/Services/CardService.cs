@@ -24,11 +24,11 @@ public sealed class CardService : ICardService
 
         await EnsureBoardAccessByIdAsync(column.BoardId, requestingUserId, cancellationToken);
 
-        return column.Cards
-            .OrderBy(c => c.Order)
-            .Select(c => c.ToDto())
-            .ToList()
-            .AsReadOnly();
+        var cards = column.Cards.OrderBy(c => c.Order).ToList();
+        var result = new List<CardDto>(cards.Count);
+        foreach (var card in cards)
+            result.Add(await ResolveCardDtoAsync(card, cancellationToken));
+        return result.AsReadOnly();
     }
 
     public async Task<CardDto?> GetByIdAsync(
@@ -42,7 +42,7 @@ public sealed class CardService : ICardService
 
         await EnsureBoardAccessByIdAsync(column.BoardId, requestingUserId, cancellationToken);
 
-        return card.ToDto();
+        return await ResolveCardDtoAsync(card, cancellationToken);
     }
 
     public async Task<CardDto> CreateAsync(
@@ -54,7 +54,7 @@ public sealed class CardService : ICardService
 
         await EnsureBoardAccessByIdAsync(column.BoardId, requestingUserId, cancellationToken);
 
-        var card = column.AddCard(request.Title, request.Description);
+        var card = column.AddCard(request.Title, request.Description, requestingUserId);
 
         if (request.Priority != card.Priority)
             card.SetPriority(request.Priority);
@@ -62,10 +62,13 @@ public sealed class CardService : ICardService
         if (request.DueDate.HasValue)
             card.SetDueDate(request.DueDate);
 
+        if (!string.IsNullOrWhiteSpace(request.AssignedToId))
+            card.Assign(request.AssignedToId);
+
         await _uow.Columns.UpdateAsync(column, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return card.ToDto();
+        return await ResolveCardDtoAsync(card, cancellationToken);
     }
 
     public async Task<CardDto> UpdateAsync(
@@ -84,11 +87,12 @@ public sealed class CardService : ICardService
         card.UpdateDescription(request.Description);
         card.SetPriority(request.Priority);
         card.SetDueDate(request.DueDate);
+        card.Assign(request.AssignedToId);
 
         await _uow.Cards.UpdateAsync(card, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return card.ToDto();
+        return await ResolveCardDtoAsync(card, cancellationToken);
     }
 
     public async Task<CardDto> MoveAsync(
@@ -116,7 +120,7 @@ public sealed class CardService : ICardService
             .SelectMany(c => c.Cards)
             .First(c => c.Id == cardId);
 
-        return updatedCard.ToDto();
+        return await ResolveCardDtoAsync(updatedCard, cancellationToken);
     }
 
     public async Task DeleteAsync(
@@ -149,5 +153,12 @@ public sealed class CardService : ICardService
             ?? throw new NotFoundException(nameof(Board), boardId);
 
         EnsureBoardAccess(board, userId);
+    }
+
+    private async Task<CardDto> ResolveCardDtoAsync(Card card, CancellationToken ct)
+    {
+        var creator = await _uow.Users.GetByIdAsync(card.CreatedById, ct);
+        var assignee = card.AssignedToId is not null ? await _uow.Users.GetByIdAsync(card.AssignedToId, ct) : null;
+        return card.ToDto(creator?.DisplayName, assignee?.DisplayName);
     }
 }

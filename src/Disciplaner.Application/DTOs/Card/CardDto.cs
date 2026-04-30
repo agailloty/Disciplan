@@ -11,5 +11,9 @@ public sealed record CardDto(
     CardPriority Priority,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    DateTime? DueDate
+    DateTime? DueDate,
+    string CreatedById,
+    string? CreatedByName,
+    string? AssignedToId,
+    string? AssigneeName
 );

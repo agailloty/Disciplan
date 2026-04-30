@@ -30,13 +30,24 @@ internal sealed class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.Property(c => c.UpdatedAt);
 
         builder.Property(c => c.CardId)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.HasOne(c => c.Card)
             .WithMany()
             .HasForeignKey(c => c.CardId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(c => c.TicketId)
+            .IsRequired(false);
+
+        builder.HasOne(c => c.Ticket)
+            .WithMany()
+            .HasForeignKey(c => c.TicketId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(c => new { c.CardId, c.CreatedAt });
+        builder.HasIndex(c => new { c.TicketId, c.CreatedAt });
     }
 }

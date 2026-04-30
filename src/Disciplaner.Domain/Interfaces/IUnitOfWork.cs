@@ -7,6 +7,9 @@ public interface IUnitOfWork
     ICardRepository Cards { get; }
     ICommentRepository Comments { get; }
     IUserRepository Users { get; }
+    IProjectRepository Projects { get; }
+    ISprintRepository Sprints { get; }
+    ITicketRepository Tickets { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

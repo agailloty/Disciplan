@@ -42,13 +42,13 @@ public class Column
         Order = order;
     }
 
-    public Card AddCard(string title, string? description = null)
+    public Card AddCard(string title, string? description = null, string createdById = "")
     {
         if (_cards.Count >= DomainConstraints.Column.MaxCards)
             throw ColumnDomainException.MaxCardsReached(DomainConstraints.Column.MaxCards);
 
         int nextOrder = _cards.Count > 0 ? _cards.Max(c => c.Order) + 1 : 0;
-        var card = new Card(title, description, nextOrder, this);
+        var card = new Card(title, description, nextOrder, this, createdById);
         _cards.Add(card);
         UpdatedAt = DateTime.UtcNow;
         return card;

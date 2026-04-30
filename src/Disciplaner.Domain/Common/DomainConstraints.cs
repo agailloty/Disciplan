@@ -30,4 +30,28 @@ public static class DomainConstraints
     {
         public const int ContentMaxLength = 2000;
     }
+
+    public static class Project
+    {
+        public const int NameMaxLength = 100;
+        public const int DescriptionMaxLength = 500;
+        public const int KeyMaxLength = 10;
+    }
+
+    public static class TicketStatus
+    {
+        public const int NameMaxLength = 50;
+    }
+
+    public static class Ticket
+    {
+        public const int TitleMaxLength = 250;
+        public const int DescriptionMaxLength = 10000;
+    }
+
+    public static class Sprint
+    {
+        public const int NameMaxLength = 100;
+        public const int GoalMaxLength = 500;
+    }
 }

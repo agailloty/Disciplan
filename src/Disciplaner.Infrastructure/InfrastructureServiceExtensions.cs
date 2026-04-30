@@ -16,6 +16,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ICardRepository, CardRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<ISprintRepository, SprintRepository>();
+        services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services
@@ -23,6 +26,10 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IColumnService, ColumnService>();
         services.AddScoped<ICardService, CardService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<ISprintService, SprintService>();
+        services.AddScoped<ITicketService, TicketService>();
+        services.AddScoped<IActivityService, ActivityService>();
 
         return services;
     }

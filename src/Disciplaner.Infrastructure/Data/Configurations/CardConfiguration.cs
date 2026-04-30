@@ -40,6 +40,13 @@ internal sealed class CardConfiguration : IEntityTypeConfiguration<Card>
         builder.Property(c => c.ColumnId)
             .IsRequired();
 
+        builder.Property(c => c.CreatedById)
+            .IsRequired()
+            .HasMaxLength(450);
+
+        builder.Property(c => c.AssignedToId)
+            .HasMaxLength(450);
+
         // Index for sorted queries per column
         builder.HasIndex(c => new { c.ColumnId, c.Order });
     }
