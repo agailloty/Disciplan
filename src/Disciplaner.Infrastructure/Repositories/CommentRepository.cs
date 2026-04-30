@@ -26,6 +26,16 @@ internal sealed class CommentRepository : ICommentRepository
             .OrderBy(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Comment>> GetByAuthorAsync(string authorId, int limit, CancellationToken cancellationToken = default)
+        => await _context.Comments
+            .Where(c => c.AuthorId == authorId)
+            .Include(c => c.Ticket)
+                .ThenInclude(t => t!.Project)
+            .Include(c => c.Card)
+            .OrderByDescending(c => c.CreatedAt)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(Comment comment, CancellationToken cancellationToken = default)
         => await _context.Comments.AddAsync(comment, cancellationToken);
 

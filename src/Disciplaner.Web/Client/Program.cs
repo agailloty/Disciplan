@@ -42,6 +42,7 @@ builder.Services.AddScoped<ProjectApiClient>();
 builder.Services.AddScoped<SprintApiClient>();
 builder.Services.AddScoped<TicketApiClient>();
 builder.Services.AddScoped<UserApiClient>();
+builder.Services.AddScoped<ActivityApiClient>();
 builder.Services.AddScoped<KanbanDragState>();
 
 await builder.Build().RunAsync();

@@ -9,6 +9,7 @@ public interface ITicketRepository
     Task<IReadOnlyList<Ticket>> GetBacklogAsync(Guid projectId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetBySprintIdAsync(Guid sprintId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetAssignedToUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Ticket>> GetCreatedByUserAsync(string userId, int limit, CancellationToken cancellationToken = default);
     Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default);
     Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default);
     Task DeleteAsync(Ticket ticket, CancellationToken cancellationToken = default);
