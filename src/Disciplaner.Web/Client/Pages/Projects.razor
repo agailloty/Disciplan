@@ -2,8 +2,137 @@
 @attribute [Authorize]
 @inject ProjectApiClient ProjectApi
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>Projets â€” Disciplaner</PageTitle>
+<PageTitle>@L["Nav.Projects"] — Disciplaner</PageTitle>
+
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="page-title">@L["Nav.Projects"]</h1>
+        <p class="text-sm text-gray-500 mt-0.5">@L["Project.Subtitle"]</p>
+    </div>
+    <button class="btn btn-primary" @onclick="ShowCreateModal">
+        <i class="bi bi-plus"></i> @L["Project.CreateTitle"]
+    </button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_projects.Count == 0)
+{
+    <div class="text-center py-20 text-gray-400">
+        <span class="text-5xl block mb-3">&#9670;</span>
+        <p class="text-sm">@L["Project.Empty"]</p>
+        <button class="btn btn-primary mt-4" @onclick="ShowCreateModal">@L["Project.CreateFirst"]</button>
+    </div>
+}
+else
+{
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @foreach (var project in _projects)
+        {
+            var p = project;
+            <div class="surface surface-hover flex flex-col" @onclick="() => NavigateToProject(p.Id)">
+                <div class="p-4 flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="badge badge-dark font-mono">@p.Key</span>
+                        <h2 class="font-semibold text-gray-900 text-base">@p.Name</h2>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(p.Description))
+                    {
+                        <p class="text-sm text-gray-500 line-clamp-2">@p.Description</p>
+                    }
+                </div>
+                <div class="flex justify-between px-4 py-2.5 border-t border-gray-100 text-xs text-gray-400">
+                    <span>@p.TicketCount ticket(s)</span>
+                    <span>@p.SprintCount sprint(s)</span>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<Modal Title="@L["Project.CreateTitle"].Value" Visible="_showCreate" OnClose="CloseCreate">
+    <EditForm Model="_form" OnValidSubmit="CreateProjectAsync">
+        <DataAnnotationsValidator />
+        <div class="mb-4">
+            <label class="form-label">@L["Name"]</label>
+            <InputText class="form-input" @bind-Value="_form.Name" />
+            <ValidationMessage For="() => _form.Name" />
+        </div>
+        <div class="mb-4">
+            <label class="form-label">@L["Project.KeyLabel"]</label>
+            <InputText class="form-input uppercase" @bind-Value="_form.Key" />
+            <p class="text-xs text-gray-400 mt-1">@L["Project.KeyHint"]</p>
+            <ValidationMessage For="() => _form.Key" />
+        </div>
+        <div class="mb-5">
+            <label class="form-label">@L["Description"]</label>
+            <InputTextArea class="form-textarea" rows="3" @bind-Value="_form.Description" />
+        </div>
+        @if (_formError is not null)
+        {
+            <div class="mb-4"><ErrorAlert Message="@_formError" /></div>
+        }
+        <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-outline" @onclick="CloseCreate">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Create"].Value)</button>
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    private sealed class ProjectForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(10)]
+        public string Key { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+    }
+
+    private readonly List<ProjectSummaryDto> _projects = [];
+    private ProjectForm _form = new();
+    private bool _loading = true, _showCreate, _busy;
+    private string? _error, _formError;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true; _error = null;
+        try { _projects.Clear(); _projects.AddRange(await ProjectApi.GetProjectsAsync() ?? []); }
+        catch { _error = L["Error.Load"]; }
+        finally { _loading = false; }
+    }
+
+    private void ShowCreateModal() { _form = new(); _formError = null; _showCreate = true; }
+    private void CloseCreate() { _showCreate = false; _formError = null; }
+    private void NavigateToProject(Guid id) => Nav.NavigateTo($"/projects/{id}");
+
+    private async Task CreateProjectAsync()
+    {
+        _busy = true; _formError = null;
+        try
+        {
+            var created = await ProjectApi.CreateProjectAsync(
+                new CreateProjectRequest(_form.Name, _form.Description, _form.Key.ToUpperInvariant()));
+            if (created is not null) Nav.NavigateTo($"/projects/{created.Id}");
+        }
+        catch { _formError = L["Error.Create"]; }
+        finally { _busy = false; }
+    }
+}
 
 <div class="flex items-center justify-between mb-6">
     <div>
@@ -55,80 +184,4 @@ else
             </div>
         }
     </div>
-}
-
-<Modal Title="Nouveau projet" Visible="_showCreate" OnClose="CloseCreate">
-    <EditForm Model="_form" OnValidSubmit="CreateProjectAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-4">
-            <label class="form-label">Nom</label>
-            <InputText class="form-input" @bind-Value="_form.Name" />
-            <ValidationMessage For="() => _form.Name" />
-        </div>
-        <div class="mb-4">
-            <label class="form-label">ClÃ© projet</label>
-            <InputText class="form-input uppercase" @bind-Value="_form.Key" />
-            <p class="text-xs text-gray-400 mt-1">2 Ã  10 lettres, exÂ : DISC.</p>
-            <ValidationMessage For="() => _form.Key" />
-        </div>
-        <div class="mb-5">
-            <label class="form-label">Description</label>
-            <InputTextArea class="form-textarea" rows="3" @bind-Value="_form.Description" />
-        </div>
-        @if (_formError is not null)
-        {
-            <div class="mb-4"><ErrorAlert Message="@_formError" /></div>
-        }
-        <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @onclick="CloseCreate">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "â€¦" : "CrÃ©er")</button>
-        </div>
-    </EditForm>
-</Modal>
-
-@code {
-    private sealed class ProjectForm
-    {
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
-
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.ComponentModel.DataAnnotations.MaxLength(10)]
-        public string Key { get; set; } = string.Empty;
-
-        public string? Description { get; set; }
-    }
-
-    private readonly List<ProjectSummaryDto> _projects = [];
-    private ProjectForm _form = new();
-    private bool _loading = true, _showCreate, _busy;
-    private string? _error, _formError;
-
-    protected override async Task OnInitializedAsync() => await LoadAsync();
-
-    private async Task LoadAsync()
-    {
-        _loading = true; _error = null;
-        try { _projects.Clear(); _projects.AddRange(await ProjectApi.GetProjectsAsync() ?? []); }
-        catch { _error = "Impossible de charger les projets."; }
-        finally { _loading = false; }
-    }
-
-    private void ShowCreateModal() { _form = new(); _formError = null; _showCreate = true; }
-    private void CloseCreate() { _showCreate = false; _formError = null; }
-    private void NavigateToProject(Guid id) => Nav.NavigateTo($"/projects/{id}");
-
-    private async Task CreateProjectAsync()
-    {
-        _busy = true; _formError = null;
-        try
-        {
-            var created = await ProjectApi.CreateProjectAsync(
-                new CreateProjectRequest(_form.Name, _form.Description, _form.Key.ToUpperInvariant()));
-            if (created is not null) Nav.NavigateTo($"/projects/{created.Id}");
-        }
-        catch { _formError = "CrÃ©ation impossible. VÃ©rifie la clÃ© projet et rÃ©essaie."; }
-        finally { _busy = false; }
-    }
 }

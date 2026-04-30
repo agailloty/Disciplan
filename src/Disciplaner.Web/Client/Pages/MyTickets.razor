@@ -2,14 +2,15 @@
 @attribute [Authorize]
 @inject TicketApiClient TicketApi
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Domain.Enums
 
-<PageTitle>Mes tickets — Disciplaner</PageTitle>
+<PageTitle>@L["MyTickets.Title"] — Disciplaner</PageTitle>
 
 <div class="flex items-center justify-between mb-6">
-    <h1 class="page-title">Mes tickets</h1>
+    <h1 class="page-title">@L["MyTickets.Title"]</h1>
     @if (_tickets is not null)
     {
         <span class="badge badge-gray">@_tickets.Count ticket(s)</span>
@@ -28,7 +29,7 @@ else if (_tickets is not null && _tickets.Count == 0)
 {
     <div class="text-center py-20 text-gray-400">
         <i class="bi bi-inbox text-5xl block mb-3"></i>
-        <p class="text-sm">Aucun ticket ne vous est assigné pour l'instant.</p>
+        <p class="text-sm">@L["MyTickets.Empty"]</p>
     </div>
 }
 else if (_tickets is not null)
@@ -44,13 +45,13 @@ else if (_tickets is not null)
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 text-left">
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">Réf.</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500">Titre</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">Priorité</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">Statut</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">Sprint</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-28">Échéance</th>
-                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-20">Projet</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">@L["Col.Ref"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500">@L["Col.Title"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-24">@L["Col.Priority"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">@L["Col.Status"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-36">@L["Col.Sprint"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-28">@L["Col.DueDate"]</th>
+                            <th class="px-4 py-2 text-xs font-medium text-gray-500 w-20">@L["Col.Project"]</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -79,7 +80,7 @@ else if (_tickets is not null)
                                     {
                                         var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
                                         <span class="text-xs @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
-                                            @t.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                            @t.DueDate.Value.ToLocalTime().ToString("d", System.Globalization.CultureInfo.CurrentCulture)
                                         </span>
                                     }
                                 </td>
@@ -100,16 +101,16 @@ else if (_tickets is not null)
 
     protected override async Task OnInitializedAsync()
     {
-        try { _tickets = await TicketApi.GetAssignedToMeAsync() ?? []; }
-        catch { _error = "Impossible de charger vos tickets."; }
+        try { _tickets = await TicketApi.GetAssignedToMeAsync(); }
+        catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
 
-    private static string CategoryLabel(StatusCategory c) => c switch
+    private string CategoryLabel(StatusCategory c) => c switch
     {
-        StatusCategory.Backlog    => "Backlog",
-        StatusCategory.InProgress => "En cours",
-        StatusCategory.Done       => "Terminé",
+        StatusCategory.Backlog    => L["StatusCategory.Backlog"],
+        StatusCategory.InProgress => L["StatusCategory.InProgress"],
+        StatusCategory.Done       => L["StatusCategory.Done"],
         _                         => c.ToString()
     };
 
@@ -122,3 +123,4 @@ else if (_tickets is not null)
         _                     => "badge-gray"
     };
 }
+

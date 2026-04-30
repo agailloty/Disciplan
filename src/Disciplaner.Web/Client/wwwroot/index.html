@@ -82,6 +82,12 @@
     </div>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
     <script src="js/kanban.js"></script>
+    <script>
+        window.blazorCulture = {
+            get: () => localStorage.getItem('blazor-culture') || 'fr',
+            set: (value) => localStorage.setItem('blazor-culture', value)
+        };
+    </script>
 </body>
 
 </html>

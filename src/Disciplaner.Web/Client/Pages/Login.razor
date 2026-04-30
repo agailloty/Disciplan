@@ -2,13 +2,14 @@
 @layout AuthLayout
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
 <div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
     @* Logo *@
     <div class="text-center mb-8">
         <span style="font-size:2rem">&#9654;</span>
         <h1 class="text-xl font-semibold text-gray-900 mt-2">Disciplaner</h1>
-        <p class="text-sm text-gray-500 mt-1">Connectez-vous pour continuer</p>
+        <p class="text-sm text-gray-500 mt-1">@L["Auth.Subtitle"]</p>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
@@ -24,19 +25,19 @@
             <DataAnnotationsValidator />
 
             <div class="mb-4">
-                <label class="form-label">Adresse e-mail</label>
+                <label class="form-label">@L["Auth.Email"]</label>
                 <InputText @bind-Value="_model.Email" class="form-input" type="email" autocomplete="email" />
                 <ValidationMessage For="() => _model.Email" />
             </div>
 
             <div class="mb-6">
-                <label class="form-label">Mot de passe</label>
+                <label class="form-label">@L["Auth.Password"]</label>
                 <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="current-password" />
                 <ValidationMessage For="() => _model.Password" />
             </div>
 
             <button type="submit" class="btn btn-primary btn-full" disabled="@_loading">
-                @(_loading ? "Connexionâ€¦" : "Se connecter")
+                @(_loading ? L["Auth.Submitting"].Value : L["Auth.Submit"].Value)
             </button>
         </EditForm>
     </div>
@@ -65,7 +66,7 @@
         var (_, error) = await Auth.LoginAsync(new LoginRequest(_model.Email, _model.Password));
         if (error is not null)
         {
-            _error = error;
+            _error = L["Auth.Error.Invalid"];
             _loading = false;
         }
         else

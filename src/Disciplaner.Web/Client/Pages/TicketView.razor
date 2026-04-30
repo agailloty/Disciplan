@@ -5,8 +5,9 @@
 @inject ProjectApiClient ProjectApi
 @inject CommentApiClient CommentApi
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>@(_ticket?.TicketRef ?? "Ticket") — Disciplaner</PageTitle>
+<PageTitle>@(_ticket?.TicketRef ?? L["Title"].Value) — Disciplaner</PageTitle>
 
 @if (_loading)
 {
@@ -42,17 +43,17 @@ else if (_ticket is not null)
                 <EditForm Model="_form" OnValidSubmit="SaveAsync">
                     <DataAnnotationsValidator />
                     <div class="mb-3">
-                        <label class="form-label">Titre</label>
+                        <label class="form-label">@L["Title"]</label>
                         <InputText class="form-input" @bind-Value="_form.Title" />
                         <ValidationMessage For="() => _form.Title" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
+                        <label class="form-label">@L["Description"]</label>
                         <InputTextArea class="form-textarea" rows="5" @bind-Value="_form.Description" />
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="form-label">Type</label>
+                            <label class="form-label">@L["Type"]</label>
                             <InputSelect class="form-select" @bind-Value="_form.Type">
                                 @foreach (var type in Enum.GetValues<TicketType>())
                                 {
@@ -61,7 +62,7 @@ else if (_ticket is not null)
                             </InputSelect>
                         </div>
                         <div>
-                            <label class="form-label">Priorité</label>
+                            <label class="form-label">@L["Priority"]</label>
                             <InputSelect class="form-select" @bind-Value="_form.Priority">
                                 @foreach (var priority in Enum.GetValues<CardPriority>())
                                 {
@@ -70,11 +71,11 @@ else if (_ticket is not null)
                             </InputSelect>
                         </div>
                         <div>
-                            <label class="form-label">Story points</label>
+                            <label class="form-label">@L["Ticket.StoryPoints"]</label>
                             <InputNumber class="form-input" @bind-Value="_form.StoryPoints" />
                         </div>
                         <div>
-                            <label class="form-label">Échéance</label>
+                            <label class="form-label">@L["Ticket.DueDate"]</label>
                             <InputDate class="form-input" @bind-Value="_form.DueDate" />
                         </div>
                     </div>
@@ -83,8 +84,8 @@ else if (_ticket is not null)
                         <div class="mt-3"><ErrorAlert Message="@_actionError" /></div>
                     }
                     <div class="flex justify-end gap-2 mt-4">
-                        <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">Annuler</button>
-                        <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+                        <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">@L["Cancel"]</button>
+                        <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
                     </div>
                 </EditForm>
             }
@@ -121,7 +122,7 @@ else if (_ticket is not null)
                 }
                 else
                 {
-                    <p class="text-gray-400 text-sm italic mb-4">Aucune description.</p>
+                    <p class="text-gray-400 text-sm italic mb-4">@L["Ticket.NoDescription"]</p>
                 }
 
                 @* Meta *@
@@ -135,7 +136,7 @@ else if (_ticket is not null)
                         var overdue = _ticket.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
                         <span class="@(overdue ? "text-red-600 font-semibold" : string.Empty)">
                             <i class="bi bi-calendar3 mr-1"></i>@_ticket.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
-                            @(overdue ? " — en retard" : string.Empty)
+                            @(overdue ? " — " + L["Ticket.Overdue"].Value : string.Empty)
                         </span>
                     }
                     @if (_ticket.SprintName is not null)
@@ -149,10 +150,10 @@ else if (_ticket is not null)
                 </div>
 
                 <div class="text-xs text-gray-400 border-t border-gray-100 pt-3 flex gap-4 flex-wrap">
-                    <span><i class="bi bi-person mr-1"></i>Créé par <strong class="text-gray-600">@_ticket.ReporterName</strong></span>
+                    <span><i class="bi bi-person mr-1"></i>@L["Ticket.Reporter"] <strong class="text-gray-600">@_ticket.ReporterName</strong></span>
                     @if (_ticket.AssigneeName is not null)
                     {
-                        <span><i class="bi bi-person-check mr-1"></i>Assigné à <strong class="text-gray-600">@_ticket.AssigneeName</strong></span>
+                        <span><i class="bi bi-person-check mr-1"></i>@L["Ticket.Assignee"] <strong class="text-gray-600">@_ticket.AssigneeName</strong></span>
                     }
                     <span>le @_ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                     @if (_ticket.UpdatedAt.HasValue)
@@ -163,10 +164,10 @@ else if (_ticket is not null)
 
                 @* Comments *@
                 <div class="mt-5">
-                    <p class="section-label mb-3"><i class="bi bi-chat-left-text mr-1"></i>Commentaires</p>
+                    <p class="section-label mb-3"><i class="bi bi-chat-left-text mr-1"></i>@L["Ticket.Comments"]</p>
                     @if (_commentsLoading)
                     {
-                        <p class="text-gray-400 text-sm">Chargement…</p>
+                        <p class="text-gray-400 text-sm">@L["Loading"]</p>
                     }
                     else
                     {
@@ -185,16 +186,16 @@ else if (_ticket is not null)
                                     {
                                         <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
                                         <div class="flex gap-1 mt-1">
-                                            <button class="btn btn-primary btn-sm" @onclick="() => SaveCommentEditAsync(c.Id)">Sauvegarder</button>
-                                            <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">Annuler</button>
+                                            <button class="btn btn-primary btn-sm" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
+                                            <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="text-sm text-gray-700">@c.Content</div>
                                         <div class="flex gap-2 mt-1">
-                                            <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="() => StartEditComment(c)">Modifier</button>
-                                            <button class="text-xs text-red-400 hover:text-red-600" @onclick="() => DeleteCommentAsync(c.Id)">Supprimer</button>
+                                            <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
+                                            <button class="text-xs text-red-400 hover:text-red-600" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
                                         </div>
                                     }
                                 </div>
@@ -202,7 +203,7 @@ else if (_ticket is not null)
                         }
                         <div class="flex gap-2 mt-3">
                             <div class="flex-1">
-                                <textarea class="form-textarea text-sm" rows="2" placeholder="Ajouter un commentaire…" @bind="_newCommentContent"></textarea>
+                                <textarea class="form-textarea text-sm" rows="2" placeholder="@L["Ticket.Comment.Add"].Value" @bind="_newCommentContent"></textarea>
                             </div>
                             <button class="btn btn-primary btn-sm self-end" @onclick="AddCommentAsync" disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
                                 <i class="bi bi-send"></i>
@@ -222,10 +223,10 @@ else if (_ticket is not null)
         {
             <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
                 <button class="btn btn-danger btn-sm" @onclick="DeleteAsync" disabled="@_busy">
-                    <i class="bi bi-trash mr-1"></i>Supprimer
+                    <i class="bi bi-trash mr-1"></i>@L["Delete"]
                 </button>
                 <button class="btn btn-primary btn-sm" @onclick="EnterEdit">
-                    <i class="bi bi-pencil mr-1"></i>Modifier
+                    <i class="bi bi-pencil mr-1"></i>@L["Edit"]
                 </button>
             </div>
         }

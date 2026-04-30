@@ -1,0 +1,67 @@
+@page "/settings"
+@attribute [Authorize]
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
+
+<PageTitle>@L["Settings.Title"] — Disciplaner</PageTitle>
+
+<div class="mb-6">
+    <h1 class="page-title">@L["Settings.Title"]</h1>
+</div>
+
+<div class="surface max-w-md">
+    <div class="px-4 py-3 border-b border-gray-100">
+        <span class="text-sm font-semibold text-gray-800">
+            <i class="bi bi-translate mr-1.5"></i>@L["Settings.Language"]
+        </span>
+    </div>
+    <div class="p-4 flex flex-col gap-2">
+        @foreach (var (code, flag, label) in _langs)
+        {
+            var c = code;
+            <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full
+                           @(_current == c ? "border-gray-900 bg-gray-50 shadow-sm" : "border-gray-200 hover:bg-gray-50")"
+                    @onclick="() => SetCultureAsync(c)">
+                <span class="text-xl">@flag</span>
+                <span class="text-sm font-medium text-gray-800 flex-1">@label</span>
+                @if (_current == c)
+                {
+                    <i class="bi bi-check2 text-gray-900 font-bold text-base"></i>
+                }
+            </button>
+        }
+    </div>
+    <p class="px-4 pb-4 text-xs text-gray-400">
+        <i class="bi bi-info-circle mr-1"></i>
+        @(_current == "fr"
+            ? "Le changement de langue recharge l'application."
+            : "Changing the language will reload the application.")
+    </p>
+</div>
+
+@code {
+    private static readonly (string code, string flag, string label)[] _langs =
+    [
+        ("fr", "🇫🇷", "Français"),
+        ("en", "🇬🇧", "English"),
+    ];
+
+    private string _current = "fr";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _current = await JS.InvokeAsync<string>("blazorCulture.get") ?? "fr";
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetCultureAsync(string culture)
+    {
+        if (_current == culture) return;
+        await JS.InvokeVoidAsync("blazorCulture.set", culture);
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+}

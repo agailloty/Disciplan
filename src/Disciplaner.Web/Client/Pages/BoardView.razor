@@ -2,8 +2,9 @@
 @attribute [Authorize]
 @inject BoardApiClient Boards
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>@(_board?.Name ?? "Tableau") — Disciplaner</PageTitle>
+<PageTitle>@(_board?.Name ?? L["Nav.Boards"].Value) — Disciplaner</PageTitle>
 
 @if (_loading)
 {
@@ -21,24 +22,24 @@ else if (_board is not null)
         {
             <span class="text-gray-400 text-sm">@_board.Description</span>
         }
-        <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">✎ Modifier</button>
-        <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">✕ Supprimer</button>
+        <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">&#9998; @L["Edit"]</button>
+        <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">&times; @L["Delete"]</button>
     </div>
 
     <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
 }
 
 @* ── Edit board modal ── *@
-<Modal Title="Modifier le tableau" Visible="_showEdit" OnClose="() => _showEdit = false">
+<Modal Title="@L["Board.EditTitle"].Value" Visible="_showEdit" OnClose="() => _showEdit = false">
     <EditForm Model="_form" OnValidSubmit="UpdateBoardAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText @bind-Value="_form.Name" class="form-input" />
             <ValidationMessage For="() => _form.Name" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Description (optionnel)</label>
+            <label class="form-label">@L["Board.Description"]</label>
             <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="2" />
         </div>
         @if (_formError is not null)
@@ -46,15 +47,15 @@ else if (_board is not null)
             <ErrorAlert Message="@_formError" />
         }
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
         </div>
     </EditForm>
 </Modal>
 
 @* ── Delete board confirmation ── *@
-<ConfirmModal Title="Supprimer le tableau"
-              Message="@($"Supprimer \"{_board?.Name}\" ? Toutes les colonnes et cartes seront perdues.")"
+<ConfirmModal Title="@L["Board.Delete.Title"].Value"
+              Message="@L["Board.Delete.Confirm", _board?.Name ?? string.Empty].Value"
               Visible="_showDelete"
               OnCancel="() => _showDelete = false"
               OnConfirm="DeleteBoardAsync" />

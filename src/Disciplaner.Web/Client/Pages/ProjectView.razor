@@ -4,8 +4,9 @@
 @inject SprintApiClient Sprints
 @inject TicketApiClient Tickets
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>@(_project?.Name ?? "Projet") - Disciplaner</PageTitle>
+<PageTitle>@(_project?.Name ?? L["Nav.Projects"].Value) - Disciplaner</PageTitle>
 
 @if (_loading)
 {
@@ -23,36 +24,36 @@ else if (_project is not null)
                 <span class="badge badge-dark font-mono text-base">@_project.Key</span>
                 <h1 class="text-2xl font-semibold text-gray-900 m-0">@_project.Name</h1>
             </div>
-            <p class="text-gray-500 text-sm m-0">@(_project.Description ?? "Aucune description.")</p>
+            <p class="text-gray-500 text-sm m-0">@(_project.Description ?? L["NoDescription"].Value)</p>
         </div>
         <div class="flex gap-2">
-            <button class="btn btn-outline" @onclick="ShowEditProject">Modifier</button>
-            <button class="btn btn-danger" @onclick="() => _showDeleteProject = true">Supprimer</button>
+            <button class="btn btn-outline" @onclick="ShowEditProject">@L["Edit"]</button>
+            <button class="btn btn-danger" @onclick="() => _showDeleteProject = true">@L["Delete"]</button>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="surface p-4">
-            <div class="section-label mb-1">Backlog</div>
+            <div class="section-label mb-1">@L["Project.Stats.Backlog"]</div>
             <div class="text-4xl font-light text-gray-800">@_backlog.Count</div>
-            <div class="text-xs text-gray-400 mt-1">tickets non planifiés</div>
+            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.BacklogSub"]</div>
         </div>
         <div class="surface p-4">
-            <div class="section-label mb-1">Sprints</div>
+            <div class="section-label mb-1">@L["Project.Stats.Sprints"]</div>
             <div class="text-4xl font-light text-gray-800">@_sprints.Count</div>
-            <div class="text-xs text-gray-400 mt-1">itérations créées</div>
+            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.SprintsSub"]</div>
         </div>
         <div class="surface p-4">
-            <div class="section-label mb-1">Workflow</div>
+            <div class="section-label mb-1">@L["Project.Stats.Workflow"]</div>
             <div class="text-4xl font-light text-gray-800">@_project.Statuses.Count</div>
-            <div class="text-xs text-gray-400 mt-1">statuts de tickets</div>
+            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.WorkflowSub"]</div>
         </div>
     </div>
 
     <div class="flex gap-1 mb-5 border-b border-gray-200">
-        <button class="tab-link @(_tab == "active" ? "active-tab" : "")" @onclick="@(() => _tab = "active")">Sprint actif</button>
-        <button class="tab-link @(_tab == "planning" ? "active-tab" : "")" @onclick="@(() => _tab = "planning")">Planning</button>
-        <button class="tab-link @(_tab == "statuses" ? "active-tab" : "")" @onclick="@(() => _tab = "statuses")">Statuts</button>
+        <button class="tab-link @(_tab == "active" ? "active-tab" : "")" @onclick="@(() => _tab = "active")">@L["Sprint.Active"]</button>
+        <button class="tab-link @(_tab == "planning" ? "active-tab" : "")" @onclick="@(() => _tab = "planning")">@L["Sprint.Planning"]</button>
+        <button class="tab-link @(_tab == "statuses" ? "active-tab" : "")" @onclick="@(() => _tab = "statuses")">@L["Sprint.Statuses"]</button>
     </div>
 
     @if (_tab == "active")
@@ -65,22 +66,22 @@ else if (_project is not null)
         <div class="surface">
             <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
                 <div>
-                    <span class="font-semibold text-gray-900">Sprint actif</span>
+                    <span class="font-semibold text-gray-900">@L["Sprint.Active"]</span>
                     @if (activeSprint is not null)
                     {
                         <span class="badge badge-dark ml-2">@activeSprint.Name</span>
-                        <span class="text-gray-500 text-xs ml-2">@activeTickets.Count tickets</span>
+                        <span class="text-gray-500 text-xs ml-2">@L["Sprint.TicketCount", activeTickets.Count]</span>
                     }
                 </div>
                 <div class="flex items-center gap-2">
                     @if (activeSprint is not null)
                     {
-                        <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)"><i class="bi bi-plus-lg mr-1"></i>Ticket</button>
+                        <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)"><i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicket"]</button>
                     }
                     <div class="flex border border-gray-200 rounded-md overflow-hidden">
-                        <button class="@SprintViewCss("kanban") px-2.5 py-1 text-xs" @onclick="@(() => _activeSprintView = "kanban")">Kanban</button>
-                        <button class="@SprintViewCss("list") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "list")">Liste</button>
-                        <button class="@SprintViewCss("grid") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "grid")">Grille</button>
+                        <button class="@SprintViewCss("kanban") px-2.5 py-1 text-xs" @onclick="@(() => _activeSprintView = "kanban")">@L["Sprint.View.Kanban"]</button>
+                        <button class="@SprintViewCss("list") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "list")">@L["Sprint.View.List"]</button>
+                        <button class="@SprintViewCss("grid") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "grid")">@L["Sprint.View.Grid"]</button>
                     </div>
                 </div>
             </div>
@@ -88,16 +89,16 @@ else if (_project is not null)
                 @if (activeSprint is null)
                 {
                     <div class="text-center text-gray-400 py-10">
-                        <div class="text-3xl font-light mb-2">Aucun sprint actif</div>
-                        <p class="text-sm">Démarre un sprint planifié depuis l'onglet Planning. Un seul sprint peut être actif à la fois.</p>
+                        <div class="text-3xl font-light mb-2">@L["Sprint.NoActive"]</div>
+                        <p class="text-sm">@L["Sprint.NoActiveDesc"]</p>
                     </div>
                 }
                 else if (activeTickets.Count == 0)
                 {
                     <div class="text-center text-gray-400 py-10">
-                        <p class="text-sm mb-4">Ce sprint ne contient aucun ticket.</p>
+                        <p class="text-sm mb-4">@L["Sprint.NoTickets"]</p>
                         <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                            <i class="bi bi-plus-lg mr-1"></i>Ajouter un ticket
+                            <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
                         </button>
                     </div>
                 }
@@ -112,7 +113,7 @@ else if (_project is not null)
                         }
                         <div class="py-2">
                             <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                                <i class="bi bi-plus-lg mr-1"></i>Nouveau ticket
+                                <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
                             </button>
                         </div>
                     </div>
@@ -157,7 +158,7 @@ else if (_project is not null)
                                 <div class="sprint-column-body">
                                     @if (statusTickets.Count == 0)
                                     {
-                                        <div class="text-gray-400 text-xs text-center py-3">Aucun ticket</div>
+                                        <div class="text-gray-400 text-xs text-center py-3">@L["Sprint.ColumnEmpty"]</div>
                                     }
                                     else
                                     {
@@ -169,7 +170,7 @@ else if (_project is not null)
                                 </div>
                                 <button class="btn-ghost text-xs w-full text-left px-2 py-1"
                                         @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                                    <i class="bi bi-plus-lg mr-1"></i>Ajouter
+                                    <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddCard"]
                                 </button>
                             </section>
                         }
@@ -186,14 +187,14 @@ else if (_project is not null)
                     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                         <div>
                             <span class="font-semibold text-gray-900">Backlog</span>
-                            <span class="text-gray-400 text-xs ml-2">@_selectedTicketIds.Count sélectionnés</span>
+                            <span class="text-gray-400 text-xs ml-2">@L["Sprint.SelectedCount", _selectedTicketIds.Count]</span>
                         </div>
                         <button class="btn btn-primary btn-sm" @onclick="ShowCreateTicket">+ Ticket</button>
                     </div>
                     <div>
                         @if (_backlog.Count == 0)
                         {
-                            <div class="p-4 text-gray-400 text-center text-sm">Le backlog est vide.</div>
+                            <div class="p-4 text-gray-400 text-center text-sm">@L["Project.BacklogEmpty"]</div>
                         }
                         else
                         {
@@ -215,11 +216,11 @@ else if (_project is not null)
                         }
                     </div>
                     <div class="flex justify-between items-center px-4 py-3 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Coche des tickets puis crée un sprint.</span>
+                        <span class="text-xs text-gray-400">@L["Sprint.TicketHint"]</span>
                         <button class="btn btn-outline btn-sm"
                                 disabled="@(_selectedTicketIds.Count == 0)"
                                 @onclick="ShowCreateSprint">
-                            Créer un sprint
+                            @L["Sprint.CreateButton"]
                         </button>
                     </div>
                 </div>
@@ -241,21 +242,21 @@ else if (_project is not null)
                                 <div>
                                     <span class="font-semibold text-gray-900">@sprint.Name</span>
                                     <span class="badge badge-gray ml-2">@sprint.Status</span>
-                                    <span class="text-gray-400 text-xs ml-2">@sprintTickets.Count tickets</span>
+                                    <span class="text-gray-400 text-xs ml-2">@L["Sprint.TicketCount", sprintTickets.Count]</span>
                                 </div>
                                 <div class="flex gap-1">
                                     @if (sprint.Status == SprintStatus.Planned)
                                     {
                                         <button class="btn btn-outline btn-sm"
                                                 disabled="@(ActiveSprint is not null)"
-                                                title="@(ActiveSprint is null ? "Démarrer ce sprint" : "Un sprint est déjà actif")"
+                                                title="@(ActiveSprint is null ? L["Sprint.StartHint"].Value : L["Sprint.AlreadyActive"].Value)"
                                                 @onclick="() => StartSprintAsync(sprint.Id)">
-                                            Démarrer
+                                            @L["Sprint.Start"]
                                         </button>
                                     }
                                     @if (sprint.Status == SprintStatus.Active)
                                     {
-                                        <button class="btn btn-outline btn-sm" @onclick="() => CloseSprintAsync(sprint.Id)">Clore</button>
+                                        <button class="btn btn-outline btn-sm" @onclick="() => CloseSprintAsync(sprint.Id)">@L["Sprint.Close"]</button>
                                     }
                                 </div>
                             </div>
@@ -274,7 +275,7 @@ else if (_project is not null)
                                                     <div class="flex-1">@TicketRow(ticket)</div>
                                                     <button class="btn btn-outline btn-sm"
                                                             @onclick="() => MoveTicketToSprintAsync(ticket.Id, null)">
-                                                        Backlog
+                                                        @L["Sprint.MoveToBacklog"]
                                                     </button>
                                                 </div>
                                             </div>

@@ -4,27 +4,28 @@
 @inject ActivityApiClient ActivityApi
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Application.DTOs.Activity
 @using Disciplaner.Domain.Enums
 
-<PageTitle>Tableau de bord â€” Disciplaner</PageTitle>
+<PageTitle>@L["Nav.Home"] — Disciplaner</PageTitle>
 
 <div class="mb-6">
-    <h1 class="text-2xl font-semibold text-gray-900">Bonjour, @_displayName</h1>
-    <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"))</p>
+    <h1 class="text-2xl font-semibold text-gray-900">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
+    <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-    @* â”€â”€ Mes tickets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+    @* ── Mes tickets ────────────────────────────────────────── *@
     <div class="lg:col-span-2">
         <div class="surface">
             <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <span class="text-sm font-semibold text-gray-800">Mes tickets</span>
-                <a href="/my-tickets" class="text-xs text-blue-600 hover:text-blue-800 transition-colors">Voir tous â†’</a>
+                <span class="text-sm font-semibold text-gray-800">@L["Home.MyTickets"]</span>
+                <a href="/my-tickets" class="text-xs text-blue-600 hover:text-blue-800 transition-colors">@L["Home.ViewAll"] →</a>
             </div>
 
             @if (_ticketsLoading)
@@ -39,7 +40,7 @@
             {
                 <div class="py-12 text-center text-gray-400 text-sm">
                     <i class="bi bi-inbox text-3xl block mb-2"></i>
-                    Aucun ticket assignÃ©.
+                    @L["Home.NoTickets"]
                 </div>
             }
             else
@@ -72,11 +73,11 @@
         </div>
     </div>
 
-    @* â”€â”€ ActivitÃ© rÃ©cente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+    @* ── Activité récente ─────────────────────────────────────── *@
     <div class="lg:col-span-3">
         <div class="surface">
             <div class="px-4 py-3 border-b border-gray-100">
-                <span class="text-sm font-semibold text-gray-800">ActivitÃ© rÃ©cente</span>
+                <span class="text-sm font-semibold text-gray-800">@L["Home.Activity"]</span>
             </div>
 
             <div class="overflow-y-auto" style="max-height:520px">
@@ -92,7 +93,7 @@
                 {
                     <div class="py-12 text-center text-gray-400 text-sm">
                         <i class="bi bi-calendar-x text-3xl block mb-2"></i>
-                        Aucune activitÃ© rÃ©cente.
+                        @L["Home.NoActivity"]
                     </div>
                 }
                 else
@@ -149,14 +150,14 @@
     private async Task LoadTicketsAsync()
     {
         try { _tickets = await TicketApi.GetAssignedToMeAsync(); }
-        catch { _ticketsError = "Impossible de charger les tickets."; }
+        catch { _ticketsError = L["Error.Load"]; }
         finally { _ticketsLoading = false; }
     }
 
     private async Task LoadActivityAsync()
     {
         try { _activity = await ActivityApi.GetRecentAsync(20); }
-        catch { _activityError = "Impossible de charger l'activitÃ©."; }
+        catch { _activityError = L["Error.Load"]; }
         finally { _activityLoading = false; }
     }
 
@@ -183,20 +184,20 @@
         "comment_added"  => "text-blue-500",
         _                => "text-gray-400"
     };
-    private static string ActivityLabel(string kind) => kind switch
+    private string ActivityLabel(string kind) => kind switch
     {
-        "ticket_created" => "Ticket crÃ©Ã©",
-        "ticket_updated" => "Ticket modifiÃ©",
-        "comment_added"  => "Commentaire ajoutÃ©",
+        "ticket_created" => L["Home.Activity.Created"],
+        "ticket_updated" => L["Home.Activity.Updated"],
+        "comment_added"  => L["Home.Activity.Commented"],
         _                => kind
     };
-    private static string RelativeTime(DateTime utc)
+    private string RelativeTime(DateTime utc)
     {
         var diff = DateTime.UtcNow - utc;
-        if (diff.TotalMinutes < 1)  return "Ã  l'instant";
-        if (diff.TotalMinutes < 60) return $"il y a {(int)diff.TotalMinutes} min";
-        if (diff.TotalHours < 24)   return $"il y a {(int)diff.TotalHours} h";
-        if (diff.TotalDays < 7)     return $"il y a {(int)diff.TotalDays} j";
-        return utc.ToLocalTime().ToString("dd/MM/yyyy");
+        if (diff.TotalMinutes < 1)  return L["Time.JustNow"];
+        if (diff.TotalMinutes < 60) return L["Time.MinutesAgo", (int)diff.TotalMinutes];
+        if (diff.TotalHours < 24)   return L["Time.HoursAgo", (int)diff.TotalHours];
+        if (diff.TotalDays < 7)     return L["Time.DaysAgo", (int)diff.TotalDays];
+        return utc.ToLocalTime().ToString("d", System.Globalization.CultureInfo.CurrentCulture);
     }
 }
