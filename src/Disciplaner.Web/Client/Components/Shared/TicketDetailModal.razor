@@ -9,18 +9,18 @@
 
         @if (!_editing)
         {
-            @* ── Detail view ─────────────────────────────────────────────────── *@
-            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-                <span class="badge bg-dark">@Ticket.TicketRef</span>
-                <span class="fw-semibold flex-grow-1 fs-6">@Ticket.Title</span>
-                <span class="badge bg-light text-dark border">@Ticket.Type</span>
-                <span class="badge @PriorityClass(Ticket.Priority)">@Ticket.Priority</span>
+            @* ── Detail view ── *@
+            <div class="flex flex-wrap gap-2 items-center mb-4">
+                <span class="badge badge-dark font-mono">@Ticket.TicketRef</span>
+                <span class="font-semibold text-gray-900 flex-1 text-sm">@Ticket.Title</span>
+                <span class="badge badge-gray">@Ticket.Type</span>
+                <span class="badge @PriorityBadgeClass(Ticket.Priority)">@Ticket.Priority</span>
             </div>
 
             @* Status selector *@
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <span class="status-dot flex-shrink-0" style="background:@Ticket.Status.Color"></span>
-                <select class="form-select form-select-sm ticket-status-select"
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:@Ticket.Status.Color"></span>
+                <select class="form-select flex-1"
                         value="@Ticket.Status.Id"
                         @onchange="OnStatusChangeAsync"
                         disabled="@_busy">
@@ -34,42 +34,41 @@
             @* Description *@
             @if (!string.IsNullOrWhiteSpace(Ticket.Description))
             {
-                <div class="mb-3">
-                    <p class="form-label fw-semibold text-muted small text-uppercase mb-1">Description</p>
-                    <div class="card-detail-description">@Ticket.Description</div>
+                <div class="mb-4">
+                    <p class="section-label mb-1">Description</p>
+                    <div class="detail-description">@Ticket.Description</div>
                 </div>
             }
             else
             {
-                <p class="text-muted fst-italic small mb-3">Aucune description.</p>
+                <p class="text-gray-400 text-sm italic mb-4">Aucune description.</p>
             }
 
             @* Meta *@
-            <div class="d-flex flex-wrap gap-3 text-muted small mb-3">
+            <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
                 @if (Ticket.StoryPoints.HasValue)
                 {
-                    <span><i class="bi bi-stars me-1"></i>@Ticket.StoryPoints pts</span>
+                    <span><i class="bi bi-stars mr-1"></i>@Ticket.StoryPoints pts</span>
                 }
                 @if (Ticket.DueDate.HasValue)
                 {
                     var overdue = Ticket.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                    <span class="@(overdue ? "text-danger fw-semibold" : string.Empty)">
-                        <i class="bi bi-calendar3 me-1"></i>@Ticket.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
-                        @(overdue ? " — en retard" : string.Empty)
+                    <span class="@(overdue ? "text-red-600 font-semibold" : string.Empty)">
+                        <i class="bi bi-calendar3 mr-1"></i>@Ticket.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")@(overdue ? " — en retard" : string.Empty)
                     </span>
                 }
                 @if (Ticket.ParentTicketRef is not null)
                 {
-                    <span><i class="bi bi-diagram-3 me-1"></i>Parent : @Ticket.ParentTicketRef</span>
+                    <span><i class="bi bi-diagram-3 mr-1"></i>Parent : @Ticket.ParentTicketRef</span>
                 }
             </div>
 
             @* Sprint selector *@
             @if (Sprints.Any())
             {
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-lightning text-muted flex-shrink-0"></i>
-                    <select class="form-select form-select-sm"
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="bi bi-lightning text-gray-400 shrink-0"></i>
+                    <select class="form-select flex-1"
                             value="@(Ticket.SprintId?.ToString() ?? string.Empty)"
                             @onchange="OnSprintChangeAsync"
                             disabled="@_busy">
@@ -83,9 +82,9 @@
             }
 
             @* Assignee selector *@
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="bi bi-person-check text-muted flex-shrink-0"></i>
-                <select class="form-select form-select-sm"
+            <div class="flex items-center gap-2 mb-4">
+                <i class="bi bi-person-check text-gray-400 shrink-0"></i>
+                <select class="form-select flex-1"
                         value="@(Ticket.AssigneeId ?? string.Empty)"
                         @onchange="OnAssigneeChangeAsync"
                         disabled="@_busy">
@@ -97,8 +96,8 @@
                 </select>
             </div>
 
-            <div class="text-muted small border-top pt-2 d-flex gap-3 flex-wrap">
-                <span><i class="bi bi-person me-1"></i>Créé par <strong>@(Ticket.ReporterName)</strong></span>
+            <div class="flex flex-wrap gap-3 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                <span><i class="bi bi-person mr-1"></i>Créé par <strong class="text-gray-600">@(Ticket.ReporterName)</strong></span>
                 <span>le @Ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                 @if (Ticket.UpdatedAt.HasValue)
                 {
@@ -106,41 +105,41 @@
                 }
             </div>
 
-            @* ── Comments ────────────────────────────────────────────────────── *@
-            <div class="mt-4">
-                <p class="fw-semibold text-muted small text-uppercase mb-2"><i class="bi bi-chat-left-text me-1"></i>Commentaires</p>
+            @* ── Comments ── *@
+            <div class="mt-5">
+                <p class="section-label mb-3"><i class="bi bi-chat-left-text mr-1"></i>Commentaires</p>
 
                 @if (_commentsLoading)
                 {
-                    <p class="text-muted small">Chargement…</p>
+                    <p class="text-sm text-gray-400">Chargement…</p>
                 }
                 else
                 {
                     @foreach (var c in _comments)
                     {
-                        <div class="d-flex gap-2 mb-3">
-                            <div class="flex-shrink-0 rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:30px;height:30px;font-size:.75rem">
+                        <div class="flex gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-semibold shrink-0">
                                 @(c.AuthorName.Length > 0 ? c.AuthorName[0].ToString().ToUpper() : "?")
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex gap-2 align-items-baseline mb-1">
-                                    <span class="fw-semibold small">@c.AuthorName</span>
-                                    <span class="text-muted" style="font-size:.72rem">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex gap-2 items-baseline mb-1">
+                                    <span class="text-sm font-semibold text-gray-800">@c.AuthorName</span>
+                                    <span class="text-xs text-gray-400">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                 </div>
                                 @if (_editingCommentId == c.Id)
                                 {
-                                    <textarea class="form-control form-control-sm" rows="2" @bind="_editCommentContent"></textarea>
-                                    <div class="d-flex gap-1 mt-1">
-                                        <button class="btn btn-sm btn-primary py-0" @onclick="() => SaveCommentEditAsync(c.Id)">Sauvegarder</button>
-                                        <button class="btn btn-sm btn-secondary py-0" @onclick="() => _editingCommentId = null">Annuler</button>
+                                    <textarea class="form-textarea" rows="2" @bind="_editCommentContent"></textarea>
+                                    <div class="flex gap-1 mt-1">
+                                        <button class="btn btn-primary btn-sm" @onclick="() => SaveCommentEditAsync(c.Id)">Sauvegarder</button>
+                                        <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">Annuler</button>
                                     </div>
                                 }
                                 else
                                 {
-                                    <div class="small">@c.Content</div>
-                                    <div class="d-flex gap-2 mt-1">
-                                        <button class="btn btn-link btn-sm p-0 text-muted" style="font-size:.72rem" @onclick="() => StartEditComment(c)">Modifier</button>
-                                        <button class="btn btn-link btn-sm p-0 text-danger" style="font-size:.72rem" @onclick="() => DeleteCommentAsync(c.Id)">Supprimer</button>
+                                    <div class="text-sm text-gray-700">@c.Content</div>
+                                    <div class="flex gap-3 mt-1">
+                                        <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="() => StartEditComment(c)">Modifier</button>
+                                        <button class="text-xs text-red-400 hover:text-red-600" @onclick="() => DeleteCommentAsync(c.Id)">Supprimer</button>
                                     </div>
                                 }
                             </div>
@@ -148,11 +147,11 @@
                     }
 
                     @* Add comment *@
-                    <div class="d-flex gap-2 mt-2">
-                        <div class="flex-grow-1">
-                            <textarea class="form-control form-control-sm" rows="2" placeholder="Ajouter un commentaire…" @bind="_newCommentContent"></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <div class="flex-1">
+                            <textarea class="form-textarea" rows="2" placeholder="Ajouter un commentaire…" @bind="_newCommentContent"></textarea>
                         </div>
-                        <button class="btn btn-sm btn-primary align-self-end" @onclick="AddCommentAsync" disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
+                        <button class="btn btn-primary btn-sm self-end shrink-0" @onclick="AddCommentAsync" disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
                             <i class="bi bi-send"></i>
                         </button>
                     </div>
@@ -161,45 +160,45 @@
 
             @if (_error is not null)
             {
-                <div class="alert alert-danger py-1 small mt-2">@_error</div>
+                <div class="mt-3"><ErrorAlert Message="@_error" /></div>
             }
 
-            <div class="d-flex justify-content-between align-items-center mt-4 border-top pt-3">
-                <a href="/tickets/@Ticket.TicketRef" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir la page
+            <div class="flex justify-between items-center mt-5 border-t border-gray-100 pt-4">
+                <a href="/tickets/@Ticket.TicketRef" class="btn btn-ghost btn-sm">
+                    <i class="bi bi-box-arrow-up-right mr-1"></i>Ouvrir la page
                 </a>
-                <div class="d-flex gap-2">
+                <div class="flex gap-2">
                     @if (ActiveSprintId.HasValue && Ticket.SprintId is null)
                     {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="OnAddToSprintAsync" disabled="@_busy">
-                            <i class="bi bi-lightning me-1"></i>Sprint
+                        <button class="btn btn-outline btn-sm" @onclick="OnAddToSprintAsync" disabled="@_busy">
+                            <i class="bi bi-lightning mr-1"></i>Sprint
                         </button>
                     }
-                    <button class="btn btn-sm btn-outline-danger" @onclick="OnDeleteAsync" disabled="@_busy">
-                        <i class="bi bi-trash me-1"></i>Supprimer
+                    <button class="btn btn-danger btn-sm" @onclick="OnDeleteAsync" disabled="@_busy">
+                        <i class="bi bi-trash mr-1"></i>Supprimer
                     </button>
-                    <button class="btn btn-sm btn-primary" @onclick="EnterEdit">
-                        <i class="bi bi-pencil me-1"></i>Modifier
+                    <button class="btn btn-primary btn-sm" @onclick="EnterEdit">
+                        <i class="bi bi-pencil mr-1"></i>Modifier
                     </button>
                 </div>
             </div>
         }
         else
         {
-            @* ── Edit form ────────────────────────────────────────────────────── *@
+            @* ── Edit form ── *@
             <EditForm Model="_form" OnValidSubmit="OnSaveAsync">
                 <DataAnnotationsValidator />
-                <div class="mb-3">
+                <div class="mb-4">
                     <label class="form-label">Titre</label>
-                    <InputText class="form-control" @bind-Value="_form.Title" />
+                    <InputText class="form-input" @bind-Value="_form.Title" />
                     <ValidationMessage For="() => _form.Title" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-4">
                     <label class="form-label">Description</label>
-                    <InputTextArea class="form-control" rows="4" @bind-Value="_form.Description" />
+                    <InputTextArea class="form-textarea" rows="4" @bind-Value="_form.Description" />
                 </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
                         <label class="form-label">Type</label>
                         <InputSelect class="form-select" @bind-Value="_form.Type">
                             @foreach (var type in Enum.GetValues<TicketType>())
@@ -208,7 +207,7 @@
                             }
                         </InputSelect>
                     </div>
-                    <div class="col-md-6">
+                    <div>
                         <label class="form-label">Priorité</label>
                         <InputSelect class="form-select" @bind-Value="_form.Priority">
                             @foreach (var priority in Enum.GetValues<CardPriority>())
@@ -217,23 +216,23 @@
                             }
                         </InputSelect>
                     </div>
-                    <div class="col-md-6">
+                    <div>
                         <label class="form-label">Story points</label>
-                        <InputNumber class="form-control" @bind-Value="_form.StoryPoints" />
+                        <InputNumber class="form-input" @bind-Value="_form.StoryPoints" />
                     </div>
-                    <div class="col-md-6">
+                    <div>
                         <label class="form-label">Échéance</label>
-                        <InputDate class="form-control" @bind-Value="_form.DueDate" />
+                        <InputDate class="form-input" @bind-Value="_form.DueDate" />
                     </div>
                 </div>
 
                 @if (_error is not null)
                 {
-                    <div class="alert alert-danger py-1 small mt-3">@_error</div>
+                    <div class="mb-4"><ErrorAlert Message="@_error" /></div>
                 }
 
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    <button type="button" class="btn btn-secondary" @onclick="() => _editing = false" disabled="@_busy">Annuler</button>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">Annuler</button>
                     <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
                 </div>
             </EditForm>
@@ -447,12 +446,12 @@
         finally { _busy = false; }
     }
 
-    private static string PriorityClass(CardPriority priority) => priority switch
+    private static string PriorityBadgeClass(CardPriority priority) => priority switch
     {
-        CardPriority.Low      => "bg-secondary",
-        CardPriority.Medium   => "bg-info text-dark",
-        CardPriority.High     => "bg-warning text-dark",
-        CardPriority.Critical => "bg-danger",
-        _                     => "bg-secondary"
+        CardPriority.Low      => "badge badge-prio-low",
+        CardPriority.Medium   => "badge badge-prio-medium",
+        CardPriority.High     => "badge badge-prio-high",
+        CardPriority.Critical => "badge badge-prio-critical",
+        _                     => "badge badge-gray"
     };
 }

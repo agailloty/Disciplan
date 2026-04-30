@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+
+  <!-- ── Commun ──────────────────────────────────────────────────────────── -->
+  <data name="Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Edit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Create" xml:space="preserve"><value>Créer</value></data>
+  <data name="Close" xml:space="preserve"><value>Fermer</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirmer</value></data>
+  <data name="Back" xml:space="preserve"><value>Retour</value></data>
+  <data name="Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Title" xml:space="preserve"><value>Titre</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Priority" xml:space="preserve"><value>Priorité</value></data>
+  <data name="Loading" xml:space="preserve"><value>Chargement…</value></data>
+  <data name="NoDescription" xml:space="preserve"><value>Aucune description.</value></data>
+  <data name="Error.Default" xml:space="preserve"><value>Une erreur est survenue. Veuillez réessayer.</value></data>
+  <data name="Error.Load" xml:space="preserve"><value>Impossible de charger les données.</value></data>
+  <data name="Error.Create" xml:space="preserve"><value>La création a échoué.</value></data>
+  <data name="Error.Update" xml:space="preserve"><value>La mise à jour a échoué.</value></data>
+  <data name="Error.Delete" xml:space="preserve"><value>La suppression a échoué.</value></data>
+
+  <!-- ── Navigation ──────────────────────────────────────────────────────── -->
+  <data name="Nav.Home" xml:space="preserve"><value>Accueil</value></data>
+  <data name="Nav.Boards" xml:space="preserve"><value>Tableaux</value></data>
+  <data name="Nav.Projects" xml:space="preserve"><value>Projets</value></data>
+  <data name="Nav.MyTickets" xml:space="preserve"><value>Mes tickets</value></data>
+  <data name="Nav.Logout" xml:space="preserve"><value>Se déconnecter</value></data>
+
+  <!-- ── Authentification ────────────────────────────────────────────────── -->
+  <data name="Auth.Subtitle" xml:space="preserve"><value>Connectez-vous pour continuer</value></data>
+  <data name="Auth.Email" xml:space="preserve"><value>Adresse e-mail</value></data>
+  <data name="Auth.Password" xml:space="preserve"><value>Mot de passe</value></data>
+  <data name="Auth.Submit" xml:space="preserve"><value>Se connecter</value></data>
+  <data name="Auth.Submitting" xml:space="preserve"><value>Connexion…</value></data>
+  <data name="Auth.Error.Invalid" xml:space="preserve"><value>Identifiants incorrects.</value></data>
+
+  <!-- ── Tableaux (Boards) ────────────────────────────────────────────────── -->
+  <data name="Board.CreateTitle" xml:space="preserve"><value>Nouveau tableau</value></data>
+  <data name="Board.EditTitle" xml:space="preserve"><value>Modifier le tableau</value></data>
+  <data name="Board.Empty" xml:space="preserve"><value>Aucun tableau pour l'instant.</value></data>
+  <data name="Board.CreateFirst" xml:space="preserve"><value>Créer mon premier tableau</value></data>
+  <data name="Board.Description" xml:space="preserve"><value>Description (optionnel)</value></data>
+  <data name="Board.Delete.Title" xml:space="preserve"><value>Supprimer le tableau</value></data>
+  <data name="Board.Delete.Confirm" xml:space="preserve"><value>Supprimer « {0} » ? Toutes ses colonnes et cartes seront perdues.</value></data>
+  <data name="Board.ColumnCount" xml:space="preserve"><value>{0} col.</value></data>
+
+  <!-- ── Projets ──────────────────────────────────────────────────────────── -->
+  <data name="Project.CreateTitle" xml:space="preserve"><value>Nouveau projet</value></data>
+  <data name="Project.EditTitle" xml:space="preserve"><value>Modifier le projet</value></data>
+  <data name="Project.Empty" xml:space="preserve"><value>Aucun projet pour l'instant.</value></data>
+  <data name="Project.CreateFirst" xml:space="preserve"><value>Créer mon premier projet</value></data>
+  <data name="Project.Key" xml:space="preserve"><value>Clé</value></data>
+  <data name="Project.KeyLabel" xml:space="preserve"><value>Clé projet</value></data>
+  <data name="Project.KeyHint" xml:space="preserve"><value>2 à 10 lettres, ex : DISC.</value></data>
+  <data name="Project.Subtitle" xml:space="preserve"><value>Organise les tickets, le backlog et les sprints.</value></data>
+  <data name="Project.Backlog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Project.BacklogEmpty" xml:space="preserve"><value>Le backlog est vide.</value></data>
+  <data name="Project.Delete.Title" xml:space="preserve"><value>Supprimer le projet</value></data>
+  <data name="Project.Delete.Confirm" xml:space="preserve"><value>Supprimer « {0} » et tous ses tickets ?</value></data>
+  <data name="Project.Statuses" xml:space="preserve"><value>Statuts du projet</value></data>
+  <data name="Project.Stats.Backlog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Project.Stats.BacklogSub" xml:space="preserve"><value>tickets non planifiés</value></data>
+  <data name="Project.Stats.Sprints" xml:space="preserve"><value>Sprints</value></data>
+  <data name="Project.Stats.SprintsSub" xml:space="preserve"><value>itérations créées</value></data>
+  <data name="Project.Stats.Workflow" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Project.Stats.WorkflowSub" xml:space="preserve"><value>statuts de tickets</value></data>
+
+  <!-- ── Sprints ──────────────────────────────────────────────────────────── -->
+  <data name="Sprint.Active" xml:space="preserve"><value>Sprint actif</value></data>
+  <data name="Sprint.Planning" xml:space="preserve"><value>Planning</value></data>
+  <data name="Sprint.Statuses" xml:space="preserve"><value>Statuts</value></data>
+  <data name="Sprint.Start" xml:space="preserve"><value>Démarrer</value></data>
+  <data name="Sprint.Close" xml:space="preserve"><value>Clore</value></data>
+  <data name="Sprint.CreateTitle" xml:space="preserve"><value>Créer un sprint</value></data>
+  <data name="Sprint.Goal" xml:space="preserve"><value>Objectif</value></data>
+  <data name="Sprint.NoActive" xml:space="preserve"><value>Aucun sprint actif</value></data>
+  <data name="Sprint.NoActiveDesc" xml:space="preserve"><value>Démarre un sprint planifié depuis l'onglet Planning. Un seul sprint peut être actif à la fois.</value></data>
+  <data name="Sprint.View.Kanban" xml:space="preserve"><value>Kanban</value></data>
+  <data name="Sprint.View.List" xml:space="preserve"><value>Liste</value></data>
+  <data name="Sprint.View.Grid" xml:space="preserve"><value>Grille</value></data>
+  <data name="Sprint.SelectedCount" xml:space="preserve"><value>{0} sélectionnés</value></data>
+  <data name="Sprint.TicketHint" xml:space="preserve"><value>Coche des tickets puis crée un sprint.</value></data>
+  <data name="Sprint.TicketsMoved" xml:space="preserve"><value>{0} tickets seront déplacés depuis le backlog.</value></data>
+  <data name="Sprint.StartHint" xml:space="preserve"><value>Démarrer ce sprint</value></data>
+  <data name="Sprint.AlreadyActive" xml:space="preserve"><value>Un sprint est déjà actif</value></data>
+  <data name="Sprint.AddTicket" xml:space="preserve"><value>Ticket</value></data>
+  <data name="Sprint.AddTicketNew" xml:space="preserve"><value>Nouveau ticket</value></data>
+  <data name="Sprint.AddToSprint" xml:space="preserve"><value>Ajouter au sprint</value></data>
+  <data name="Sprint.NoTickets" xml:space="preserve"><value>Ce sprint ne contient aucun ticket.</value></data>
+  <data name="Sprint.ColumnEmpty" xml:space="preserve"><value>Aucun ticket</value></data>
+  <data name="Sprint.AddCard" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="Sprint.CreateButton" xml:space="preserve"><value>Créer un sprint</value></data>
+  <data name="Sprint.MoveToBacklog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Sprint.TicketCount" xml:space="preserve"><value>{0} tickets</value></data>
+
+  <!-- ── Tickets ──────────────────────────────────────────────────────────── -->
+  <data name="Ticket.CreateTitle" xml:space="preserve"><value>Nouveau ticket</value></data>
+  <data name="Ticket.StoryPoints" xml:space="preserve"><value>Story points</value></data>
+  <data name="Ticket.DueDate" xml:space="preserve"><value>Échéance</value></data>
+  <data name="Ticket.Sprint" xml:space="preserve"><value>Sprint</value></data>
+  <data name="Ticket.BacklogOption" xml:space="preserve"><value>— Backlog —</value></data>
+  <data name="Ticket.Reporter" xml:space="preserve"><value>Créé par</value></data>
+  <data name="Ticket.Assignee" xml:space="preserve"><value>Assigné à</value></data>
+  <data name="Ticket.Comments" xml:space="preserve"><value>Commentaires</value></data>
+  <data name="Ticket.Comment.Add" xml:space="preserve"><value>Ajouter un commentaire…</value></data>
+  <data name="Ticket.Comment.Edit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Ticket.Comment.Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Ticket.Comment.Save" xml:space="preserve"><value>Sauvegarder</value></data>
+  <data name="Ticket.NoDescription" xml:space="preserve"><value>Aucune description.</value></data>
+  <data name="Ticket.Overdue" xml:space="preserve"><value>en retard</value></data>
+  <data name="Ticket.Delete.Title" xml:space="preserve"><value>Supprimer le ticket</value></data>
+  <data name="Ticket.CreatedOn" xml:space="preserve"><value>le {0}</value></data>
+  <data name="Ticket.UpdatedOn" xml:space="preserve"><value>Modifié le {0}</value></data>
+  <data name="Ticket.Parent" xml:space="preserve"><value>Parent : {0}</value></data>
+
+  <!-- ── Statuts de ticket ────────────────────────────────────────────────── -->
+  <data name="Status.Category" xml:space="preserve"><value>Catégorie</value></data>
+  <data name="Status.Color" xml:space="preserve"><value>Couleur</value></data>
+  <data name="Status.OrderLabel" xml:space="preserve"><value>ordre {0}</value></data>
+  <data name="Status.CreateTitle" xml:space="preserve"><value>Nouveau statut</value></data>
+  <data name="Status.EditTitle" xml:space="preserve"><value>Modifier le statut</value></data>
+
+  <!-- ── Navigation (suite) ───────────────────────────────────────────────── -->
+  <data name="Nav.Settings" xml:space="preserve"><value>Paramètres</value></data>
+
+  <!-- ── Paramètres ─────────────────────────────────────────────────────────── -->
+  <data name="Settings.Title" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>Langue de l'application</value></data>
+
+  <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->
+  <data name="Col.Ref" xml:space="preserve"><value>Réf.</value></data>
+  <data name="Col.Title" xml:space="preserve"><value>Titre</value></data>
+  <data name="Col.Priority" xml:space="preserve"><value>Priorité</value></data>
+  <data name="Col.Status" xml:space="preserve"><value>Statut</value></data>
+  <data name="Col.Sprint" xml:space="preserve"><value>Sprint</value></data>
+  <data name="Col.DueDate" xml:space="preserve"><value>Échéance</value></data>
+  <data name="Col.Project" xml:space="preserve"><value>Projet</value></data>
+
+  <!-- ── Accueil ──────────────────────────────────────────────────────────── -->
+  <data name="Home.Welcome" xml:space="preserve"><value>Bonjour, {0} 👋</value></data>
+  <data name="Home.MyTickets" xml:space="preserve"><value>Mes tickets</value></data>
+  <data name="Home.Activity" xml:space="preserve"><value>Activité récente</value></data>
+  <data name="Home.NoTickets" xml:space="preserve"><value>Aucun ticket assigné.</value></data>
+  <data name="Home.NoActivity" xml:space="preserve"><value>Aucune activité récente.</value></data>
+  <data name="Home.ViewAll" xml:space="preserve"><value>Voir tous</value></data>
+  <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket créé</value></data>
+  <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket modifié</value></data>
+  <data name="Home.Activity.Commented" xml:space="preserve"><value>Commentaire ajouté</value></data>
+
+  <!-- ── Mes tickets ──────────────────────────────────────────────────────── -->
+  <data name="MyTickets.Title" xml:space="preserve"><value>Mes tickets</value></data>
+  <data name="MyTickets.Empty" xml:space="preserve"><value>Aucun ticket assigné.</value></data>
+
+  <!-- ── Catégories de statut ──────────────────────────────────────────────────── -->
+  <data name="StatusCategory.Backlog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="StatusCategory.InProgress" xml:space="preserve"><value>En cours</value></data>
+  <data name="StatusCategory.Done" xml:space="preserve"><value>Terminé</value></data>
+
+  <!-- ── Temps relatif ─────────────────────────────────────────────────────────── -->
+  <data name="Time.JustNow" xml:space="preserve"><value>à l’instant</value></data>
+  <data name="Time.MinutesAgo" xml:space="preserve"><value>il y a {0} min</value></data>
+  <data name="Time.HoursAgo" xml:space="preserve"><value>il y a {0} h</value></data>
+  <data name="Time.DaysAgo" xml:space="preserve"><value>il y a {0} j</value></data>
+
+</root>

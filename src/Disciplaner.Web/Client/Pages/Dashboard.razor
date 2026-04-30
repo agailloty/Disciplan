@@ -1,13 +1,15 @@
-@page "/boards"
+﻿@page "/boards"
 @attribute [Authorize]
 @inject BoardApiClient Boards
 @inject NavigationManager Nav
 
-<PageTitle>Mes tableaux — Disciplaner</PageTitle>
+<PageTitle>Tableaux â€” Disciplaner</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3">Mes tableaux</h1>
-    <button class="btn btn-primary" @onclick="ShowCreateModal">+ Nouveau tableau</button>
+<div class="flex items-center justify-between mb-6">
+    <h1 class="page-title">Tableaux</h1>
+    <button class="btn btn-primary" @onclick="ShowCreateModal">
+        <i class="bi bi-plus"></i> Nouveau tableau
+    </button>
 </div>
 
 @if (_loading)
@@ -22,41 +24,37 @@ else if (_boards is not null)
 {
     @if (_boards.Count == 0)
     {
-        <div class="text-center py-5 text-muted">
-            <div style="font-size:3rem">&#9638;</div>
-            <p class="mt-2">Aucun tableau pour l'instant.</p>
-            <button class="btn btn-primary" @onclick="ShowCreateModal">Créer mon premier tableau</button>
+        <div class="text-center py-20 text-gray-400">
+            <span class="text-5xl block mb-3">&#9638;</span>
+            <p class="text-sm">Aucun tableau pour l'instant.</p>
+            <button class="btn btn-primary mt-4" @onclick="ShowCreateModal">CrÃ©er mon premier tableau</button>
         </div>
     }
     else
     {
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @{int idx = 0;}
             @foreach (var board in _boards)
             {
                 var b = board;
                 var accent = _accents[idx % _accents.Length];
                 idx++;
-                <div class="col">
-                    <div class="board-card card h-100 shadow-sm" style="border-top: 4px solid @accent">
-                        <div class="card-body" style="cursor:pointer" @onclick="() => NavigateToBoard(b.Id)">
-                            <h5 class="card-title mb-1">@b.Name</h5>
-                            @if (b.Description is not null)
-                            {
-                                <p class="card-text text-muted small">@b.Description</p>
-                            }
-                        </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center text-muted small bg-transparent">
-                            <span>
-                                <span class="badge bg-light text-secondary border me-1">@b.ColumnCount col.</span>
-                                @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
-                            </span>
-                            <div class="d-flex gap-1" @onclick:stopPropagation>
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" title="Modifier"
-                                        @onclick="() => ShowEditModal(b)">✎</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Supprimer"
-                                        @onclick="() => ShowDeleteConfirm(b)">✕</button>
-                            </div>
+                <div class="surface surface-hover" style="border-top: 3px solid @accent">
+                    <div class="p-4 cursor-pointer" @onclick="() => NavigateToBoard(b.Id)">
+                        <h2 class="font-semibold text-gray-900 text-base">@b.Name</h2>
+                        @if (b.Description is not null)
+                        {
+                            <p class="text-gray-500 text-sm mt-1 line-clamp-2">@b.Description</p>
+                        }
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100">
+                        <span class="text-xs text-gray-400">
+                            <span class="badge badge-gray mr-1">@b.ColumnCount col.</span>
+                            @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                        </span>
+                        <div class="flex gap-1" @onclick:stopPropagation>
+                            <button class="btn-icon" title="Modifier" @onclick="() => ShowEditModal(b)"><i class="bi bi-pencil text-xs"></i></button>
+                            <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => ShowDeleteConfirm(b)"><i class="bi bi-trash text-xs"></i></button>
                         </div>
                     </div>
                 </div>
@@ -65,34 +63,34 @@ else if (_boards is not null)
     }
 }
 
-@* ── Create/Edit modal ── *@
+@* â”€â”€ Create/Edit modal â”€â”€ *@
 <Modal Title="@(_editTarget is null ? "Nouveau tableau" : "Modifier le tableau")"
        Visible="_showForm" OnClose="CloseForm">
     <EditForm Model="_form" OnValidSubmit="SubmitBoardFormAsync">
         <DataAnnotationsValidator />
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Nom</label>
-            <InputText @bind-Value="_form.Name" class="form-control" />
+            <InputText @bind-Value="_form.Name" class="form-input" />
             <ValidationMessage For="() => _form.Name" />
         </div>
-        <div class="mb-3">
+        <div class="mb-5">
             <label class="form-label">Description (optionnel)</label>
-            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="2" />
+            <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="2" />
         </div>
         @if (_formError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_formError</div>
+            <div class="mb-4"><ErrorAlert Message="@_formError" /></div>
         }
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @onclick="CloseForm">Annuler</button>
+        <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-outline" @onclick="CloseForm">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_busy">
-                @(_busy ? "…" : (_editTarget is null ? "Créer" : "Enregistrer"))
+                @(_busy ? "â€¦" : (_editTarget is null ? "CrÃ©er" : "Enregistrer"))
             </button>
         </div>
     </EditForm>
 </Modal>
 
-@* ── Delete confirmation ── *@
+@* â”€â”€ Delete confirmation â”€â”€ *@
 <ConfirmModal Title="Supprimer le tableau"
               Message="@($"Supprimer \"{_deleteTarget?.Name}\" ? Toutes ses colonnes et cartes seront perdues.")"
               Visible="_showDelete"
@@ -109,20 +107,13 @@ else if (_boards is not null)
     }
 
     private List<BoardSummaryDto>? _boards;
-
-    private static readonly string[] _accents =
-        ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
+    private static readonly string[] _accents = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
     private bool _loading = true;
     private string? _error;
-
-    private bool _showForm;
-    private bool _showDelete;
-    private bool _busy;
+    private bool _showForm, _showDelete, _busy;
     private string? _formError;
-
     private BoardForm _form = new();
-    private BoardSummaryDto? _editTarget;
-    private BoardSummaryDto? _deleteTarget;
+    private BoardSummaryDto? _editTarget, _deleteTarget;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,36 +122,15 @@ else if (_boards is not null)
         finally { _loading = false; }
     }
 
-    private void ShowCreateModal()
-    {
-        _editTarget = null;
-        _form = new();
-        _formError = null;
-        _showForm = true;
-    }
-
-    private void ShowEditModal(BoardSummaryDto board)
-    {
-        _editTarget = board;
-        _form = new() { Name = board.Name, Description = board.Description };
-        _formError = null;
-        _showForm = true;
-    }
-
-    private void ShowDeleteConfirm(BoardSummaryDto board)
-    {
-        _deleteTarget = board;
-        _showDelete = true;
-    }
-
+    private void ShowCreateModal() { _editTarget = null; _form = new(); _formError = null; _showForm = true; }
+    private void ShowEditModal(BoardSummaryDto b) { _editTarget = b; _form = new() { Name = b.Name, Description = b.Description }; _formError = null; _showForm = true; }
+    private void ShowDeleteConfirm(BoardSummaryDto b) { _deleteTarget = b; _showDelete = true; }
     private void CloseForm() { _showForm = false; _formError = null; }
-
     private void NavigateToBoard(Guid id) => Nav.NavigateTo($"/boards/{id}");
 
     private async Task SubmitBoardFormAsync()
     {
-        _busy = true;
-        _formError = null;
+        _busy = true; _formError = null;
         try
         {
             if (_editTarget is null)
@@ -172,12 +142,11 @@ else if (_boards is not null)
             {
                 await Boards.UpdateBoardAsync(_editTarget.Id, new UpdateBoardRequest(_form.Name, _form.Description));
                 var idx = _boards!.FindIndex(b => b.Id == _editTarget.Id);
-                if (idx >= 0)
-                    _boards[idx] = _boards[idx] with { Name = _form.Name, Description = _form.Description };
+                if (idx >= 0) _boards[idx] = _boards[idx] with { Name = _form.Name, Description = _form.Description };
             }
             _showForm = false;
         }
-        catch { _formError = "Une erreur est survenue. Veuillez réessayer."; }
+        catch { _formError = "Une erreur est survenue. Veuillez rÃ©essayer."; }
         finally { _busy = false; }
     }
 
@@ -189,7 +158,7 @@ else if (_boards is not null)
             await Boards.DeleteBoardAsync(_deleteTarget.Id);
             _boards?.RemoveAll(b => b.Id == _deleteTarget.Id);
         }
-        catch { _error = "La suppression a échoué."; }
+        catch { _error = "La suppression a Ã©chouÃ©."; }
         finally { _showDelete = false; _deleteTarget = null; }
     }
 }

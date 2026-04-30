@@ -9,147 +9,144 @@
 @using Disciplaner.Application.DTOs.User
 
 @* ── Card tile ── *@
-<div class="kanban-card card shadow-sm priority-@PriorityCssName @(_isDragging ? "opacity-50" : "")"
+<div class="kanban-card kc-prio-@PriorityCssName @(_isDragging ? "opacity-50" : "")"
      draggable="true"
      @ondragstart="OnDragStart"
      @ondragend="OnDragEnd"
      @onclick="OnShowDetailAsync"
      style="cursor:pointer">
-    <div class="card-body p-2">
-        <div class="d-flex justify-content-between align-items-start gap-1">
-            <span class="fw-semibold small text-dark flex-grow-1 lh-sm">@Card.Title</span>
-            <div class="card-actions d-flex gap-1 flex-shrink-0" @onclick:stopPropagation>
-                <button class="btn-icon" title="Modifier" @onclick="ShowEditModal">✎</button>
-                <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
-            </div>
+    <div class="flex items-start justify-between gap-1">
+        <span class="text-sm font-medium text-gray-900 leading-snug flex-1">@Card.Title</span>
+        <div class="card-actions flex gap-1 shrink-0" @onclick:stopPropagation>
+            <button class="btn-icon" title="Modifier" @onclick="ShowEditModal"><i class="bi bi-pencil text-xs"></i></button>
+            <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm"><i class="bi bi-x text-xs"></i></button>
         </div>
-        @if (!string.IsNullOrWhiteSpace(Card.Description))
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Card.Description))
+    {
+        <p class="card-desc-preview text-gray-500 text-xs mt-1 mb-1">@Card.Description</p>
+    }
+    <div class="flex items-center justify-between mt-2 flex-wrap gap-1">
+        <span class="badge @PriorityBadgeClass" style="font-size:.65rem">@PriorityLabel</span>
+        @if (Card.DueDate.HasValue)
         {
-            <p class="card-desc-preview text-muted mt-1 mb-1">@Card.Description</p>
+            var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+            <span class="text-xs @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM")
+            </span>
         }
-        <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-1">
-            <span class="badge @PriorityBadgeClass" style="font-size:.68rem">@PriorityLabel</span>
-            @if (Card.DueDate.HasValue)
-            {
-                var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                <small class="@(overdue ? "text-danger fw-semibold" : "text-muted")">
-                    &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM")
-                </small>
-            }
-            @if (Card.AssigneeName is not null)
-            {
-                <small class="text-muted ms-auto"><i class="bi bi-person-fill me-1"></i>@Card.AssigneeName.Split(' ')[0]</small>
-            }
-        </div>
+        @if (Card.AssigneeName is not null)
+        {
+            <span class="text-xs text-gray-400 ml-auto"><i class="bi bi-person-fill mr-0.5"></i>@Card.AssigneeName.Split(' ')[0]</span>
+        }
     </div>
 </div>
 
 @* ── Detail modal ── *@
 <Modal Title="@Card.Title" Visible="_showDetail" OnClose="() => _showDetail = false" SizeClass="modal-lg">
-    <div class="d-flex flex-wrap gap-2 mb-3">
-        <span class="badge @PriorityBadgeClass px-2 py-1">@PriorityLabel</span>
+    <div class="flex flex-wrap gap-2 mb-4">
+        <span class="badge @PriorityBadgeClass">@PriorityLabel</span>
         @if (!string.IsNullOrWhiteSpace(ColumnName))
         {
-            <span class="badge bg-light text-dark border px-2 py-1">&#9642; @ColumnName</span>
+            <span class="badge badge-gray">&#9642; @ColumnName</span>
         }
         @if (Card.DueDate.HasValue)
         {
             var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-            <span class="badge @(overdue ? "bg-danger" : "bg-secondary") px-2 py-1">
-                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
-                @(overdue ? " — en retard" : "")
+            <span class="badge @(overdue ? "badge-prio-critical" : "badge-gray")">
+                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")@(overdue ? " — en retard" : "")
             </span>
         }
     </div>
 
     @if (!string.IsNullOrWhiteSpace(Card.Description))
     {
-        <div class="mb-3">
-            <p class="form-label fw-semibold text-muted small text-uppercase mb-1">Description</p>
-            <div class="card-detail-description">@Card.Description</div>
+        <div class="mb-4">
+            <p class="section-label mb-1">Description</p>
+            <div class="detail-description">@Card.Description</div>
         </div>
     }
     else
     {
-        <p class="text-muted fst-italic small mb-3">Aucune description.</p>
+        <p class="text-gray-400 text-sm italic mb-4">Aucune description.</p>
     }
 
-    <div class="text-muted small mt-2 d-flex gap-3 flex-wrap border-top pt-2">
+    <div class="flex flex-wrap gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3 mb-1">
         <span>Créée le @Card.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
         @if (Card.UpdatedAt.HasValue)
         {
             <span>Modifiée le @Card.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
         }
     </div>
-    <div class="d-flex gap-3 flex-wrap text-muted small mt-2">
-        <span><i class="bi bi-person me-1"></i><strong>Créé par&nbsp;:</strong> @(Card.CreatedByName ?? Card.CreatedById)</span>
+    <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
+        <span><i class="bi bi-person mr-1"></i><strong>Créé par&nbsp;:</strong> @(Card.CreatedByName ?? Card.CreatedById)</span>
         @if (Card.AssignedToId is not null)
         {
-            <span><i class="bi bi-person-check me-1"></i><strong>Assigné à&nbsp;:</strong> @(Card.AssigneeName ?? Card.AssignedToId)</span>
+            <span><i class="bi bi-person-check mr-1"></i><strong>Assigné à&nbsp;:</strong> @(Card.AssigneeName ?? Card.AssignedToId)</span>
         }
     </div>
 
     @* ── Comments ── *@
     <div class="mt-4">
-        <p class="form-label fw-semibold text-muted small text-uppercase mb-2">Commentaires</p>
+        <p class="section-label mb-3">Commentaires</p>
 
         @if (_commentsLoading)
         {
-            <p class="text-muted small">Chargement…</p>
+            <p class="text-sm text-gray-400">Chargement…</p>
         }
         else if (_comments.Count == 0)
         {
-            <p class="text-muted fst-italic small">Aucun commentaire pour l'instant.</p>
+            <p class="text-sm text-gray-400 italic">Aucun commentaire pour l'instant.</p>
         }
         else
         {
-            <div class="comment-list d-flex flex-column gap-2 mb-3">
+            <div class="flex flex-col gap-3 mb-4">
                 @foreach (var c in _comments)
                 {
                     var comment = c;
-                    <div class="comment-item">
-                        <div class="d-flex justify-content-between align-items-start">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="flex justify-between items-start">
                             <div>
-                                <span class="fw-semibold small">@comment.AuthorName</span>
-                                <span class="text-muted small ms-2">@comment.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                <span class="text-sm font-semibold text-gray-800">@comment.AuthorName</span>
+                                <span class="text-xs text-gray-400 ml-2">@comment.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                 @if (comment.UpdatedAt.HasValue)
                                 {
-                                    <span class="text-muted small ms-1">(modifié)</span>
+                                    <span class="text-xs text-gray-400 ml-1">(modifié)</span>
                                 }
                             </div>
                             @if (comment.AuthorId == _currentUserId)
                             {
-                                <div class="d-flex gap-1">
-                                    <button class="btn-icon" title="Modifier" @onclick="() => StartEditComment(comment)">✎</button>
-                                    <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => DeleteCommentAsync(comment.Id)">✕</button>
+                                <div class="flex gap-1">
+                                    <button class="btn-icon" title="Modifier" @onclick="() => StartEditComment(comment)"><i class="bi bi-pencil text-xs"></i></button>
+                                    <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => DeleteCommentAsync(comment.Id)"><i class="bi bi-x text-xs"></i></button>
                                 </div>
                             }
                         </div>
                         @if (_editingCommentId == comment.Id)
                         {
-                            <div class="mt-1">
-                                <textarea class="form-control form-control-sm" rows="2" @bind="_editCommentContent"></textarea>
-                                <div class="d-flex gap-1 mt-1 justify-content-end">
-                                    <button class="btn btn-sm btn-secondary py-0" @onclick="() => _editingCommentId = null">Annuler</button>
-                                    <button class="btn btn-sm btn-primary py-0" @onclick="() => SaveEditCommentAsync(comment.Id)" disabled="@_commentBusy">Enregistrer</button>
+                            <div class="mt-2">
+                                <textarea class="form-textarea" rows="2" @bind="_editCommentContent"></textarea>
+                                <div class="flex gap-1 mt-1 justify-end">
+                                    <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">Annuler</button>
+                                    <button class="btn btn-primary btn-sm" @onclick="() => SaveEditCommentAsync(comment.Id)" disabled="@_commentBusy">Enregistrer</button>
                                 </div>
                             </div>
                         }
                         else
                         {
-                            <p class="comment-content mb-0">@comment.Content</p>
+                            <p class="comment-content text-sm text-gray-700 mt-1 mb-0">@comment.Content</p>
                         }
                     </div>
                 }
             </div>
         }
 
-        <div class="comment-input-row d-flex gap-2 align-items-end">
-            <textarea class="form-control form-control-sm flex-grow-1" rows="2"
+        <div class="flex gap-2 items-end">
+            <textarea class="form-textarea flex-1" rows="2"
                       placeholder="Ajouter un commentaire…"
                       @bind="_newCommentContent"
                       disabled="@_commentBusy"></textarea>
-            <button class="btn btn-sm btn-primary align-self-end"
+            <button class="btn btn-primary btn-sm shrink-0 self-end"
                     @onclick="AddCommentAsync"
                     disabled="@(string.IsNullOrWhiteSpace(_newCommentContent) || _commentBusy)">
                 Envoyer
@@ -157,16 +154,16 @@
         </div>
         @if (_commentError is not null)
         {
-            <div class="alert alert-danger py-1 small mt-2">@_commentError</div>
+            <div class="mt-2"><ErrorAlert Message="@_commentError" /></div>
         }
     </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-4 border-top pt-3">
-        <button class="btn btn-sm btn-outline-danger" @onclick="() => { _showDetail = false; ShowDeleteConfirm(); }">
-            Supprimer
+    <div class="flex justify-end gap-2 mt-5 border-t border-gray-100 pt-4">
+        <button class="btn btn-danger btn-sm" @onclick="() => { _showDetail = false; ShowDeleteConfirm(); }">
+            <i class="bi bi-trash mr-1"></i>Supprimer
         </button>
-        <button class="btn btn-sm btn-primary" @onclick="() => { _showDetail = false; ShowEditModal(); }">
-            ✎ Modifier
+        <button class="btn btn-primary btn-sm" @onclick="() => { _showDetail = false; ShowEditModal(); }">
+            <i class="bi bi-pencil mr-1"></i>Modifier
         </button>
     </div>
 </Modal>
@@ -175,17 +172,17 @@
 <Modal Title="Modifier la carte" Visible="_showEdit" OnClose="() => _showEdit = false">
     <EditForm Model="_form" OnValidSubmit="UpdateCardAsync">
         <DataAnnotationsValidator />
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Titre</label>
-            <InputText @bind-Value="_form.Title" class="form-control" />
+            <InputText @bind-Value="_form.Title" class="form-input" />
             <ValidationMessage For="() => _form.Title" />
         </div>
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Description</label>
-            <InputTextArea @bind-Value="_form.Description" class="form-control" rows="4" />
+            <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="4" />
         </div>
-        <div class="row g-3">
-            <div class="col-md-6">
+        <div class="grid grid-cols-2 gap-3">
+            <div>
                 <label class="form-label">Priorité</label>
                 <InputSelect @bind-Value="_form.Priority" class="form-select">
                     @foreach (var p in Enum.GetValues<CardPriority>())
@@ -194,12 +191,12 @@
                     }
                 </InputSelect>
             </div>
-            <div class="col-md-6">
+            <div>
                 <label class="form-label">Échéance</label>
-                <InputDate @bind-Value="_form.DueDate" class="form-control" />
+                <InputDate @bind-Value="_form.DueDate" class="form-input" />
             </div>
         </div>
-        <div class="mb-3 mt-3">
+        <div class="mb-4 mt-3">
             <label class="form-label">Assigné à</label>
             <select class="form-select" @bind="_form.AssignedToId">
                 <option value="">— Non assigné —</option>
@@ -211,10 +208,10 @@
         </div>
         @if (_editError is not null)
         {
-            <div class="alert alert-danger py-1 small mt-3">@_editError</div>
+            <div class="mb-4"><ErrorAlert Message="@_editError" /></div>
         }
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
         </div>
     </EditForm>
@@ -402,11 +399,11 @@
 
     private string PriorityBadgeClass => Card.Priority switch
     {
-        CardPriority.Low      => "bg-secondary",
-        CardPriority.Medium   => "bg-info text-dark",
-        CardPriority.High     => "bg-warning text-dark",
-        CardPriority.Critical => "bg-danger",
-        _                     => "bg-secondary"
+        CardPriority.Low      => "badge badge-prio-low",
+        CardPriority.Medium   => "badge badge-prio-medium",
+        CardPriority.High     => "badge badge-prio-high",
+        CardPriority.Critical => "badge badge-prio-critical",
+        _                     => "badge badge-gray"
     };
 }
 

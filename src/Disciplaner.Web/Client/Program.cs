@@ -1,9 +1,12 @@
+using System.Globalization;
 using Disciplaner.Web.Client;
 using Disciplaner.Web.Client.Auth;
 using Disciplaner.Web.Client.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.Localization;
+using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -45,4 +48,16 @@ builder.Services.AddScoped<UserApiClient>();
 builder.Services.AddScoped<ActivityApiClient>();
 builder.Services.AddScoped<KanbanDragState>();
 
-await builder.Build().RunAsync();
+// ── Localization ──────────────────────────────────────────────────────────────
+builder.Services.AddLocalization();
+
+var host = builder.Build();
+
+// Read culture persisted in localStorage (defaults to "fr")
+var js = host.Services.GetRequiredService<IJSRuntime>();
+var savedCulture = await js.InvokeAsync<string>("blazorCulture.get");
+var culture = new CultureInfo(!string.IsNullOrWhiteSpace(savedCulture) ? savedCulture : "fr");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+await host.RunAsync();
