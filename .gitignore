@@ -248,6 +248,16 @@ ClientBin/
 *.publishsettings
 orleans.codegen.cs
 
+# SQLite runtime databases
+*.db
+*.db-shm
+*.db-wal
+
+# Local build/test logs
+build-client.log
+server-test.log
+server-test.err.log
+
 # Including strong name files can present a security risk
 # (https://github.com/github/gitignore/pull/2483#issue-259490424)
 #*.snk

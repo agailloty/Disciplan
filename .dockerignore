@@ -1,0 +1,15 @@
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/[Bb]in
+**/[Oo]bj
+**/*.md
+Dockerfile*
+.dockerignore
+.github
+*.db
+*.db-shm
+*.db-wal
+build-client.log
+server-test*.log
