@@ -1,7 +1,7 @@
 @inject CardApiClient CardApi
 @inject ColumnApiClient ColumnApi
 
-<div class="kanban-board d-flex gap-3 overflow-auto pb-3 align-items-start">
+<div class="kanban-board flex gap-3 overflow-x-auto pb-3 items-start">
     @foreach (var column in Board.Columns)
     {
         <ColumnComponent Column="column"
@@ -11,8 +11,8 @@
     }
 
     @* Add column button — always visible at the end of the board *@
-    <div class="kanban-column-add flex-shrink-0">
-        <button class="btn btn-outline-secondary w-100" @onclick="() => _showAddColumn = true">
+    <div class="flex-shrink-0" style="width:290px">
+        <button class="btn btn-outline w-full" @onclick="() => _showAddColumn = true">
             + Ajouter une colonne
         </button>
     </div>
@@ -27,17 +27,17 @@
 <Modal Title="Nouvelle colonne" Visible="_showAddColumn" OnClose="() => _showAddColumn = false">
     <EditForm Model="_columnForm" OnValidSubmit="CreateColumnAsync">
         <DataAnnotationsValidator />
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Nom</label>
-            <InputText @bind-Value="_columnForm.Name" class="form-control" autofocus />
+            <InputText @bind-Value="_columnForm.Name" class="form-input" autofocus />
             <ValidationMessage For="() => _columnForm.Name" />
         </div>
         @if (_columnError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_columnError</div>
+            <ErrorAlert Message="@_columnError" />
         }
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => _showAddColumn = false">Annuler</button>
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline" @onclick="() => _showAddColumn = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
                 @(_columnBusy ? "…" : "Créer")
             </button>

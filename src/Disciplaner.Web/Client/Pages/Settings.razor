@@ -2,7 +2,10 @@
 @attribute [Authorize]
 @inject IJSRuntime JS
 @inject NavigationManager Nav
+@inject UserApiClient UserApi
 @inject IStringLocalizer<AppResources> L
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
 <PageTitle>@L["Settings.Title"] — Disciplaner</PageTitle>
 
@@ -10,6 +13,42 @@
     <h1 class="page-title">@L["Settings.Title"]</h1>
 </div>
 
+@* ── Display name ────────────────────────────────────────────────────────────── *@
+<div class="surface max-w-md mb-6">
+    <div class="px-4 py-3 border-b border-gray-100">
+        <span class="text-sm font-semibold text-gray-800">
+            <i class="bi bi-person-circle mr-1.5"></i>Display name
+        </span>
+    </div>
+    <div class="p-4">
+        <p class="text-xs text-gray-400 mb-3">This name is displayed to other users across the application.</p>
+        <div class="flex gap-2 items-start">
+            <div class="flex-1">
+                <input type="text"
+                       class="form-input"
+                       placeholder="Your display name"
+                       @bind="_displayName"
+                       @bind:event="oninput"
+                       maxlength="100" />
+                @if (_nameError is not null)
+                {
+                    <p class="text-xs text-red-500 mt-1">@_nameError</p>
+                }
+                @if (_nameSaved)
+                {
+                    <p class="text-xs text-green-600 mt-1"><i class="bi bi-check2 mr-1"></i>Name updated.</p>
+                }
+            </div>
+            <button class="btn btn-primary shrink-0"
+                    @onclick="SaveDisplayNameAsync"
+                    disabled="@(_nameBusy || string.IsNullOrWhiteSpace(_displayName))">
+                @(_nameBusy ? "…" : "Save")
+            </button>
+        </div>
+    </div>
+</div>
+
+@* ── Language ─────────────────────────────────────────────────────────────────── *@
 <div class="surface max-w-md">
     <div class="px-4 py-3 border-b border-gray-100">
         <span class="text-sm font-semibold text-gray-800">
@@ -49,13 +88,44 @@
 
     private string _current = "fr";
 
+    // ── Display name ──────────────────────────────────────────────────────────
+    private string _displayName = string.Empty;
+    private bool _nameBusy;
+    private bool _nameSaved;
+    private string? _nameError;
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             _current = await JS.InvokeAsync<string>("blazorCulture.get") ?? "fr";
+
+            if (AuthState is not null)
+            {
+                var state = await AuthState;
+                _displayName = state.User.FindFirst("displayName")?.Value
+                    ?? state.User.FindFirst(ClaimTypes.Name)?.Value
+                    ?? string.Empty;
+            }
+
             StateHasChanged();
         }
+    }
+
+    private async Task SaveDisplayNameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_displayName)) return;
+        _nameBusy = true; _nameError = null; _nameSaved = false;
+        try
+        {
+            var ok = await UserApi.UpdateDisplayNameAsync(_displayName.Trim());
+            if (ok) _nameSaved = true;
+            else _nameError = "Failed to update display name. Please try again.";
+        }
+        catch { _nameError = "An error occurred. Please try again."; }
+        finally { _nameBusy = false; }
     }
 
     private async Task SetCultureAsync(string culture)

@@ -9,16 +9,16 @@
      @ondragleave="OnDragLeave"
      @ondrop="OnDrop">
 
-    <div class="kanban-column-header d-flex justify-content-between align-items-center px-3 py-2">
-        <span class="fw-semibold text-truncate small text-uppercase tracking-wide">@Column.Name</span>
-        <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-1">
-            <span class="badge bg-light text-secondary border" style="font-size:.7rem">@Column.Cards.Count</span>
-            <button class="btn-icon text-muted" title="Renommer" @onclick="ShowEditModal">✎</button>
+    <div class="kanban-column-header flex justify-between items-center px-3 py-2">
+        <span class="font-semibold text-sm uppercase tracking-wide truncate">@Column.Name</span>
+        <div class="flex items-center gap-1 flex-shrink-0 ml-1">
+            <span class="badge badge-gray" style="font-size:.7rem">@Column.Cards.Count</span>
+            <button class="btn-icon" title="Renommer" @onclick="ShowEditModal">✎</button>
             <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm">✕</button>
         </div>
     </div>
 
-    <div class="kanban-column-body d-flex flex-column gap-2">
+    <div class="kanban-column-body">
         @foreach (var card in Column.Cards)
         {
             <CardComponent Card="card" ColumnId="Column.Id" ColumnName="@Column.Name" OnChanged="OnChanged" />
@@ -26,12 +26,12 @@
 
         @if (DragState.IsDragging && Column.Cards.Count == 0)
         {
-            <div class="kanban-empty-drop text-muted text-center py-4 small">Déposer ici</div>
+            <div class="text-gray-400 text-center py-4 text-xs">Déposer ici</div>
         }
     </div>
 
     <div class="kanban-column-footer px-3 pb-3">
-        <button class="btn btn-sm w-100 btn-add-card" @onclick="() => _showAddCard = true">
+        <button class="btn-add-card" @onclick="() => _showAddCard = true">
             + Ajouter une carte
         </button>
     </div>
@@ -41,34 +41,34 @@
 <Modal Title="Nouvelle carte" Visible="_showAddCard" OnClose="() => _showAddCard = false">
     <EditForm Model="_cardForm" OnValidSubmit="CreateCardAsync">
         <DataAnnotationsValidator />
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Titre</label>
-            <InputText @bind-Value="_cardForm.Title" class="form-control" />
+            <InputText @bind-Value="_cardForm.Title" class="form-input" />
             <ValidationMessage For="() => _cardForm.Title" />
         </div>
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Description (optionnel)</label>
-            <InputTextArea @bind-Value="_cardForm.Description" class="form-control" rows="2" />
+            <InputTextArea @bind-Value="_cardForm.Description" class="form-textarea" rows="2" />
         </div>
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Priorité</label>
-            <InputSelect @bind-Value="_cardForm.Priority" class="form-select">
+            <InputSelect @bind-Value="_cardForm.Priority" class="form-input">
                 @foreach (var p in Enum.GetValues<CardPriority>())
                 {
                     <option value="@p">@p</option>
                 }
             </InputSelect>
         </div>
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Échéance (optionnel)</label>
-            <InputDate @bind-Value="_cardForm.DueDate" class="form-control" />
+            <InputDate @bind-Value="_cardForm.DueDate" class="form-input" />
         </div>
         @if (_cardError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_cardError</div>
+            <ErrorAlert Message="@_cardError" />
         }
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => _showAddCard = false">Annuler</button>
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline" @onclick="() => _showAddCard = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_cardBusy">
                 @(_cardBusy ? "…" : "Créer")
             </button>
@@ -80,17 +80,17 @@
 <Modal Title="Renommer la colonne" Visible="_showEdit" OnClose="() => _showEdit = false">
     <EditForm Model="_columnForm" OnValidSubmit="UpdateColumnAsync">
         <DataAnnotationsValidator />
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label">Nom</label>
-            <InputText @bind-Value="_columnForm.Name" class="form-control" />
+            <InputText @bind-Value="_columnForm.Name" class="form-input" />
             <ValidationMessage For="() => _columnForm.Name" />
         </div>
         @if (_columnError is not null)
         {
-            <div class="alert alert-danger py-1 small">@_columnError</div>
+            <ErrorAlert Message="@_columnError" />
         }
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @onclick="() => _showEdit = false">Annuler</button>
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
             <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
                 @(_columnBusy ? "…" : "Enregistrer")
             </button>

@@ -12,4 +12,12 @@ public sealed class UserApiClient
 
     public Task<List<UserSummaryDto>?> GetAllAsync(CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<UserSummaryDto>>("/api/users", ct);
+
+    public async Task<bool> UpdateDisplayNameAsync(string displayName)
+    {
+        var response = await _http.PutAsJsonAsync(
+            "/api/users/me/display-name",
+            new UpdateDisplayNameRequest(displayName));
+        return response.IsSuccessStatusCode;
+    }
 }
