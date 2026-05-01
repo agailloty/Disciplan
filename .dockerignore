@@ -8,8 +8,8 @@
 Dockerfile*
 .dockerignore
 .github
-*.db
-*.db-shm
-*.db-wal
+**/*.db
+**/*.db-shm
+**/*.db-wal
 build-client.log
 server-test*.log
