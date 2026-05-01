@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* -- Top nav active state (Blazor sets .active automatically) --------------- */
 .topnav-link.active {
     color: #ffffff;
