@@ -7,6 +7,7 @@
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Comment
 @using Disciplaner.Application.DTOs.User
+@inject IStringLocalizer<AppResources> L
 
 @* ── Card tile ── *@
 <div class="kanban-card kc-prio-@PriorityCssName @(_isDragging ? "opacity-50" : "")"
@@ -127,8 +128,8 @@
                             <div class="mt-2">
                                 <textarea class="form-textarea" rows="2" @bind="_editCommentContent"></textarea>
                                 <div class="flex gap-1 mt-1 justify-end">
-                                    <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">Annuler</button>
-                                    <button class="btn btn-primary btn-sm" @onclick="() => SaveEditCommentAsync(comment.Id)" disabled="@_commentBusy">Enregistrer</button>
+                                    <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
+                                    <button class="btn btn-primary btn-sm" @onclick="() => SaveEditCommentAsync(comment.Id)" disabled="@_commentBusy">@L["Save"]</button>
                                 </div>
                             </div>
                         }
@@ -160,10 +161,10 @@
 
     <div class="flex justify-end gap-2 mt-5 border-t border-gray-100 pt-4">
         <button class="btn btn-danger btn-sm" @onclick="() => { _showDetail = false; ShowDeleteConfirm(); }">
-            <i class="bi bi-trash mr-1"></i>Supprimer
+            <i class="bi bi-trash mr-1"></i>@L["Delete"]
         </button>
         <button class="btn btn-primary btn-sm" @onclick="() => { _showDetail = false; ShowEditModal(); }">
-            <i class="bi bi-pencil mr-1"></i>Modifier
+            <i class="bi bi-pencil mr-1"></i>@L["Edit"]
         </button>
     </div>
 </Modal>
@@ -173,17 +174,17 @@
     <EditForm Model="_form" OnValidSubmit="UpdateCardAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
-            <label class="form-label">Titre</label>
+            <label class="form-label">@L["Title"]</label>
             <InputText @bind-Value="_form.Title" class="form-input" />
             <ValidationMessage For="() => _form.Title" />
         </div>
         <div class="mb-4">
-            <label class="form-label">Description</label>
+            <label class="form-label">@L["Description"]</label>
             <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="4" />
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
-                <label class="form-label">Priorité</label>
+                <label class="form-label">@L["Priority"]</label>
                 <InputSelect @bind-Value="_form.Priority" class="form-select">
                     @foreach (var p in Enum.GetValues<CardPriority>())
                     {
@@ -192,14 +193,14 @@
                 </InputSelect>
             </div>
             <div>
-                <label class="form-label">Échéance</label>
+                <label class="form-label">@L["Ticket.DueDate"]</label>
                 <InputDate @bind-Value="_form.DueDate" class="form-input" />
             </div>
         </div>
         <div class="mb-4 mt-3">
-            <label class="form-label">Assigné à</label>
+            <label class="form-label">@L["Ticket.Assignee"]</label>
             <select class="form-select" @bind="_form.AssignedToId">
-                <option value="">— Non assigné —</option>
+                <option value="">— @L["Ticket.NoAssignee"] —</option>
                 @foreach (var u in _users)
                 {
                     <option value="@u.Id">@u.DisplayName</option>

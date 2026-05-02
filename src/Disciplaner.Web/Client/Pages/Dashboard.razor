@@ -28,7 +28,7 @@ else if (_boards is not null)
         <div class="text-center py-20 text-gray-400">
             <span class="text-5xl block mb-3">&#9638;</span>
             <p class="text-sm">@L["Board.Empty"]</p>
-            <button class="btn btn-primary mt-4" @onclick="ShowCreateModal">CrÃ©er mon premier tableau</button>
+            <button class="btn btn-primary mt-4" @onclick="ShowCreateModal">@L["Board.CreateFirst"]</button>
         </div>
     }
     else
@@ -159,7 +159,7 @@ else if (_boards is not null)
             await Boards.DeleteBoardAsync(_deleteTarget.Id);
             _boards?.RemoveAll(b => b.Id == _deleteTarget.Id);
         }
-        catch { _error = "La suppression a Ã©chouÃ©."; }
+        catch { _error = "La suppression a échoué."; }
         finally { _showDelete = false; _deleteTarget = null; }
     }
 }

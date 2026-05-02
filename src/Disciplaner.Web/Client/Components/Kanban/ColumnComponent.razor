@@ -1,6 +1,7 @@
 @inject KanbanDragState DragState
 @inject ColumnApiClient ColumnApi
 @inject CardApiClient CardApi
+@inject IStringLocalizer<AppResources> L
 
 <div class="kanban-column flex-shrink-0 @(_isDragOver ? "drag-over" : "")"
      style="width:290px"
@@ -32,7 +33,7 @@
 
     <div class="kanban-column-footer px-3 pb-3">
         <button class="btn-add-card" @onclick="() => _showAddCard = true">
-            + Ajouter une carte
+            + @L["Board.AddCard"]
         </button>
     </div>
 </div>
@@ -42,16 +43,16 @@
     <EditForm Model="_cardForm" OnValidSubmit="CreateCardAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
-            <label class="form-label">Titre</label>
+            <label class="form-label">@L["Board.Title"]</label>
             <InputText @bind-Value="_cardForm.Title" class="form-input" />
             <ValidationMessage For="() => _cardForm.Title" />
         </div>
         <div class="mb-4">
-            <label class="form-label">Description (optionnel)</label>
+            <label class="form-label">@L["Board.Description"]</label>
             <InputTextArea @bind-Value="_cardForm.Description" class="form-textarea" rows="2" />
         </div>
         <div class="mb-4">
-            <label class="form-label">Priorité</label>
+            <label class="form-label">@L["Col.Priority"]</label>
             <InputSelect @bind-Value="_cardForm.Priority" class="form-input">
                 @foreach (var p in Enum.GetValues<CardPriority>())
                 {
@@ -60,7 +61,7 @@
             </InputSelect>
         </div>
         <div class="mb-4">
-            <label class="form-label">Échéance (optionnel)</label>
+            <label class="form-label">@L["DueDateOptional"]</label>
             <InputDate @bind-Value="_cardForm.DueDate" class="form-input" />
         </div>
         @if (_cardError is not null)
@@ -68,9 +69,9 @@
             <ErrorAlert Message="@_cardError" />
         }
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showAddCard = false">Annuler</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showAddCard = false">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_cardBusy">
-                @(_cardBusy ? "…" : "Créer")
+                @(_cardBusy ? "…" : @L["Create"])
             </button>
         </div>
     </EditForm>
@@ -81,7 +82,7 @@
     <EditForm Model="_columnForm" OnValidSubmit="UpdateColumnAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText @bind-Value="_columnForm.Name" class="form-input" />
             <ValidationMessage For="() => _columnForm.Name" />
         </div>
@@ -90,9 +91,9 @@
             <ErrorAlert Message="@_columnError" />
         }
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
-                @(_columnBusy ? "…" : "Enregistrer")
+                @(_columnBusy ? "…" : @L["Save"])
             </button>
         </div>
     </EditForm>

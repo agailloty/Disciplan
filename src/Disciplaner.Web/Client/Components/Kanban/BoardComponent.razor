@@ -1,5 +1,6 @@
 @inject CardApiClient CardApi
 @inject ColumnApiClient ColumnApi
+@inject IStringLocalizer<AppResources> L
 
 <div class="kanban-board flex gap-3 overflow-x-auto pb-3 items-start">
     @foreach (var column in Board.Columns)
@@ -28,7 +29,7 @@
     <EditForm Model="_columnForm" OnValidSubmit="CreateColumnAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText @bind-Value="_columnForm.Name" class="form-input" autofocus />
             <ValidationMessage For="() => _columnForm.Name" />
         </div>
@@ -37,9 +38,9 @@
             <ErrorAlert Message="@_columnError" />
         }
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showAddColumn = false">Annuler</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showAddColumn = false">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
-                @(_columnBusy ? "…" : "Créer")
+                @(_columnBusy ? "…" : L["Create"])
             </button>
         </div>
     </EditForm>

@@ -231,7 +231,7 @@ else if (_project is not null)
                     @if (_sprints.Count == 0)
                     {
                         <div class="surface p-6 text-center text-gray-400 text-sm">
-                            Aucun sprint pour ce projet.
+                            @L["Project.Stats.NoSprints"]
                         </div>
                     }
                     @foreach (var sprint in _sprints)
@@ -263,7 +263,7 @@ else if (_project is not null)
                             <div>
                                 @if (sprintTickets.Count == 0)
                                 {
-                                    <div class="p-3 text-gray-400 text-xs">Aucun ticket dans ce sprint.</div>
+                                    <div class="p-3 text-gray-400 text-xs">@L["Sprint.NoTickets"]</div>
                                 }
                                 else
                                 {
@@ -293,8 +293,8 @@ else if (_project is not null)
     {
         <div class="surface">
             <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100">
-                <span class="font-semibold text-gray-900">Statuts du projet</span>
-                <button class="btn btn-primary btn-sm" @onclick="ShowCreateStatus">+ Statut</button>
+                <span class="font-semibold text-gray-900">@L["Project.Statuses"]</span>
+                <button class="btn btn-primary btn-sm" @onclick="ShowCreateStatus">+ @L["Col.Status"]</button>
             </div>
             <div class="p-4">
                 <div class="flex flex-col gap-2">
@@ -305,10 +305,10 @@ else if (_project is not null)
                             <span class="w-3 h-3 rounded-full inline-block shrink-0" style="background:@s.Color"></span>
                             <strong class="text-sm text-gray-900">@s.Name</strong>
                             <span class="badge badge-gray">@s.Category</span>
-                            <span class="text-gray-400 text-xs">ordre @s.Order</span>
+                            <span class="text-gray-400 text-xs">@(string.Format(@L["Status.OrderLabel"], @s.Order))</span>
                             <span class="flex-1"></span>
-                            <button class="btn btn-outline btn-sm" @onclick="() => ShowEditStatus(s)">Modifier</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStatusAsync(s.Id)">Supprimer</button>
+                            <button class="btn btn-outline btn-sm" @onclick="() => ShowEditStatus(s)">@L["Edit"]</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStatusAsync(s.Id)">@L["Delete"]</button>
                         </div>
                     }
                 </div>
@@ -325,21 +325,21 @@ else if (_project is not null)
                    OnClose="() => { _showTicketDetail = false; _detailTicket = null; }"
                    OnChanged="OnTicketChangedAsync" />
 
-<Modal Title="Nouveau ticket" Visible="_showTicket" OnClose="() => _showTicket = false">
+<Modal Title=@L["Ticket.CreateTitle"] Visible="_showTicket" OnClose="() => _showTicket = false">
     <EditForm Model="_ticketForm" OnValidSubmit="CreateTicketAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
-            <label class="form-label">Titre</label>
+            <label class="form-label">@L["Title"]</label>
             <InputText class="form-input" @bind-Value="_ticketForm.Title" />
             <ValidationMessage For="() => _ticketForm.Title" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Description</label>
+            <label class="form-label">@L["Description"]</label>
             <InputTextArea class="form-textarea" rows="3" @bind-Value="_ticketForm.Description" />
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
-                <label class="form-label">Type</label>
+                <label class="form-label">@L["Type"]</label>
                 <InputSelect class="form-select" @bind-Value="_ticketForm.Type">
                     @foreach (var type in Enum.GetValues<TicketType>())
                     {
@@ -348,7 +348,7 @@ else if (_project is not null)
                 </InputSelect>
             </div>
             <div>
-                <label class="form-label">Priorité</label>
+                <label class="form-label">@L["Priority"]</label>
                 <InputSelect class="form-select" @bind-Value="_ticketForm.Priority">
                     @foreach (var priority in Enum.GetValues<CardPriority>())
                     {
@@ -357,15 +357,15 @@ else if (_project is not null)
                 </InputSelect>
             </div>
             <div>
-                <label class="form-label">Story points</label>
+                <label class="form-label">@L["Ticket.StoryPoints"]</label>
                 <InputNumber class="form-input" @bind-Value="_ticketForm.StoryPoints" />
             </div>
             <div>
-                <label class="form-label">Échéance</label>
+                <label class="form-label">@L["Ticket.DueDate"]</label>
                 <InputDate class="form-input" @bind-Value="_ticketForm.DueDate" />
             </div>
             <div class="col-span-2">
-                <label class="form-label">Sprint</label>
+                <label class="form-label">@L["Ticket.Sprint"]</label>
                 <InputSelect class="form-select" @bind-Value="_ticketForm.SprintId">
                     <option value="">— Backlog —</option>
                     @foreach (var s in _sprints)
@@ -377,8 +377,8 @@ else if (_project is not null)
         </div>
         @ModalError()
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showTicket = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "..." : "Créer")</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showTicket = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "..." : @L["Create"])</button>
         </div>
     </EditForm>
 </Modal>
@@ -387,24 +387,24 @@ else if (_project is not null)
     <EditForm Model="_sprintForm" OnValidSubmit="CreateSprintAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText class="form-input" @bind-Value="_sprintForm.Name" />
             <ValidationMessage For="() => _sprintForm.Name" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Objectif</label>
+            <label class="form-label">@L["Sprint.Goal"]</label>
             <InputTextArea class="form-textarea" rows="3" @bind-Value="_sprintForm.Goal" />
         </div>
-        <p class="text-xs text-gray-500">@_selectedTicketIds.Count tickets seront déplacés depuis le backlog.</p>
+        <p class="text-xs text-gray-500">@(string.Format(L["Sprint.TicketsMoved"], _selectedTicketIds.Count))</p>
         @ModalError()
         <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @onclick="() => _showSprint = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "..." : "Creer le sprint")</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showSprint = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "..." : @L["Sprint.CreateButton"])</button>
         </div>
     </EditForm>
 </Modal>
 
-<Modal Title="@(_editingStatus is null ? "Nouveau statut" : "Modifier le statut")" Visible="_showStatus" OnClose="() => _showStatus = false">
+<Modal Title="@(_editingStatus is null ? @L["Status.CreateTitle"] : @L["Status.EditTitle"])" Visible="_showStatus" OnClose="() => _showStatus = false">
     <EditForm Model="_statusForm" OnValidSubmit="SaveStatusAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">

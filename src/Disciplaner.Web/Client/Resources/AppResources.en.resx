@@ -77,6 +77,7 @@
   <data name="Board.Delete.Title" xml:space="preserve"><value>Delete board</value></data>
   <data name="Board.Delete.Confirm" xml:space="preserve"><value>Delete "{0}"? All columns and cards will be lost.</value></data>
   <data name="Board.ColumnCount" xml:space="preserve"><value>{0} col.</value></data>
+    <data name="Board.AddCard" xml:space="preserve"><value>Add a card</value></data>
 
   <!-- ── Projects ─────────────────────────────────────────────────────────── -->
   <data name="Project.CreateTitle" xml:space="preserve"><value>New project</value></data>
@@ -98,7 +99,7 @@
   <data name="Project.Stats.SprintsSub" xml:space="preserve"><value>iterations created</value></data>
   <data name="Project.Stats.Workflow" xml:space="preserve"><value>Workflow</value></data>
   <data name="Project.Stats.WorkflowSub" xml:space="preserve"><value>ticket statuses</value></data>
-
+  <data name="Project.Stats.NoSprints" xml:space="preserve"><value>No sprints in this project.</value></data>
   <!-- ── Sprints ───────────────────────────────────────────────────────────── -->
   <data name="Sprint.Active" xml:space="preserve"><value>Active sprint</value></data>
   <data name="Sprint.Planning" xml:space="preserve"><value>Planning</value></data>
@@ -169,6 +170,7 @@
   <data name="Col.Sprint" xml:space="preserve"><value>Sprint</value></data>
   <data name="Col.DueDate" xml:space="preserve"><value>Due date</value></data>
   <data name="Col.Project" xml:space="preserve"><value>Project</value></data>
+  <data name="Col.DueDateOptional" xml:space="preserve"><value>Échéance (optionnel)</value></data>
 
   <!-- ── Home ──────────────────────────────────────────────────────────────── -->
   <data name="Home.Welcome" xml:space="preserve"><value>Hello, {0} 👋</value></data>
