@@ -2,13 +2,14 @@
 @attribute [Authorize]
 @inject BoardApiClient Boards
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>Tableaux â€” Disciplaner</PageTitle>
+<PageTitle>@L["Nav.Boards"]</PageTitle>
 
 <div class="flex items-center justify-between mb-6">
-    <h1 class="page-title">Tableaux</h1>
+    <h1 class="page-title">@L["Nav.Boards"]</h1>
     <button class="btn btn-primary" @onclick="ShowCreateModal">
-        <i class="bi bi-plus"></i> Nouveau tableau
+        <i class="bi bi-plus"></i> @L["Board.CreateTitle"]
     </button>
 </div>
 
@@ -26,7 +27,7 @@ else if (_boards is not null)
     {
         <div class="text-center py-20 text-gray-400">
             <span class="text-5xl block mb-3">&#9638;</span>
-            <p class="text-sm">Aucun tableau pour l'instant.</p>
+            <p class="text-sm">@L["Board.Empty"]</p>
             <button class="btn btn-primary mt-4" @onclick="ShowCreateModal">CrÃ©er mon premier tableau</button>
         </div>
     }
@@ -53,8 +54,8 @@ else if (_boards is not null)
                             @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
                         </span>
                         <div class="flex gap-1" @onclick:stopPropagation>
-                            <button class="btn-icon" title="Modifier" @onclick="() => ShowEditModal(b)"><i class="bi bi-pencil text-xs"></i></button>
-                            <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => ShowDeleteConfirm(b)"><i class="bi bi-trash text-xs"></i></button>
+                            <button class="btn-icon" title=@L["Edit"] @onclick="() => ShowEditModal(b)"><i class="bi bi-pencil text-xs"></i></button>
+                            <button class="btn-icon btn-icon-danger" title=@L["Delete"] @onclick="() => ShowDeleteConfirm(b)"><i class="bi bi-trash text-xs"></i></button>
                         </div>
                     </div>
                 </div>
@@ -63,18 +64,18 @@ else if (_boards is not null)
     }
 }
 
-@* â”€â”€ Create/Edit modal â”€â”€ *@
-<Modal Title="@(_editTarget is null ? "Nouveau tableau" : "Modifier le tableau")"
+@*Create/Edit modal *@
+<Modal Title="@(_editTarget is null ? @L["Board.CreateTitle"] : @L["Board.EditTitle"])"
        Visible="_showForm" OnClose="CloseForm">
     <EditForm Model="_form" OnValidSubmit="SubmitBoardFormAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText @bind-Value="_form.Name" class="form-input" />
             <ValidationMessage For="() => _form.Name" />
         </div>
         <div class="mb-5">
-            <label class="form-label">Description (optionnel)</label>
+            <label class="form-label">@L["Board.Description"]</label>
             <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="2" />
         </div>
         @if (_formError is not null)
@@ -82,17 +83,17 @@ else if (_boards is not null)
             <div class="mb-4"><ErrorAlert Message="@_formError" /></div>
         }
         <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @onclick="CloseForm">Annuler</button>
+            <button type="button" class="btn btn-outline" @onclick="CloseForm">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_busy">
-                @(_busy ? "â€¦" : (_editTarget is null ? "CrÃ©er" : "Enregistrer"))
+                @(_busy ? "--" : (_editTarget is null ? @L["Create"] : @L["Save"]))
             </button>
         </div>
     </EditForm>
 </Modal>
 
-@* â”€â”€ Delete confirmation â”€â”€ *@
-<ConfirmModal Title="Supprimer le tableau"
-              Message="@($"Supprimer \"{_deleteTarget?.Name}\" ? Toutes ses colonnes et cartes seront perdues.")"
+@*Delete confirmation *@
+<ConfirmModal Title=@L["Board.Delete.Title"]
+              Message=@(string.Format(L["Board.Delete.Confirm"], _deleteTarget?.Name))
               Visible="_showDelete"
               OnCancel="() => _showDelete = false"
               OnConfirm="DeleteBoardAsync" />
@@ -146,7 +147,7 @@ else if (_boards is not null)
             }
             _showForm = false;
         }
-        catch { _formError = "Une erreur est survenue. Veuillez rÃ©essayer."; }
+        catch { _formError = "Une erreur est survenue. Veuillez réessayer."; }
         finally { _busy = false; }
     }
 
