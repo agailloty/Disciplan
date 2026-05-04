@@ -26,10 +26,6 @@ else if (_project is not null)
             </div>
             <p class="text-gray-500 text-sm m-0">@(_project.Description ?? L["NoDescription"].Value)</p>
         </div>
-        <div class="flex gap-2">
-            <button class="btn btn-outline" @onclick="ShowEditProject">@L["Edit"]</button>
-            <button class="btn btn-danger" @onclick="() => _showDeleteProject = true">@L["Delete"]</button>
-        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -53,7 +49,7 @@ else if (_project is not null)
     <div class="flex gap-1 mb-5 border-b border-gray-200">
         <button class="tab-link @(_tab == "active" ? "active-tab" : "")" @onclick="@(() => _tab = "active")">@L["Sprint.Active"]</button>
         <button class="tab-link @(_tab == "planning" ? "active-tab" : "")" @onclick="@(() => _tab = "planning")">@L["Sprint.Planning"]</button>
-        <button class="tab-link @(_tab == "statuses" ? "active-tab" : "")" @onclick="@(() => _tab = "statuses")">@L["Sprint.Statuses"]</button>
+        <button class="tab-link @(_tab == "settings" ? "active-tab" : "")" @onclick="@(() => { _tab = "settings"; _settingsEditMode = false; })">@L["Project.Settings"]</button>
     </div>
 
     @if (_tab == "active")
@@ -291,26 +287,90 @@ else if (_project is not null)
     }
     else
     {
-        <div class="surface">
-            <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100">
-                <span class="font-semibold text-gray-900">@L["Project.Statuses"]</span>
-                <button class="btn btn-primary btn-sm" @onclick="ShowCreateStatus">+ @L["Col.Status"]</button>
-            </div>
-            <div class="p-4">
-                <div class="flex flex-col gap-2">
-                    @foreach (var status in _project.Statuses.OrderBy(s => s.Order))
+        @* ── Settings tab ── *@
+        <div class="flex flex-col gap-6">
+
+            @* Edit project *@
+            <div class="surface">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <span class="font-semibold text-gray-900">@L["Project.EditTitle"]</span>
+                    @if (!_settingsEditMode)
                     {
-                        var s = status;
-                        <div class="flex flex-wrap items-center gap-2 p-2 border border-gray-200 rounded-md">
-                            <span class="w-3 h-3 rounded-full inline-block shrink-0" style="background:@s.Color"></span>
-                            <strong class="text-sm text-gray-900">@s.Name</strong>
-                            <span class="badge badge-gray">@s.Category</span>
-                            <span class="text-gray-400 text-xs">@(string.Format(@L["Status.OrderLabel"], @s.Order))</span>
-                            <span class="flex-1"></span>
-                            <button class="btn btn-outline btn-sm" @onclick="() => ShowEditStatus(s)">@L["Edit"]</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStatusAsync(s.Id)">@L["Delete"]</button>
-                        </div>
+                        <button class="btn btn-outline btn-sm" @onclick="ShowEditProject">@L["Edit"]</button>
                     }
+                </div>
+                @if (_settingsEditMode)
+                {
+                    <EditForm Model="_projectForm" OnValidSubmit="UpdateProjectAsync">
+                        <div class="p-4 flex flex-col gap-3">
+                            <div>
+                                <label class="form-label">@L["Name"]</label>
+                                <InputText class="form-input" @bind-Value="_projectForm.Name" />
+                            </div>
+                            <div>
+                                <label class="form-label">@L["Description"]</label>
+                                <InputTextArea class="form-textarea" rows="3" @bind-Value="_projectForm.Description" />
+                            </div>
+                            @if (_modalError is not null)
+                            {
+                                <ErrorAlert Message="@_modalError" />
+                            }
+                        </div>
+                        <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-100">
+                            <button type="button" class="btn btn-outline" @onclick="() => _settingsEditMode = false">@L["Cancel"]</button>
+                            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="p-4 text-sm text-gray-600">
+                        <p><span class="font-medium">@L["Name"] :</span> @_project.Name</p>
+                        @if (!string.IsNullOrWhiteSpace(_project.Description))
+                        {
+                            <p class="mt-1"><span class="font-medium">@L["Description"] :</span> @_project.Description</p>
+                        }
+                        <p class="mt-1"><span class="font-medium">Clé :</span> <span class="font-mono badge badge-dark">@_project.Key</span></p>
+                    </div>
+                }
+            </div>
+
+            @* Statuses *@
+            <div class="surface">
+                <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100">
+                    <span class="font-semibold text-gray-900">@L["Project.Statuses"]</span>
+                    <button class="btn btn-primary btn-sm" @onclick="ShowCreateStatus">+ @L["Col.Status"]</button>
+                </div>
+                <div class="p-4">
+                    <div class="flex flex-col gap-2">
+                        @foreach (var status in _project.Statuses.OrderBy(s => s.Order))
+                        {
+                            var s = status;
+                            <div class="flex flex-wrap items-center gap-2 p-2 border border-gray-200 rounded-md">
+                                <span class="w-3 h-3 rounded-full inline-block shrink-0" style="background:@s.Color"></span>
+                                <strong class="text-sm text-gray-900">@s.Name</strong>
+                                <span class="badge badge-gray">@s.Category</span>
+                                <span class="text-gray-400 text-xs">@(string.Format(@L["Status.OrderLabel"], @s.Order))</span>
+                                <span class="flex-1"></span>
+                                <button class="btn btn-outline btn-sm" @onclick="() => ShowEditStatus(s)">@L["Edit"]</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteStatusAsync(s.Id)">@L["Delete"]</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Danger zone *@
+            <div class="surface border border-red-100">
+                <div class="px-4 py-3 border-b border-red-100">
+                    <span class="font-semibold text-red-700">@L["Project.DangerZone"]</span>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">@L["Project.Delete.Title"]</p>
+                        <p class="text-xs text-gray-400 mt-0.5">@L["Project.Delete.Warning"]</p>
+                    </div>
+                    <button class="btn btn-danger" @onclick="() => _showDeleteProject = true">@L["Delete"]</button>
                 </div>
             </div>
         </div>
@@ -435,25 +495,6 @@ else if (_project is not null)
     </EditForm>
 </Modal>
 
-<Modal Title="@L["Project.EditTitle"]" Visible="_showEditProject" OnClose="() => _showEditProject = false">
-    <EditForm Model="_projectForm" OnValidSubmit="UpdateProjectAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">@L["Name"]</label>
-            <InputText class="form-input" @bind-Value="_projectForm.Name" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">@L["Description"]</label>
-            <InputTextArea class="form-textarea" rows="3" @bind-Value="_projectForm.Description" />
-        </div>
-        @ModalError()
-        <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEditProject = false">@L["Cancel"]</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
-        </div>
-    </EditForm>
-</Modal>
-
 <ConfirmModal Title="@L["Project.Delete.Title"]"
               Message="@(string.Format(L["Project.Delete.Confirm"], _project?.Name))"
               Visible="_showDeleteProject"
@@ -474,7 +515,7 @@ else if (_project is not null)
     private bool _showTicket;
     private bool _showSprint;
     private bool _showStatus;
-    private bool _showEditProject;
+    private bool _settingsEditMode;
     private bool _showDeleteProject;
     private bool _showTicketDetail;
     private string _tab = "active";
@@ -817,7 +858,8 @@ else if (_project is not null)
     {
         _projectForm = new() { Name = _project!.Name, Description = _project.Description };
         _modalError = null;
-        _showEditProject = true;
+        _settingsEditMode = true;
+        _tab = "settings";
     }
 
     private async Task UpdateProjectAsync()
@@ -827,7 +869,7 @@ else if (_project is not null)
         try
         {
             await Projects.UpdateProjectAsync(Id, new UpdateProjectRequest(_projectForm.Name, _projectForm.Description));
-            _showEditProject = false;
+            _settingsEditMode = false;
             await LoadAsync();
         }
         catch { _modalError = "Impossible de modifier le projet."; }

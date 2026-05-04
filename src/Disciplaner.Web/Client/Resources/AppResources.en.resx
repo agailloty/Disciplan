@@ -97,7 +97,10 @@
   <data name="Project.BacklogEmpty" xml:space="preserve"><value>The backlog is empty.</value></data>
   <data name="Project.Delete.Title" xml:space="preserve"><value>Delete project</value></data>
   <data name="Project.Delete.Confirm" xml:space="preserve"><value>Delete "{0}" and all its tickets?</value></data>
+  <data name="Project.Delete.Warning" xml:space="preserve"><value>This action is irreversible. All tickets and data will be deleted.</value></data>
   <data name="Project.Statuses" xml:space="preserve"><value>Project statuses</value></data>
+  <data name="Project.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Project.DangerZone" xml:space="preserve"><value>Danger zone</value></data>
   <data name="Project.Stats.Backlog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Project.Stats.BacklogSub" xml:space="preserve"><value>unplanned tickets</value></data>
   <data name="Project.Stats.Sprints" xml:space="preserve"><value>Sprints</value></data>

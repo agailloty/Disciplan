@@ -35,27 +35,36 @@ else if (_ticket is not null)
 
     <div class="surface mx-auto" style="max-width:960px">
 
-        @if (_editing)
-        {
-            @* ── Edit form ── *@
-            <div class="px-6 pt-5 pb-1">
-                <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                    <span class="font-mono text-xs font-semibold text-gray-400 tracking-wide">@_ticket.TicketRef</span>
-                    <span class="tdm-type-badge">@_ticket.Type</span>
-                </div>
+        <EditForm Model="_form" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+
+        @* ── Ticket header ── *@
+        <div class="px-6 pt-5 pb-4 border-b border-gray-100">
+            <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                <span class="font-mono text-xs font-semibold text-gray-400 tracking-wide">@_ticket.TicketRef</span>
+                <span class="tdm-type-badge">@_ticket.Type</span>
+                <span class="badge @PriorityClass(_ticket.Priority)">@_ticket.Priority</span>
             </div>
-            <EditForm Model="_form" OnValidSubmit="SaveAsync">
-                <DataAnnotationsValidator />
-                <div class="px-6 pb-5 flex flex-col gap-4">
-                    <div>
-                        <label class="form-label">@L["Title"]</label>
-                        <InputText class="form-input" @bind-Value="_form.Title" />
-                        <ValidationMessage For="() => _form.Title" />
-                    </div>
-                    <div>
-                        <label class="form-label">@L["Description"]</label>
-                        <InputTextArea class="form-textarea" rows="6" @bind-Value="_form.Description" />
-                    </div>
+            @if (_editing)
+            {
+                <InputText class="form-input text-base font-semibold" @bind-Value="_form.Title" />
+                <ValidationMessage For="() => _form.Title" />
+            }
+            else
+            {
+                <h1 class="text-lg font-semibold text-gray-900 leading-snug">@_ticket.Title</h1>
+            }
+        </div>
+
+        @* ── Two-column layout (shared by view and edit modes) ── *@
+        <div class="flex flex-col lg:flex-row gap-6 px-6 py-5">
+
+            @* ── Main column ── *@
+            <div class="flex-1 min-w-0 flex flex-col gap-6">
+
+                @if (_editing)
+                {
+                    @* Edit fields *@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="form-label">@L["Type"]</label>
@@ -79,45 +88,21 @@ else if (_ticket is not null)
                                 </InputSelect>
                             </div>
                         </div>
-                        <div>
-                            <label class="form-label">@L["Ticket.StoryPoints"]</label>
-                            <InputNumber class="form-input" @bind-Value="_form.StoryPoints" />
-                        </div>
-                        <div>
-                            <label class="form-label">@L["Ticket.DueDate"]</label>
-                            <InputDate class="form-input" @bind-Value="_form.DueDate" />
-                        </div>
                     </div>
+
+                    <div>
+                        <label class="form-label">@L["Description"]</label>
+                        <InputTextArea class="form-textarea" rows="8" @bind-Value="_form.Description" />
+                    </div>
+
                     @if (_actionError is not null)
                     {
                         <ErrorAlert Message="@_actionError" />
                     }
-                </div>
-                <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
-                    <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">@L["Cancel"]</button>
-                    <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
-                </div>
-            </EditForm>
-        }
-        else
-        {
-            @* ── Ticket header ── *@
-            <div class="px-6 pt-5 pb-4 border-b border-gray-100">
-                <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                    <span class="font-mono text-xs font-semibold text-gray-400 tracking-wide">@_ticket.TicketRef</span>
-                    <span class="tdm-type-badge">@_ticket.Type</span>
-                    <span class="badge @PriorityClass(_ticket.Priority)">@_ticket.Priority</span>
-                </div>
-                <h1 class="text-lg font-semibold text-gray-900 leading-snug">@_ticket.Title</h1>
-            </div>
-
-            @* ── Two-column layout ── *@
-            <div class="flex flex-col lg:flex-row gap-6 px-6 py-5">
-
-                @* ── Main column ── *@
-                <div class="flex-1 min-w-0 flex flex-col gap-6">
-
-                    @* Description *@
+                }
+                else
+                {
+                    @* Description view *@
                     <div>
                         <span class="tdm-section-label mb-2">@L["Description"]</span>
                         @if (!string.IsNullOrWhiteSpace(_ticket.Description))
@@ -164,16 +149,16 @@ else if (_ticket is not null)
                                                 {
                                                     <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
                                                     <div class="flex gap-1.5 mt-1.5">
-                                                        <button class="btn btn-primary btn-sm" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
-                                                        <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
+                                                        <button class="btn btn-primary btn-sm" type="button" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
+                                                        <button class="btn btn-outline btn-sm" type="button" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
                                                     </div>
                                                 }
                                                 else
                                                 {
                                                     <div class="tdm-comment-bubble">@c.Content</div>
                                                     <div class="tdm-comment-actions">
-                                                        <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
-                                                        <button class="text-xs text-red-400 hover:text-red-600 transition-colors" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
+                                                        <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
+                                                        <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
                                                     </div>
                                                 }
                                             </div>
@@ -194,7 +179,7 @@ else if (_ticket is not null)
                                               @bind="_newCommentContent"
                                               @bind:event="oninput"></textarea>
                                     <div class="flex justify-end mt-1.5">
-                                        <button class="btn btn-primary btn-sm"
+                                        <button class="btn btn-primary btn-sm" type="button"
                                                 @onclick="AddCommentAsync"
                                                 disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
                                             <i class="bi bi-send-fill"></i>
@@ -204,75 +189,94 @@ else if (_ticket is not null)
                             </div>
                         }
                     </div>
+
+                    @if (_actionError is not null)
+                    {
+                        <ErrorAlert Message="@_actionError" />
+                    }
+                }
+            </div>
+
+            @* ── Sidebar ── *@
+            <div class="lg:w-56 shrink-0">
+
+                @* Status *@
+                <div class="tdm-prop">
+                    <span class="tdm-sidebar-label">@L["Status"]</span>
+                    @if (_statuses.Count > 0)
+                    {
+                        <div class="tdm-select-wrap">
+                            <span class="tdm-status-dot" style="background:@_ticket.Status.Color"></span>
+                            <select class="tdm-select tdm-select-with-dot"
+                                    value="@_ticket.Status.Id"
+                                    @onchange="OnStatusChangeAsync"
+                                    disabled="@_busy">
+                                @foreach (var s in _statuses.OrderBy(s => s.Order))
+                                {
+                                    <option value="@s.Id">@s.Name</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="badge badge-gray">@_ticket.Status.Name</span>
+                    }
                 </div>
 
-                @* ── Sidebar ── *@
-                <div class="lg:w-56 shrink-0">
-
-                    @* Status *@
-                    <div class="tdm-prop">
-                        <span class="tdm-sidebar-label">@L["Status"]</span>
-                        @if (_statuses.Count > 0)
-                        {
-                            <div class="tdm-select-wrap">
-                                <span class="tdm-status-dot" style="background:@_ticket.Status.Color"></span>
-                                <select class="tdm-select tdm-select-with-dot"
-                                        value="@_ticket.Status.Id"
-                                        @onchange="OnStatusChangeAsync"
-                                        disabled="@_busy">
-                                    @foreach (var s in _statuses.OrderBy(s => s.Order))
-                                    {
-                                        <option value="@s.Id">@s.Name</option>
-                                    }
-                                </select>
-                            </div>
-                        }
-                        else
-                        {
-                            <span class="badge badge-gray">@_ticket.Status.Name</span>
-                        }
+                @* Assignee *@
+                <div class="tdm-prop">
+                    <span class="tdm-sidebar-label">@L["Ticket.Assignee"]</span>
+                    <div class="tdm-select-wrap">
+                        <select class="tdm-select"
+                                value="@(_ticket.AssigneeId ?? string.Empty)"
+                                @onchange="OnAssigneeChangeAsync"
+                                disabled="@_busy">
+                            <option value="">@L["Ticket.NoAssignee"]</option>
+                            @foreach (var u in _users)
+                            {
+                                <option value="@u.Id">@u.DisplayName</option>
+                            }
+                        </select>
                     </div>
+                </div>
 
-                    @* Assignee *@
+                @* Sprint *@
+                @if (_sprints.Count > 0)
+                {
                     <div class="tdm-prop">
-                        <span class="tdm-sidebar-label">@L["Ticket.Assignee"]</span>
+                        <span class="tdm-sidebar-label">Sprint</span>
                         <div class="tdm-select-wrap">
                             <select class="tdm-select"
-                                    value="@(_ticket.AssigneeId ?? string.Empty)"
-                                    @onchange="OnAssigneeChangeAsync"
+                                    value="@(_ticket.SprintId?.ToString() ?? string.Empty)"
+                                    @onchange="OnSprintChangeAsync"
                                     disabled="@_busy">
-                                <option value="">@L["Ticket.NoAssignee"]</option>
-                                @foreach (var u in _users)
+                                <option value="">— Backlog —</option>
+                                @foreach (var s in _sprints)
                                 {
-                                    <option value="@u.Id">@u.DisplayName</option>
+                                    <option value="@s.Id">@s.Name</option>
                                 }
                             </select>
                         </div>
                     </div>
+                }
 
-                    @* Sprint *@
-                    @if (_sprints.Count > 0)
-                    {
-                        <div class="tdm-prop">
-                            <span class="tdm-sidebar-label">Sprint</span>
-                            <div class="tdm-select-wrap">
-                                <select class="tdm-select"
-                                        value="@(_ticket.SprintId?.ToString() ?? string.Empty)"
-                                        @onchange="OnSprintChangeAsync"
-                                        disabled="@_busy">
-                                    <option value="">— Backlog —</option>
-                                    @foreach (var s in _sprints)
-                                    {
-                                        <option value="@s.Id">@s.Name</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                    }
+                <div class="border-t border-gray-100 my-3"></div>
 
-                    <div class="border-t border-gray-100 my-3"></div>
-
-                    @* Meta *@
+                @* Story points and due date: input when editing, display when viewing *@
+                @if (_editing)
+                {
+                    <div class="tdm-prop">
+                        <span class="tdm-sidebar-label">@L["Ticket.StoryPoints"]</span>
+                        <InputNumber class="form-input text-sm" @bind-Value="_form.StoryPoints" />
+                    </div>
+                    <div class="tdm-prop">
+                        <span class="tdm-sidebar-label">@L["Ticket.DueDate"]</span>
+                        <InputDate class="form-input text-sm" @bind-Value="_form.DueDate" />
+                    </div>
+                }
+                else
+                {
                     @if (_ticket.StoryPoints.HasValue)
                     {
                         <div class="tdm-meta-row">
@@ -298,46 +302,50 @@ else if (_ticket is not null)
                             <span class="tdm-meta-value font-mono">@_ticket.ParentTicketRef</span>
                         </div>
                     }
+                }
 
-                    <div class="border-t border-gray-100 my-3"></div>
+                <div class="border-t border-gray-100 my-3"></div>
 
-                    @* Reporter + timestamps *@
-                    <div class="tdm-meta-row">
-                        <i class="bi bi-person tdm-meta-icon"></i>
-                        <span class="tdm-meta-label">@L["Ticket.Reporter"]</span>
-                        <span class="tdm-meta-value">@_ticket.ReporterName</span>
-                    </div>
-                    <div class="tdm-meta-row">
-                        <i class="bi bi-clock-history tdm-meta-icon"></i>
-                        <span class="tdm-meta-label">@L["Created"]</span>
-                        <span class="tdm-meta-value">@_ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
-                    </div>
-                    @if (_ticket.UpdatedAt.HasValue)
-                    {
-                        <div class="tdm-meta-row">
-                            <i class="bi bi-pencil-square tdm-meta-icon"></i>
-                            <span class="tdm-meta-label">@L["Updated"]</span>
-                            <span class="tdm-meta-value">@_ticket.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy")</span>
-                        </div>
-                    }
+                @* Reporter + timestamps (always visible) *@
+                <div class="tdm-meta-row">
+                    <i class="bi bi-person tdm-meta-icon"></i>
+                    <span class="tdm-meta-label">@L["Ticket.Reporter"]</span>
+                    <span class="tdm-meta-value">@_ticket.ReporterName</span>
                 </div>
+                <div class="tdm-meta-row">
+                    <i class="bi bi-clock-history tdm-meta-icon"></i>
+                    <span class="tdm-meta-label">@L["Created"]</span>
+                    <span class="tdm-meta-value">@_ticket.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                </div>
+                @if (_ticket.UpdatedAt.HasValue)
+                {
+                    <div class="tdm-meta-row">
+                        <i class="bi bi-pencil-square tdm-meta-icon"></i>
+                        <span class="tdm-meta-label">@L["Updated"]</span>
+                        <span class="tdm-meta-value">@_ticket.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                    </div>
+                }
             </div>
+        </div>
 
-            @if (_actionError is not null)
+        @* ── Footer ── *@
+        <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+            @if (_editing)
             {
-                <div class="px-6 pb-2"><ErrorAlert Message="@_actionError" /></div>
+                <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">@L["Cancel"]</button>
+                <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
             }
-
-            @* ── Footer actions ── *@
-            <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
-                <button class="btn btn-danger btn-sm" @onclick="DeleteAsync" disabled="@_busy">
+            else
+            {
+                <button type="button" class="btn btn-danger btn-sm" @onclick="DeleteAsync" disabled="@_busy">
                     <i class="bi bi-trash mr-1"></i>@L["Delete"]
                 </button>
-                <button class="btn btn-primary btn-sm" @onclick="EnterEdit">
+                <button type="button" class="btn btn-primary btn-sm" @onclick="EnterEdit">
                     <i class="bi bi-pencil mr-1"></i>@L["Edit"]
                 </button>
-            </div>
-        }
+            }
+        </div>
+        </EditForm>
     </div>
 }
 
