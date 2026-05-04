@@ -214,7 +214,7 @@
 .tdm-comment-header { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .25rem; }
 .tdm-comment-author { font-size: .8125rem; font-weight: 600; color: #1f2328; }
 .tdm-comment-date { font-size: .7rem; color: #89929b; }
-.tdm-comment-bubble { background: #f6f8fa; border: 1px solid #e8eaed; border-radius: 0 .5rem .5rem .5rem; padding: .45rem .7rem; font-size: .8125rem; line-height: 1.55; color: #1f2328; white-space: pre-wrap; }
+.tdm-comment-bubble { background: #f6f8fa; border: 1px solid #e8eaed; border-radius: 0 .5rem .5rem .5rem; padding: .45rem .7rem; font-size: .8125rem; line-height: 1.55; color: #1f2328; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
 .tdm-comment-actions { display: flex; gap: .625rem; margin-top: .3rem; opacity: 0; transition: opacity .15s; }
 .tdm-comment-row:hover .tdm-comment-actions { opacity: 1; }
 
