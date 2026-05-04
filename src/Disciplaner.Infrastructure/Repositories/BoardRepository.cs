@@ -22,6 +22,7 @@ internal sealed class BoardRepository : IBoardRepository
 
     public async Task<IReadOnlyList<Board>> GetByOwnerIdAsync(string ownerId, CancellationToken cancellationToken = default)
         => await _context.Boards
+            .Include(b => b.Columns)
             .Where(b => b.OwnerId == ownerId)
             .OrderBy(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
