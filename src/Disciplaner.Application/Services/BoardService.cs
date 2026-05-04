@@ -30,7 +30,35 @@ public sealed class BoardService : IBoardService
         if (board is null) return null;
 
         EnsureOwner(board, requestingUserId);
-        return board.ToDetailDto();
+
+        // Resolve creator names for all cards in one pass
+        var creatorIds = board.Columns
+            .SelectMany(c => c.Cards)
+            .Select(c => c.CreatedById)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToList();
+
+        var nameMap = new Dictionary<string, string>();
+        foreach (var id in creatorIds)
+        {
+            var user = await _uow.Users.GetByIdAsync(id, cancellationToken);
+            if (user is not null)
+                nameMap[id] = !string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName : user.UserName;
+        }
+
+        // Rebuild ColumnDtos with resolved creator names
+        var columns = board.Columns.OrderBy(c => c.Order).Select(col =>
+        {
+            var cards = col.Cards.OrderBy(c => c.Order)
+                .Select(c => c.ToDto(
+                    nameMap.TryGetValue(c.CreatedById, out var n) ? n : null,
+                    null))
+                .ToList().AsReadOnly();
+            return col.ToDto() with { Cards = cards };
+        }).ToList().AsReadOnly();
+
+        return board.ToDetailDto() with { Columns = columns };
     }
 
     public async Task<BoardDetailDto> CreateAsync(
