@@ -1,11 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* -- Top nav active state (Blazor sets .active automatically) --------------- */
+/* ==========================================================================
+   app.css — Custom design-system styles (loaded directly by the browser)
+   Tailwind utility classes come from tailwind.css (compiled separately)
+   ========================================================================== */
+
+/* -- Top nav active state -------------------------------------------------- */
 .topnav-link.active {
     color: #ffffff;
     background: rgba(255,255,255,.15);
 }
+
+/* -- Mobile nav link -------------------------------------------------------- */
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: .625rem .75rem;
+    font-size: .9rem;
+    font-weight: 500;
+    color: #c9d1d9;
+    border-radius: .375rem;
+    text-decoration: none;
+    transition: background .12s, color .12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.mobile-nav-link:hover,
+.mobile-nav-link:active { background: rgba(255,255,255,.1); color: #ffffff; }
+.mobile-nav-link.active { color: #ffffff; background: rgba(255,255,255,.15); }
 
 /* -- Tab nav ---------------------------------------------------------------- */
 .tab-link {
@@ -24,6 +43,7 @@
     border-top: none;
     border-left: none;
     border-right: none;
+    white-space: nowrap;
 }
 .tab-link:hover { color: #1f2328; }
 .tab-link.active-tab {
@@ -33,13 +53,22 @@
 }
 
 /* -- Kanban board ----------------------------------------------------------- */
-.kanban-board { min-height: 70vh; align-items: flex-start; padding-bottom: 1rem; }
+.kanban-board {
+    min-height: 60vh;
+    align-items: flex-start;
+    padding-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x pan-y;
+}
 
 .kanban-column {
-    width: 290px; flex-shrink: 0;
+    width: 280px; flex-shrink: 0;
     background: #f6f8fa; border: 1px solid #d0d7de; border-radius: .5rem;
     display: flex; flex-direction: column;
     transition: border-color .15s, background .15s;
+    scroll-snap-align: start;
 }
 .kanban-column.drag-over { border-color: #0969da; background: #ddf4ff; }
 
@@ -54,9 +83,11 @@
 
 .btn-add-card {
     width: 100%; background: transparent; border: 1px dashed #b6bec9;
-    color: #636c76; font-size: .8rem; border-radius: .375rem; padding: .3rem .5rem;
+    color: #636c76; font-size: .8rem; border-radius: .375rem; padding: .4rem .5rem;
     cursor: pointer; transition: background .12s, color .12s, border-color .12s;
     display: flex; align-items: center; gap: .25rem;
+    min-height: 36px;
+    -webkit-tap-highlight-color: transparent;
 }
 .btn-add-card:hover { background: rgba(0,0,0,.04); color: #1f2328; border-color: #89929b; border-style: solid; }
 
@@ -67,6 +98,7 @@
     border-radius: .375rem; padding: .625rem .75rem;
     box-shadow: 0 1px 2px rgba(0,0,0,.04);
     transition: box-shadow .12s, transform .1s, opacity .15s;
+    -webkit-tap-highlight-color: transparent;
 }
 .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
 .kanban-card:active { cursor: grabbing; transform: scale(.98); }
@@ -79,6 +111,8 @@
 
 .card-actions { opacity: 0; transition: opacity .15s; }
 .kanban-card:hover .card-actions { opacity: 1; }
+/* Always show actions on touch devices */
+@media (hover: none) { .card-actions { opacity: 1; } }
 
 .card-desc-preview {
     font-size: .78rem; color: #636c76; line-height: 1.4;
@@ -89,22 +123,23 @@
 /* -- Icon micro-buttons ----------------------------------------------------- */
 .btn-icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px; font-size: .78rem;
+    min-width: 32px; min-height: 32px; font-size: .78rem;
     border: none; background: transparent; border-radius: .25rem;
     color: #636c76; cursor: pointer; transition: background .1s, color .1s;
     padding: 0; line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 .btn-icon:hover { background: rgba(0,0,0,.06); color: #1f2328; }
 .btn-icon-danger:hover { background: #ffebe9; color: #cf222e; }
 
 /* -- Sprint kanban columns -------------------------------------------------- */
-.sprint-column { min-width: 280px; max-width: 280px; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: .625rem; overflow: hidden; transition: border-color .15s, background .15s; }
+.sprint-column { min-width: 260px; max-width: 280px; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: .625rem; overflow: hidden; transition: border-color .15s, background .15s; scroll-snap-align: start; }
 .sprint-column.sprint-drag-over { border-color: #0969da; background: #ddf4ff; }
 .sprint-column-header { background: #ffffff; border-bottom: 1px solid #d0d7de; padding: .625rem .75rem; }
-.sprint-column-body { padding: .625rem; min-height: 400px; display: flex; flex-direction: column; gap: .5rem; }
+.sprint-column-body { padding: .625rem; min-height: 300px; display: flex; flex-direction: column; gap: .5rem; }
 
 /* -- Ticket card ------------------------------------------------------------ */
-.ticket-card { background: #ffffff; border: 1px solid #d0d7de; border-radius: .375rem; padding: .625rem .75rem; cursor: pointer; transition: box-shadow .12s, transform .1s; }
+.ticket-card { background: #ffffff; border: 1px solid #d0d7de; border-radius: .375rem; padding: .625rem .75rem; cursor: pointer; transition: box-shadow .12s, transform .1s; -webkit-tap-highlight-color: transparent; }
 .ticket-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.09); transform: translateY(-1px); }
 .ticket-card-description { font-size: .78rem; color: #636c76; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; margin-top: .25rem; }
 
@@ -133,3 +168,26 @@
 .loading-progress circle:last-child { stroke: #1f2328; stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%; transition: stroke-dasharray 0.05s ease-in-out; }
 .loading-progress-text { position: absolute; text-align: center; font-weight: bold; inset: calc(20vh + 3.25rem) 0 auto 0.2rem; }
 .loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+
+/* -- Mobile helpers --------------------------------------------------------- */
+@media (max-width: 639px) {
+    /* Ensure tap targets are at least 44px */
+    .btn { min-height: 40px; }
+    .form-input, .form-textarea, .form-select { min-height: 42px; font-size: 16px; } /* 16px prevents iOS zoom */
+    .tab-link { padding: .5rem .625rem; font-size: .8rem; }
+    /* Horizontal scroll containers */
+    .kanban-board,
+    .sprint-kanban-wrapper { padding-bottom: .5rem; }
+}
+
+/* -- Horizontal sprint kanban scroll --------------------------------------- */
+.sprint-kanban-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x pan-y;
+    display: flex;
+    gap: .75rem;
+    padding-bottom: .75rem;
+    align-items: flex-start;
+}

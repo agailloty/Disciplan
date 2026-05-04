@@ -41,7 +41,43 @@ else if (_tickets is not null)
         var g = group;
         <div class="mb-6">
             <div class="section-label mb-2">@CategoryLabel(g.Key)</div>
-            <div class="surface overflow-hidden">
+
+            @* ── Mobile: card list ─────────────────────────────────────────── *@
+            <div class="flex flex-col gap-2 sm:hidden">
+                @foreach (var ticket in g.OrderBy(t => t.CreatedAt))
+                {
+                    var t = ticket;
+                    <div class="surface p-3 cursor-pointer active:bg-gray-50 transition-colors"
+                         @onclick="@(() => Nav.NavigateTo($"/tickets/{t.TicketRef}"))">
+                        <div class="flex items-start justify-between gap-2 mb-1.5">
+                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                        </div>
+                        <p class="text-sm font-medium text-gray-900 leading-snug mb-2">@t.Title</p>
+                        <div class="flex items-center flex-wrap gap-2 text-xs text-gray-500">
+                            <span class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full shrink-0" style="background:@t.Status.Color"></span>
+                                @t.Status.Name
+                            </span>
+                            @if (t.SprintName is not null)
+                            {
+                                <span><i class="bi bi-lightning mr-0.5"></i>@t.SprintName</span>
+                            }
+                            @if (t.DueDate.HasValue)
+                            {
+                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                <span class="@(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                    <i class="bi bi-calendar2 mr-0.5"></i>@t.DueDate.Value.ToLocalTime().ToString("dd/MM/yy")
+                                </span>
+                            }
+                            <span class="badge badge-gray ml-auto">@t.ProjectKey</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* ── Desktop: table ────────────────────────────────────────────── *@
+            <div class="surface overflow-hidden hidden sm:block">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 text-left">
