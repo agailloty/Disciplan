@@ -3,6 +3,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 @inject UserApiClient UserApi
+@inject UserProfileService UserProfile
 @inject IStringLocalizer<AppResources> L
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
@@ -118,7 +119,11 @@
         try
         {
             var ok = await UserApi.UpdateDisplayNameAsync(_displayName.Trim());
-            if (ok) _nameSaved = true;
+            if (ok)
+            {
+                _nameSaved = true;
+                UserProfile.SetDisplayName(_displayName.Trim());
+            }
             else _nameError = L["Settings.DisplayName.Error"];
         }
         catch { _nameError = L["Error.Default"]; }

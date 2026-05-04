@@ -1,8 +1,10 @@
 ﻿@page "/"
 @attribute [Authorize]
+@implements IDisposable
 @inject TicketApiClient TicketApi
 @inject ActivityApiClient ActivityApi
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserProfileService UserProfile
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 
@@ -139,13 +141,32 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _displayName = authState.User.FindFirst("displayName")?.Value
-                    ?? authState.User.FindFirst(ClaimTypes.Name)?.Value
-                    ?? authState.User.FindFirst(ClaimTypes.Email)?.Value
-                    ?? "vous";
+        // Prefer the in-session cache (updated without token refresh)
+        if (UserProfile.DisplayName is not null)
+        {
+            _displayName = UserProfile.DisplayName;
+        }
+        else
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _displayName = authState.User.FindFirst("displayName")?.Value
+                        ?? authState.User.FindFirst(ClaimTypes.Name)?.Value
+                        ?? authState.User.FindFirst(ClaimTypes.Email)?.Value
+                        ?? "vous";
+            UserProfile.SetDisplayName(_displayName);
+        }
+
+        UserProfile.OnChange += OnProfileChanged;
         await Task.WhenAll(LoadTicketsAsync(), LoadActivityAsync());
     }
+
+    private void OnProfileChanged()
+    {
+        _displayName = UserProfile.DisplayName;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => UserProfile.OnChange -= OnProfileChanged;
 
     private async Task LoadTicketsAsync()
     {
