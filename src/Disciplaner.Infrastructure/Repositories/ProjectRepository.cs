@@ -22,6 +22,7 @@ internal sealed class ProjectRepository : IProjectRepository
 
     public async Task<IReadOnlyList<Project>> GetByOwnerIdAsync(string ownerId, CancellationToken cancellationToken = default)
         => await _context.Projects
+            .Include(p => p.Sprints)
             .Where(p => p.OwnerId == ownerId)
             .OrderBy(p => p.CreatedAt)
             .ToListAsync(cancellationToken);

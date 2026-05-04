@@ -23,8 +23,7 @@ public sealed class ProjectService : IProjectService
         var summaries = new List<ProjectSummaryDto>(projects.Count);
         foreach (var p in projects)
         {
-            var ticketCount = (await _uow.Tickets.GetBacklogAsync(p.Id, cancellationToken)).Count;
-            // Approximate: include sprint tickets too via statuses count; keep it simple for now
+            var ticketCount = await _uow.Tickets.CountByProjectAsync(p.Id, cancellationToken);
             summaries.Add(p.ToSummaryDto(ticketCount));
         }
         return summaries.AsReadOnly();
