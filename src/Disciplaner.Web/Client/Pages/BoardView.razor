@@ -88,7 +88,7 @@ else if (_board is not null)
     {
         _loading = true; _error = null;
         try { _board = await Boards.GetBoardAsync(Id); }
-        catch { _error = "Impossible de charger le tableau."; }
+        catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
 
@@ -108,7 +108,7 @@ else if (_board is not null)
             _showEdit = false;
             await ReloadBoardAsync();
         }
-        catch { _formError = "La mise à jour a échoué."; }
+        catch { _formError = L["Error.Update"]; }
         finally { _busy = false; }
     }
 
@@ -119,7 +119,7 @@ else if (_board is not null)
             await Boards.DeleteBoardAsync(Id);
             Nav.NavigateTo("/");
         }
-        catch { _error = "La suppression a échoué."; }
+        catch { _error = L["Error.Delete"]; }
         finally { _showDelete = false; }
     }
 }

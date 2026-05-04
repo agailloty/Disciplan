@@ -50,8 +50,8 @@ else
                     }
                 </div>
                 <div class="flex justify-between px-4 py-2.5 border-t border-gray-100 text-xs text-gray-400">
-                    <span>@p.TicketCount ticket(s)</span>
-                    <span>@p.SprintCount sprint(s)</span>
+                    <span>@(string.Format(L["Project.TicketCount"], p.TicketCount))</span>
+                    <span>@(string.Format(L["Project.SprintCount"], p.SprintCount))</span>
                 </div>
             </div>
         }

@@ -1,8 +1,9 @@
 @page "/admin/users"
 @attribute [Authorize(Roles = "Admin")]
+@inject IStringLocalizer<AppResources> L
 
-<PageTitle>Gestion des utilisateurs — Disciplaner</PageTitle>
+<PageTitle>@L["Admin.Users.Title"] — Disciplaner</PageTitle>
 
-<h1 class="h3 mb-4">Utilisateurs</h1>
+<h1 class="h3 mb-4">@L["Admin.Users.Heading"]</h1>
 
-<p class="text-muted">Administration des comptes. À implémenter.</p>
+<p class="text-muted">@L["Admin.Users.Placeholder"]</p>

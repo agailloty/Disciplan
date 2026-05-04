@@ -21,7 +21,7 @@ else if (_ticket is not null)
 {
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="flex items-center gap-1 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-gray-700">Projets</a></li>
+            <li><a href="/projects" class="hover:text-gray-700">@L["Nav.Projects"]</a></li>
             <li class="text-gray-300">/</li>
             <li><a href="/projects/@_ticket.ProjectId" class="hover:text-gray-700">@_ticket.ProjectKey</a></li>
             <li class="text-gray-300">/</li>
@@ -306,10 +306,10 @@ else if (_ticket is not null)
             }
             else if (_error is null)
             {
-                _error = "Ticket introuvable.";
+                _error = L["Ticket.NotFound"];
             }
         }
-        catch { _error = "Impossible de charger ce ticket."; }
+        catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
 
@@ -341,7 +341,7 @@ else if (_ticket is not null)
             _editing = false;
             await LoadAsync();
         }
-        catch { _actionError = "La mise à jour a échoué."; }
+        catch { _actionError = L["Error.Update"]; }
         finally { _busy = false; }
     }
 
@@ -354,7 +354,7 @@ else if (_ticket is not null)
             await TicketApi.ChangeStatusAsync(_ticket.Id, new ChangeTicketStatusRequest(statusId));
             await LoadAsync();
         }
-        catch { _actionError = "Impossible de changer le statut."; }
+        catch { _actionError = L["Error.Update"]; }
         finally { _busy = false; }
     }
 
@@ -368,7 +368,7 @@ else if (_ticket is not null)
             await TicketApi.DeleteAsync(_ticket.Id);
             Nav.NavigateTo($"/projects/{projectId}");
         }
-        catch { _actionError = "Impossible de supprimer ce ticket."; _busy = false; }
+        catch { _actionError = L["Error.Delete"]; _busy = false; }
     }
 
     private static string PriorityClass(CardPriority priority) => priority switch

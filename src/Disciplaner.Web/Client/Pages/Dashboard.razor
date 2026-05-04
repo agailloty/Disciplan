@@ -119,7 +119,7 @@ else if (_boards is not null)
     protected override async Task OnInitializedAsync()
     {
         try { _boards = await Boards.GetBoardsAsync(); }
-        catch { _error = "Impossible de charger les tableaux."; }
+        catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
 
@@ -147,7 +147,7 @@ else if (_boards is not null)
             }
             _showForm = false;
         }
-        catch { _formError = "Une erreur est survenue. Veuillez réessayer."; }
+        catch { _formError = L["Error.Default"]; }
         finally { _busy = false; }
     }
 
@@ -159,7 +159,7 @@ else if (_boards is not null)
             await Boards.DeleteBoardAsync(_deleteTarget.Id);
             _boards?.RemoveAll(b => b.Id == _deleteTarget.Id);
         }
-        catch { _error = "La suppression a échoué."; }
+        catch { _error = L["Error.Delete"]; }
         finally { _showDelete = false; _deleteTarget = null; }
     }
 }

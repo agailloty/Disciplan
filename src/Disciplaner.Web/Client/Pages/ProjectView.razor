@@ -186,10 +186,10 @@ else if (_project is not null)
                 <div class="surface">
                     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                         <div>
-                            <span class="font-semibold text-gray-900">Backlog</span>
+                            <span class="font-semibold text-gray-900">@L["Project.Backlog"]</span>
                             <span class="text-gray-400 text-xs ml-2">@L["Sprint.SelectedCount", _selectedTicketIds.Count]</span>
                         </div>
-                        <button class="btn btn-primary btn-sm" @onclick="ShowCreateTicket">+ Ticket</button>
+                        <button class="btn btn-primary btn-sm" @onclick="ShowCreateTicket">+ @L["Sprint.AddTicket"]</button>
                     </div>
                     <div>
                         @if (_backlog.Count == 0)
@@ -367,7 +367,7 @@ else if (_project is not null)
             <div class="col-span-2">
                 <label class="form-label">@L["Ticket.Sprint"]</label>
                 <InputSelect class="form-select" @bind-Value="_ticketForm.SprintId">
-                    <option value="">— Backlog —</option>
+                    <option value="">@L["Ticket.BacklogOption"]</option>
                     @foreach (var s in _sprints)
                     {
                         <option value="@s.Id">@s.Name</option>
@@ -383,7 +383,7 @@ else if (_project is not null)
     </EditForm>
 </Modal>
 
-<Modal Title="Créer un sprint" Visible="_showSprint" OnClose="() => _showSprint = false">
+<Modal Title="@L["Sprint.CreateTitle"]" Visible="_showSprint" OnClose="() => _showSprint = false">
     <EditForm Model="_sprintForm" OnValidSubmit="CreateSprintAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
@@ -408,13 +408,13 @@ else if (_project is not null)
     <EditForm Model="_statusForm" OnValidSubmit="SaveStatusAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText class="form-input" @bind-Value="_statusForm.Name" />
             <ValidationMessage For="() => _statusForm.Name" />
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div>
-                <label class="form-label">Catégorie</label>
+                <label class="form-label">@L["Status.Category"]</label>
                 <InputSelect class="form-select" @bind-Value="_statusForm.Category">
                     @foreach (var category in Enum.GetValues<StatusCategory>())
                     {
@@ -423,39 +423,39 @@ else if (_project is not null)
                 </InputSelect>
             </div>
             <div>
-                <label class="form-label">Couleur</label>
+                <label class="form-label">@L["Status.Color"]</label>
                 <InputText class="form-input" @bind-Value="_statusForm.Color" />
             </div>
         </div>
         @ModalError()
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showStatus = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">Enregistrer</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showStatus = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
         </div>
     </EditForm>
 </Modal>
 
-<Modal Title="Modifier le projet" Visible="_showEditProject" OnClose="() => _showEditProject = false">
+<Modal Title="@L["Project.EditTitle"]" Visible="_showEditProject" OnClose="() => _showEditProject = false">
     <EditForm Model="_projectForm" OnValidSubmit="UpdateProjectAsync">
         <DataAnnotationsValidator />
         <div class="mb-3">
-            <label class="form-label">Nom</label>
+            <label class="form-label">@L["Name"]</label>
             <InputText class="form-input" @bind-Value="_projectForm.Name" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Description</label>
+            <label class="form-label">@L["Description"]</label>
             <InputTextArea class="form-textarea" rows="3" @bind-Value="_projectForm.Description" />
         </div>
         @ModalError()
         <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEditProject = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">Enregistrer</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showEditProject = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
         </div>
     </EditForm>
 </Modal>
 
-<ConfirmModal Title="Supprimer le projet"
-              Message="@($"Supprimer \"{_project?.Name}\" et tous ses tickets ?")"
+<ConfirmModal Title="@L["Project.Delete.Title"]"
+              Message="@(string.Format(L["Project.Delete.Confirm"], _project?.Name))"
               Visible="_showDeleteProject"
               OnCancel="() => _showDeleteProject = false"
               OnConfirm="DeleteProjectAsync" />
@@ -548,7 +548,7 @@ else if (_project is not null)
             foreach (var sprint in _sprints)
                 _ticketsBySprint[sprint.Id] = await Tickets.GetBySprintAsync(sprint.Id) ?? [];
         }
-        catch { _error = "Impossible de charger le projet."; }
+        catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
 
@@ -696,7 +696,7 @@ else if (_project is not null)
             _showTicket = false;
             await LoadAsync();
         }
-        catch { _modalError = "Impossible de creer le ticket."; }
+        catch { _modalError = L["Error.Create"]; }
         finally { _busy = false; }
     }
 
@@ -723,7 +723,7 @@ else if (_project is not null)
             _showSprint = false;
             await LoadAsync();
         }
-        catch { _modalError = "Impossible de creer le sprint."; }
+        catch { _modalError = L["Error.Create"]; }
         finally { _busy = false; }
     }
 
@@ -761,7 +761,7 @@ else if (_project is not null)
             _activeSprintView = "kanban";
             await LoadAsync();
         }
-        catch { _error = "Impossible de demarrer ce sprint. Verifie qu'aucun autre sprint n'est actif."; }
+        catch { _error = L["Sprint.AlreadyActive"]; }
     }
 
     private async Task CloseSprintAsync(Guid sprintId)
@@ -799,7 +799,7 @@ else if (_project is not null)
             _showStatus = false;
             await LoadAsync();
         }
-        catch { _modalError = "Impossible d'enregistrer ce statut."; }
+        catch { _modalError = L["Error.Update"]; }
         finally { _busy = false; }
     }
 
@@ -810,7 +810,7 @@ else if (_project is not null)
             await Projects.DeleteStatusAsync(Id, statusId);
             await LoadAsync();
         }
-        catch { _error = "Suppression impossible: le statut est peut-etre utilise par un ticket."; }
+        catch { _error = L["Error.Delete"]; }
     }
 
     private void ShowEditProject()

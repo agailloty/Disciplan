@@ -52,6 +52,7 @@
   <data name="Error.Create" xml:space="preserve"><value>La création a échoué.</value></data>
   <data name="Error.Update" xml:space="preserve"><value>La mise à jour a échoué.</value></data>
   <data name="Error.Delete" xml:space="preserve"><value>La suppression a échoué.</value></data>
+  <data name="Error.Move" xml:space="preserve"><value>Le déplacement a échoué. Veuillez réessayer.</value></data>
 
   <!-- ── Navigation ──────────────────────────────────────────────────────── -->
   <data name="Nav.Home" xml:space="preserve"><value>Accueil</value></data>
@@ -69,8 +70,8 @@
   <data name="Auth.Error.Invalid" xml:space="preserve"><value>Identifiants incorrects.</value></data>
 
   <!-- ── Tableaux (Boards) ────────────────────────────────────────────────── -->
-  <data name="Board.CreateTitle" xml:space="preserve"><value>Nouveau tableau</value></data>
-  <data name="Board.EditTitle" xml:space="preserve"><value>Modifier le tableau</value></data>
+  <data name="Board.CreateTitle" xml:space="preserve"><value>Nouveau tableau</value></data>  <data name="Board.AddColumn" xml:space="preserve"><value>Ajouter une colonne</value></data>
+  <data name="Board.DropHere" xml:space="preserve"><value>Déposer ici</value></data>  <data name="Board.EditTitle" xml:space="preserve"><value>Modifier le tableau</value></data>
   <data name="Board.Empty" xml:space="preserve"><value>Aucun tableau pour l'instant.</value></data>
   <data name="Board.CreateFirst" xml:space="preserve"><value>Créer mon premier tableau</value></data>
   <data name="Board.Description" xml:space="preserve"><value>Description (optionnel)</value></data>
@@ -80,8 +81,8 @@
   <data name="Board.AddCard" xml:space="preserve"><value>Ajouter une carte</value></data>
 
   <!-- ── Projets ──────────────────────────────────────────────────────────── -->
-  <data name="Project.CreateTitle" xml:space="preserve"><value>Nouveau projet</value></data>
-  <data name="Project.EditTitle" xml:space="preserve"><value>Modifier le projet</value></data>
+  <data name="Project.CreateTitle" xml:space="preserve"><value>Nouveau projet</value></data>  <data name="Project.TicketCount" xml:space="preserve"><value>{0} ticket(s)</value></data>
+  <data name="Project.SprintCount" xml:space="preserve"><value>{0} sprint(s)</value></data>  <data name="Project.EditTitle" xml:space="preserve"><value>Modifier le projet</value></data>
   <data name="Project.Empty" xml:space="preserve"><value>Aucun projet pour l'instant.</value></data>
   <data name="Project.CreateFirst" xml:space="preserve"><value>Créer mon premier projet</value></data>
   <data name="Project.Key" xml:space="preserve"><value>Clé</value></data>
@@ -129,8 +130,13 @@
   <data name="Sprint.MoveToBacklog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Sprint.TicketCount" xml:space="preserve"><value>{0} tickets</value></data>
 
-  <!-- ── Tickets ──────────────────────────────────────────────────────────── -->
+  <!-- ── Cartes Kanban ────────────────────────────────────────────────────────── -->
+  <data name="Card.CreateTitle" xml:space="preserve"><value>Nouvelle carte</value></data>
+
+  <!-- ── Tickets ──────────────────────────────────────────────────────────────── -->
   <data name="Ticket.CreateTitle" xml:space="preserve"><value>Nouveau ticket</value></data>
+  <data name="Ticket.NotFound" xml:space="preserve"><value>Ticket introuvable.</value></data>
+  <data name="Ticket.OpenPage" xml:space="preserve"><value>Ouvrir la page</value></data>
   <data name="Ticket.StoryPoints" xml:space="preserve"><value>Story points</value></data>
   <data name="Ticket.DueDate" xml:space="preserve"><value>Échéance</value></data>
   <data name="Ticket.Sprint" xml:space="preserve"><value>Sprint</value></data>
@@ -163,8 +169,18 @@
   <!-- ── Paramètres ─────────────────────────────────────────────────────────── -->
   <data name="Settings.Title" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Settings.Language" xml:space="preserve"><value>Langue de l'application</value></data>
+  <data name="Settings.Language.Hint" xml:space="preserve"><value>Le changement de langue recharge l'application.</value></data>
+  <data name="Settings.DisplayName" xml:space="preserve"><value>Nom d'affichage</value></data>
+  <data name="Settings.DisplayName.Hint" xml:space="preserve"><value>Ce nom est affiché aux autres utilisateurs de l'application.</value></data>
+  <data name="Settings.DisplayName.Placeholder" xml:space="preserve"><value>Votre nom d'affichage</value></data>
+  <data name="Settings.DisplayName.Saved" xml:space="preserve"><value>Nom mis à jour.</value></data>
+  <data name="Settings.DisplayName.Error" xml:space="preserve"><value>Impossible de mettre à jour le nom d'affichage. Veuillez réessayer.</value></data>
 
   <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->
+  <data name="Col.CreateTitle" xml:space="preserve"><value>Nouvelle colonne</value></data>
+  <data name="Col.EditTitle" xml:space="preserve"><value>Renommer la colonne</value></data>
+  <data name="Col.DeleteTitle" xml:space="preserve"><value>Supprimer la colonne</value></data>
+  <data name="Col.DeleteConfirm" xml:space="preserve"><value>Supprimer « {0} » et toutes ses cartes ?</value></data>
   <data name="Col.Ref" xml:space="preserve"><value>Réf.</value></data>
   <data name="Col.Title" xml:space="preserve"><value>Titre</value></data>
   <data name="Col.Priority" xml:space="preserve"><value>Priorité</value></data>
@@ -193,6 +209,15 @@
   <data name="StatusCategory.Backlog" xml:space="preserve"><value>Backlog</value></data>
   <data name="StatusCategory.InProgress" xml:space="preserve"><value>En cours</value></data>
   <data name="StatusCategory.Done" xml:space="preserve"><value>Terminé</value></data>
+
+  <!-- ── Administration ───────────────────────────────────────────────────────── -->
+  <data name="Admin.Users.Title" xml:space="preserve"><value>Gestion des utilisateurs</value></data>
+  <data name="Admin.Users.Heading" xml:space="preserve"><value>Utilisateurs</value></data>
+  <data name="Admin.Users.Placeholder" xml:space="preserve"><value>Administration des comptes. À implémenter.</value></data>
+
+  <!-- ── Page introuvable ─────────────────────────────────────────────────────── -->
+  <data name="NotFound.Title" xml:space="preserve"><value>Page introuvable</value></data>
+  <data name="NotFound.Message" xml:space="preserve"><value>Désolé, le contenu que vous recherchez n'existe pas.</value></data>
 
   <!-- ── Temps relatif ─────────────────────────────────────────────────────────── -->
   <data name="Time.JustNow" xml:space="preserve"><value>à l’instant</value></data>

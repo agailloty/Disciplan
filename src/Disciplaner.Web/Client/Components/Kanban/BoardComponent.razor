@@ -14,7 +14,7 @@
     @* Add column button — always visible at the end of the board *@
     <div class="flex-shrink-0" style="width:290px">
         <button class="btn btn-outline w-full" @onclick="() => _showAddColumn = true">
-            + Ajouter une colonne
+            + @L["Board.AddColumn"]
         </button>
     </div>
 </div>
@@ -25,7 +25,7 @@
 }
 
 @* ── Add column modal ── *@
-<Modal Title="Nouvelle colonne" Visible="_showAddColumn" OnClose="() => _showAddColumn = false">
+<Modal Title="@L["Col.CreateTitle"]" Visible="_showAddColumn" OnClose="() => _showAddColumn = false">
     <EditForm Model="_columnForm" OnValidSubmit="CreateColumnAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
@@ -73,7 +73,7 @@
                 new MoveCardRequest(drop.TargetColumnId, drop.TargetPosition));
             await OnBoardChanged.InvokeAsync();
         }
-        catch { _moveError = "Le déplacement a échoué. Veuillez réessayer."; }
+        catch { _moveError = L["Error.Move"]; }
     }
 
     private async Task CreateColumnAsync()
@@ -87,7 +87,7 @@
             _columnForm = new();
             await OnBoardChanged.InvokeAsync();
         }
-        catch { _columnError = "Impossible de créer la colonne."; }
+        catch { _columnError = L["Error.Create"]; }
         finally { _columnBusy = false; }
     }
 }
