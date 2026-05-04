@@ -1,22 +1,33 @@
 @if (Visible)
 {
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
-         style="background:rgba(0,0,0,.45); padding-top:3rem; padding-bottom:3rem"
+         style="background:rgba(0,0,0,.5); padding-top:3rem; padding-bottom:3rem"
          @onclick="OnOverlayClick">
-        <div class="bg-white rounded-xl shadow-2xl w-full @MaxWidthClass mx-4 flex flex-col"
+        <div class="bg-white rounded-2xl shadow-2xl w-full @MaxWidthClass mx-4 flex flex-col"
              style="max-height:90vh"
              @onclick:stopPropagation
              @onkeydown="OnKeyDown" tabindex="-1">
-            @* Header *@
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 class="font-semibold text-base text-gray-900">@Title</h2>
-                <button class="text-gray-400 hover:text-gray-600 transition-colors ml-4"
-                        @onclick="CloseAsync" type="button" aria-label="Fermer">
-                    <i class="bi bi-x-lg text-sm"></i>
-                </button>
-            </div>
+            @if (string.IsNullOrEmpty(Title))
+            {
+                @* Compact header — just a close button *@
+                <div class="modal-close-only">
+                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="Fermer">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            }
+            else
+            {
+                @* Standard header with title *@
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h2 class="font-semibold text-sm text-gray-900">@Title</h2>
+                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="Fermer">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            }
             @* Body *@
-            <div class="px-6 py-5 overflow-y-auto flex-1">
+            <div class="@(string.IsNullOrEmpty(Title) ? "px-6 pb-6 pt-1" : "px-6 py-5") overflow-y-auto flex-1">
                 @ChildContent
             </div>
         </div>

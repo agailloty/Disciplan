@@ -147,6 +147,88 @@
 .detail-description { white-space: pre-wrap; font-size: .875rem; line-height: 1.7; background: #f6f8fa; border-radius: .375rem; padding: .75rem 1rem; border: 1px solid #d0d7de; min-height: 48px; color: #1f2328; }
 .comment-content { white-space: pre-wrap; font-size: .875rem; line-height: 1.5; color: #1f2328; margin-top: .2rem; }
 
+/* ── Ticket Detail Modal (tdm) ─────────────────────────────────────────────── */
+
+/* Section headings */
+.tdm-section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #89929b; display: block; }
+.tdm-sidebar-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #89929b; display: block; margin-bottom: .3rem; }
+.tdm-prop { margin-bottom: .875rem; }
+
+/* Custom select (replaces plain form-select inside modal sidebars) */
+.tdm-select-wrap { position: relative; }
+.tdm-select-wrap::after {
+    content: "";
+    position: absolute;
+    right: .6rem; top: 50%; transform: translateY(-50%);
+    pointer-events: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #89929b;
+}
+.tdm-select {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: .375rem .625rem;
+    padding-right: 1.75rem;
+    font-size: .8125rem;
+    line-height: 1.45;
+    border: 1px solid #e2e5e9;
+    border-radius: .4rem;
+    background: #f8f9fa;
+    color: #1f2328;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+    outline: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tdm-select-with-dot { padding-left: 1.625rem; }
+.tdm-select:hover { border-color: #89929b; background: #ffffff; }
+.tdm-select:focus { border-color: #0969da; background: #ffffff; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
+.tdm-select:disabled { opacity: .55; cursor: default; }
+
+/* Status color dot inside the select wrap */
+.tdm-status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; position: absolute; left: .6rem; top: 50%; transform: translateY(-50%); z-index: 1; pointer-events: none; flex-shrink: 0; }
+
+/* Description block */
+.tdm-description { white-space: pre-wrap; font-size: .875rem; line-height: 1.75; background: #f8f9fb; border-radius: .5rem; padding: .875rem 1rem; border: 1px solid #e8eaed; min-height: 4rem; color: #1f2328; }
+
+/* Type badge */
+.tdm-type-badge { display: inline-flex; align-items: center; padding: .1rem .45rem; font-size: .65rem; font-weight: 700; border-radius: .25rem; text-transform: uppercase; letter-spacing: .05em; background: #ddf4ff; color: #0969da; border: 1px solid #b6e3ff; }
+.tdm-type-badge-bug { background: #ffebe9; color: #cf222e; border-color: #ffcecb; }
+
+/* Avatar */
+.tdm-avatar { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; }
+.av-sky    { background: #dbeafe; color: #1d4ed8; }
+.av-violet { background: #ede9fe; color: #6d28d9; }
+.av-green  { background: #d1fae5; color: #065f46; }
+.av-amber  { background: #fef3c7; color: #92400e; }
+.av-rose   { background: #fee2e2; color: #991b1b; }
+.av-gray   { background: #e5e7eb; color: #374151; }
+
+/* Comment row */
+.tdm-comment-row { display: flex; gap: .625rem; align-items: flex-start; }
+.tdm-comment-body { flex: 1; min-width: 0; }
+.tdm-comment-header { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .25rem; }
+.tdm-comment-author { font-size: .8125rem; font-weight: 600; color: #1f2328; }
+.tdm-comment-date { font-size: .7rem; color: #89929b; }
+.tdm-comment-bubble { background: #f6f8fa; border: 1px solid #e8eaed; border-radius: 0 .5rem .5rem .5rem; padding: .45rem .7rem; font-size: .8125rem; line-height: 1.55; color: #1f2328; white-space: pre-wrap; }
+.tdm-comment-actions { display: flex; gap: .625rem; margin-top: .3rem; opacity: 0; transition: opacity .15s; }
+.tdm-comment-row:hover .tdm-comment-actions { opacity: 1; }
+
+/* Sidebar meta rows */
+.tdm-meta-row { display: flex; align-items: center; gap: .4rem; padding: .2rem 0; font-size: .78rem; }
+.tdm-meta-icon { font-size: .72rem; color: #89929b; flex-shrink: 0; width: .875rem; text-align: center; }
+.tdm-meta-label { color: #89929b; flex-shrink: 0; }
+.tdm-meta-value { color: #1f2328; font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Modal header variant — no title (compact) */
+.modal-close-only { display: flex; justify-content: flex-end; padding: .75rem 1rem .25rem; }
+.modal-close-btn { width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: .375rem; color: #89929b; cursor: pointer; transition: background .1s, color .1s; font-size: 1rem; }
+.modal-close-btn:hover { background: #f3f4f6; color: #1f2328; }
+
 /* -- Empty drop target ------------------------------------------------------ */
 .kanban-empty-drop { border: 2px dashed #b6bec9; border-radius: .375rem; min-height: 60px; display: flex; align-items: center; justify-content: center; color: #89929b; font-size: .8rem; }
 

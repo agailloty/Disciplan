@@ -160,6 +160,9 @@
 
   <!-- ── Ticket statuses ───────────────────────────────────────────────────── -->
   <data name="Status.Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Created" xml:space="preserve"><value>Created</value></data>
+  <data name="Updated" xml:space="preserve"><value>Updated</value></data>
   <data name="Status.Color" xml:space="preserve"><value>Color</value></data>
   <data name="Status.OrderLabel" xml:space="preserve"><value>order {0}</value></data>
   <data name="Status.CreateTitle" xml:space="preserve"><value>New status</value></data>

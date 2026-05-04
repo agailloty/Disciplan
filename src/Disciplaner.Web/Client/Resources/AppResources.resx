@@ -158,6 +158,9 @@
 
   <!-- ── Statuts de ticket ────────────────────────────────────────────────── -->
   <data name="Status.Category" xml:space="preserve"><value>Catégorie</value></data>
+  <data name="Status" xml:space="preserve"><value>Statut</value></data>
+  <data name="Created" xml:space="preserve"><value>Créé</value></data>
+  <data name="Updated" xml:space="preserve"><value>Modifié</value></data>
   <data name="Status.Color" xml:space="preserve"><value>Couleur</value></data>
   <data name="Status.OrderLabel" xml:space="preserve"><value>ordre {0}</value></data>
   <data name="Status.CreateTitle" xml:space="preserve"><value>Nouveau statut</value></data>

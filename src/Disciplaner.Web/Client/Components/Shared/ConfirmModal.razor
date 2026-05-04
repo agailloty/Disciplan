@@ -1,11 +1,12 @@
 @* Confirmation modal for destructive actions. *@
+@inject IStringLocalizer<AppResources> L
 
 <Modal Title="@Title" Visible="Visible" OnClose="OnCancel">
-    <p class="text-sm text-gray-700 mb-5">@Message</p>
-    <div class="flex justify-end gap-2">
-        <button class="btn btn-outline" type="button" @onclick="OnCancel">Annuler</button>
+    <p class="text-sm text-gray-600 leading-relaxed mb-5">@Message</p>
+    <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+        <button class="btn btn-outline" type="button" @onclick="OnCancel">@L["Cancel"]</button>
         <button class="btn btn-danger" type="button" @onclick="OnConfirmAsync" disabled="@_busy">
-            @(_busy ? "Suppression…" : ConfirmLabel)
+            @(_busy ? "…" : ConfirmLabel)
         </button>
     </div>
 </Modal>

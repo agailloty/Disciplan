@@ -28,7 +28,7 @@
 <Modal Title="@L["Col.CreateTitle"]" Visible="_showAddColumn" OnClose="() => _showAddColumn = false">
     <EditForm Model="_columnForm" OnValidSubmit="CreateColumnAsync">
         <DataAnnotationsValidator />
-        <div class="mb-4">
+        <div class="mb-3">
             <label class="form-label">@L["Name"]</label>
             <InputText @bind-Value="_columnForm.Name" class="form-input" autofocus />
             <ValidationMessage For="() => _columnForm.Name" />
@@ -37,7 +37,7 @@
         {
             <ErrorAlert Message="@_columnError" />
         }
-        <div class="flex justify-end gap-2 mt-4">
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
             <button type="button" class="btn btn-outline" @onclick="() => _showAddColumn = false">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_columnBusy">
                 @(_columnBusy ? "…" : L["Create"])
