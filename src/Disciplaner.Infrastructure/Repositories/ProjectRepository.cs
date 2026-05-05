@@ -44,4 +44,7 @@ internal sealed class ProjectRepository : IProjectRepository
         _context.Projects.Remove(project);
         return Task.CompletedTask;
     }
+
+    public async Task AddTicketStatusAsync(TicketStatus status, CancellationToken cancellationToken = default)
+        => await _context.TicketStatuses.AddAsync(status, cancellationToken);
 }
