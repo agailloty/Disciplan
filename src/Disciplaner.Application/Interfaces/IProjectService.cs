@@ -9,6 +9,7 @@ public interface IProjectService
     Task<ProjectDetailDto?> GetByIdAsync(Guid projectId, string requestingUserId, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto> CreateAsync(string ownerId, CreateProjectRequest request, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto> UpdateAsync(Guid projectId, string requestingUserId, UpdateProjectRequest request, CancellationToken cancellationToken = default);
+    Task<ProjectDetailDto> UpdateDefaultsAsync(Guid projectId, string requestingUserId, UpdateProjectDefaultsRequest request, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid projectId, string requestingUserId, CancellationToken cancellationToken = default);
 
     Task<TicketStatusDto> AddStatusAsync(Guid projectId, string requestingUserId, CreateTicketStatusRequest request, CancellationToken cancellationToken = default);

@@ -90,6 +90,21 @@ public sealed class ProjectService : IProjectService
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<ProjectDetailDto> UpdateDefaultsAsync(
+        Guid projectId, string requestingUserId, UpdateProjectDefaultsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Project), projectId);
+        EnsureOwner(project, requestingUserId);
+
+        project.UpdateDefaults(request.DefaultTicketType, request.DefaultAssigneePolicy);
+        await _uow.Projects.UpdateAsync(project, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return project.ToDetailDto([]);
+    }
+
     public async Task<TicketStatusDto> AddStatusAsync(
         Guid projectId, string requestingUserId, CreateTicketStatusRequest request,
         CancellationToken cancellationToken = default)

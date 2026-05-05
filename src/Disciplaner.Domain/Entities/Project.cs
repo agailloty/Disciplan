@@ -17,6 +17,9 @@ public class Project
     public DateTime CreatedAt { get; private init; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; private set; }
 
+    public TicketType DefaultTicketType { get; private set; } = TicketType.Story;
+    public DefaultAssigneePolicy DefaultAssigneePolicy { get; private set; } = DefaultAssigneePolicy.None;
+
     public string OwnerId { get; private init; } = string.Empty;
     public User Owner { get; private init; } = null!;
 
@@ -43,6 +46,13 @@ public class Project
 
     public void Rename(string name) { SetName(name); Touch(); }
     public void UpdateDescription(string? description) { SetDescription(description); Touch(); }
+
+    public void UpdateDefaults(TicketType defaultTicketType, DefaultAssigneePolicy defaultAssigneePolicy)
+    {
+        DefaultTicketType = defaultTicketType;
+        DefaultAssigneePolicy = defaultAssigneePolicy;
+        Touch();
+    }
 
     // ── Ticket numbering ──────────────────────────────────────────────────────
 

@@ -67,6 +67,17 @@ public sealed class ProjectsController : ControllerBase
         catch (DomainException ex) { return BadRequest(ex.Message); }
     }
 
+    [HttpPut("{id:guid}/defaults")]
+    [ProducesResponseType(typeof(ProjectDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateDefaults(Guid id, UpdateProjectDefaultsRequest request, CancellationToken ct)
+    {
+        try { return Ok(await _projects.UpdateDefaultsAsync(id, UserId, request, ct)); }
+        catch (NotFoundException) { return NotFound(); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (DomainException ex) { return BadRequest(ex.Message); }
+    }
+
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -73,5 +73,5 @@ internal static class MappingExtensions
     internal static ProjectDetailDto ToDetailDto(this Project p, IReadOnlyList<SprintDto> sprints) =>
         new(p.Id, p.Name, p.Description, p.Key, p.OwnerId, p.CreatedAt, p.UpdatedAt,
             p.Statuses.OrderBy(s => s.Order).Select(s => s.ToDto()).ToList().AsReadOnly(),
-            sprints);
+            sprints, p.DefaultTicketType, p.DefaultAssigneePolicy);
 }

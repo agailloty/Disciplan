@@ -98,6 +98,12 @@
   <data name="Project.Statuses" xml:space="preserve"><value>Statuts du projet</value></data>
   <data name="Project.Settings" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Project.DangerZone" xml:space="preserve"><value>Zone dangereuse</value></data>
+  <data name="Project.Defaults" xml:space="preserve"><value>Valeurs par défaut des tickets</value></data>
+  <data name="Project.Defaults.Hint" xml:space="preserve"><value>Ces valeurs sont pré-remplies à la création d'un ticket.</value></data>
+  <data name="Project.DefaultTicketType" xml:space="preserve"><value>Type par défaut</value></data>
+  <data name="Project.DefaultAssignee" xml:space="preserve"><value>Assigné par défaut</value></data>
+  <data name="DefaultAssigneePolicy.None" xml:space="preserve"><value>Aucun</value></data>
+  <data name="DefaultAssigneePolicy.Creator" xml:space="preserve"><value>Créateur du ticket</value></data>
   <data name="Project.Stats.Backlog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Project.Stats.BacklogSub" xml:space="preserve"><value>tickets non planifiés</value></data>
   <data name="Project.Stats.Sprints" xml:space="preserve"><value>Sprints</value></data>
