@@ -72,6 +72,17 @@ else if (_tickets is not null)
                             }
                             <span class="badge badge-gray ml-auto">@t.ProjectKey</span>
                         </div>
+                        @if (t.Labels.Count > 0)
+                        {
+                            <div class="flex flex-wrap gap-1 mt-2" @onclick:stopPropagation>
+                                @foreach (var lbl in t.Labels)
+                                {
+                                    var lblUrl = $"/labels/{lbl.Id}";
+                                    <a href="@lblUrl" class="label-badge"
+                                       style="background:@lbl.Color; color:@MyTicketsLabelTextColor(lbl.Color)">@lbl.Name</a>
+                                }
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -158,5 +169,19 @@ else if (_tickets is not null)
         CardPriority.Critical => "badge-prio-critical",
         _                     => "badge-gray"
     };
+
+    private static string MyTicketsLabelTextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
 }
 

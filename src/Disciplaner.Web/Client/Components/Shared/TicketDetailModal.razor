@@ -206,7 +206,7 @@
 
                     @* Labels *@
                     <div class="tdm-prop">
-                        <span class="tdm-sidebar-label">Étiquettes</span>
+                        <span class="tdm-sidebar-label">@L["Label.Field"]</span>
                         <LabelPicker SelectedLabels="_labels" Editable="true"
                                      OnAttach="async l => { await LabelApi.AttachToTicketAsync(l.Id, Ticket!.Id); }"
                                      OnDetach="async l => { await LabelApi.DetachFromTicketAsync(l.Id, Ticket!.Id); }" />

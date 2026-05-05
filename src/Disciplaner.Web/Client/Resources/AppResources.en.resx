@@ -59,6 +59,7 @@
   <data name="Nav.Boards" xml:space="preserve"><value>Boards</value></data>
   <data name="Nav.Projects" xml:space="preserve"><value>Projects</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>My tickets</value></data>
+  <data name="Nav.Labels" xml:space="preserve"><value>Labels</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Sign out</value></data>
 
   <!-- ── Authentication ──────────────────────────────────────────────────── -->
@@ -232,5 +233,21 @@
   <data name="Time.MinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
   <data name="Time.HoursAgo" xml:space="preserve"><value>{0}h ago</value></data>
   <data name="Time.DaysAgo" xml:space="preserve"><value>{0} days ago</value></data>
+
+  <!-- ── Labels ─────────────────────────────────────────────── -->
+  <data name="Label.Title" xml:space="preserve"><value>Labels</value></data>
+  <data name="Label.Count" xml:space="preserve"><value>{0} label(s)</value></data>
+  <data name="Label.CreateTitle" xml:space="preserve"><value>New label</value></data>
+  <data name="Label.EditTitle" xml:space="preserve"><value>Edit label</value></data>
+  <data name="Label.Delete.Title" xml:space="preserve"><value>Delete label</value></data>
+  <data name="Label.Delete.Confirm" xml:space="preserve"><value>Delete «{0}»? The label will be removed from all tickets and boards.</value></data>
+  <data name="Label.Empty" xml:space="preserve"><value>No labels yet. Create one to organize your tickets and boards.</value></data>
+  <data name="Label.CreateFirst" xml:space="preserve"><value>Create a label</value></data>
+  <data name="Label.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Label.Color" xml:space="preserve"><value>Color</value></data>
+  <data name="Label.Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Label.Field" xml:space="preserve"><value>Labels</value></data>
+  <data name="Label.NoItems" xml:space="preserve"><value>No tickets or boards with this label yet.</value></data>
+  <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
 
 </root>

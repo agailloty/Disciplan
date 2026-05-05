@@ -659,6 +659,17 @@ else if (_project is not null)
                     <span class="text-gray-400 text-xs">@ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
                 }
             </div>
+            @if (ticket.Labels.Count > 0)
+            {
+                <div class="flex flex-wrap gap-1 mt-2" @onclick:stopPropagation>
+                    @foreach (var lbl in ticket.Labels)
+                    {
+                        var lblUrl = $"/labels/{lbl.Id}";
+                        <a href="@lblUrl" class="label-badge"
+                           style="background:@lbl.Color; color:@TicketLabelTextColor(lbl.Color)">@lbl.Name</a>
+                    }
+                </div>
+            }
             <select class="form-select text-xs mt-3 py-1"
                     value="@ticket.Status.Id"
                     @onchange="e => ChangeStatusAsync(ticket.Id, Guid.Parse(e.Value?.ToString() ?? string.Empty))">
@@ -695,6 +706,20 @@ else if (_project is not null)
         CardPriority.Critical => "badge badge-prio-critical",
         _ => "badge badge-gray"
     };
+
+    private static string TicketLabelTextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
 
     private void ToggleTicketSelection(Guid ticketId, ChangeEventArgs args)
     {

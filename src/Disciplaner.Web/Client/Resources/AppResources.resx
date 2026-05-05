@@ -59,6 +59,7 @@
   <data name="Nav.Boards" xml:space="preserve"><value>Tableaux</value></data>
   <data name="Nav.Projects" xml:space="preserve"><value>Projets</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>Mes tickets</value></data>
+  <data name="Nav.Labels" xml:space="preserve"><value>Étiquettes</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Se déconnecter</value></data>
 
   <!-- ── Authentification ────────────────────────────────────────────────── -->
@@ -230,5 +231,19 @@
   <data name="Time.MinutesAgo" xml:space="preserve"><value>il y a {0} min</value></data>
   <data name="Time.HoursAgo" xml:space="preserve"><value>il y a {0} h</value></data>
   <data name="Time.DaysAgo" xml:space="preserve"><value>il y a {0} j</value></data>
-
+  <!-- ── Étiquettes ────────────────────────────────────────────────────────── -->
+  <data name="Label.Title" xml:space="preserve"><value>Étiquettes</value></data>
+  <data name="Label.Count" xml:space="preserve"><value>{0} étiquette(s)</value></data>
+  <data name="Label.CreateTitle" xml:space="preserve"><value>Nouvelle étiquette</value></data>
+  <data name="Label.EditTitle" xml:space="preserve"><value>Modifier l'étiquette</value></data>
+  <data name="Label.Delete.Title" xml:space="preserve"><value>Supprimer l'étiquette</value></data>
+  <data name="Label.Delete.Confirm" xml:space="preserve"><value>Supprimer « {0} » ? L'étiquette sera retirée de tous les tickets et boards.</value></data>
+  <data name="Label.Empty" xml:space="preserve"><value>Aucune étiquette. Créez-en une pour organiser vos tickets et boards.</value></data>
+  <data name="Label.CreateFirst" xml:space="preserve"><value>Créer une étiquette</value></data>
+  <data name="Label.Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="Label.Color" xml:space="preserve"><value>Couleur</value></data>
+  <data name="Label.Preview" xml:space="preserve"><value>Aperçu</value></data>
+  <data name="Label.Field" xml:space="preserve"><value>Étiquettes</value></data>
+  <data name="Label.NoItems" xml:space="preserve"><value>Aucun ticket ni board avec cette étiquette pour le moment.</value></data>
+  <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
 </root>
