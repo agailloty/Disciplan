@@ -18,6 +18,10 @@ public class Board
 
     public IReadOnlyCollection<Column> Columns => _columns.AsReadOnly();
 
+    // ── Labels (M-N) ─────────────────────────────────────────────────────────
+    private readonly List<Label> _labels = [];
+    public IReadOnlyCollection<Label> Labels => _labels.AsReadOnly();
+
     protected Board() { }
 
     public Board(string name, string? description, User owner)

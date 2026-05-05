@@ -1,3 +1,4 @@
+using Disciplaner.Application.DTOs.Label;
 using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Domain.Enums;
 
@@ -25,5 +26,6 @@ public sealed record TicketDto(
     string? AssigneeId,
     string? AssigneeName,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    IReadOnlyList<LabelDto> Labels
 );

@@ -1,6 +1,7 @@
 using Disciplaner.Application.DTOs.Board;
 using Disciplaner.Application.DTOs.Card;
 using Disciplaner.Application.DTOs.Column;
+using Disciplaner.Application.DTOs.Label;
 using Disciplaner.Application.DTOs.Project;
 using Disciplaner.Application.DTOs.Sprint;
 using Disciplaner.Application.DTOs.TicketStatus;
@@ -43,7 +44,8 @@ internal static class MappingExtensions
         board.Name,
         board.Description,
         board.Columns.Count,
-        board.CreatedAt
+        board.CreatedAt,
+        board.Labels.Select(l => l.ToDto()).ToList().AsReadOnly()
     );
 
     internal static BoardDetailDto ToDetailDto(this Board board) => new(
@@ -53,8 +55,11 @@ internal static class MappingExtensions
         board.OwnerId,
         board.CreatedAt,
         board.UpdatedAt,
-        board.Columns.OrderBy(c => c.Order).Select(c => c.ToDto()).ToList().AsReadOnly()
+        board.Columns.OrderBy(c => c.Order).Select(c => c.ToDto()).ToList().AsReadOnly(),
+        board.Labels.Select(l => l.ToDto()).ToList().AsReadOnly()
     );
+
+    internal static LabelDto ToDto(this Label l) => new(l.Id, l.Name, l.Color, l.CreatedAt);
 
     internal static TicketStatusDto ToDto(this TicketStatus s) =>
         new(s.Id, s.ProjectId, s.Name, s.Color, s.Order, s.Category);
@@ -68,5 +73,5 @@ internal static class MappingExtensions
     internal static ProjectDetailDto ToDetailDto(this Project p, IReadOnlyList<SprintDto> sprints) =>
         new(p.Id, p.Name, p.Description, p.Key, p.OwnerId, p.CreatedAt, p.UpdatedAt,
             p.Statuses.OrderBy(s => s.Order).Select(s => s.ToDto()).ToList().AsReadOnly(),
-            sprints);
+            sprints, p.DefaultTicketType, p.DefaultAssigneePolicy);
 }

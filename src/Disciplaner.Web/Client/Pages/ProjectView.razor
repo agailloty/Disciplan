@@ -5,6 +5,7 @@
 @inject TicketApiClient Tickets
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(_project?.Name ?? L["Nav.Projects"].Value) - Disciplaner</PageTitle>
 
@@ -360,6 +361,45 @@ else if (_project is not null)
                 </div>
             </div>
 
+            @* Ticket defaults *@
+            <div class="surface">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <span class="font-semibold text-gray-900">@L["Project.Defaults"]</span>
+                    <p class="text-xs text-gray-400 mt-0.5">@L["Project.Defaults.Hint"]</p>
+                </div>
+                <EditForm Model="_defaultsForm" OnValidSubmit="SaveDefaultsAsync">
+                    <div class="p-4 grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="form-label">@L["Project.DefaultTicketType"]</label>
+                            <InputSelect class="form-select" @bind-Value="_defaultsForm.DefaultTicketType">
+                                @foreach (var t in Enum.GetValues<TicketType>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div>
+                            <label class="form-label">@L["Project.DefaultAssignee"]</label>
+                            <InputSelect class="form-select" @bind-Value="_defaultsForm.DefaultAssigneePolicy">
+                                @foreach (var p in Enum.GetValues<DefaultAssigneePolicy>())
+                                {
+                                    <option value="@p">@L[$"DefaultAssigneePolicy.{p}"]</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-100">
+                        @if (_defaultsSaved)
+                        {
+                            <span class="text-xs text-green-600"><i class="bi bi-check2 mr-1"></i>@L["Settings.DisplayName.Saved"]</span>
+                        }
+                        <button type="submit" class="btn btn-primary btn-sm" disabled="@_defaultsBusy">
+                            @(_defaultsBusy ? "…" : L["Save"].Value)
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+
             @* Danger zone *@
             <div class="surface border border-red-100">
                 <div class="px-4 py-3 border-b border-red-100">
@@ -510,8 +550,12 @@ else if (_project is not null)
     private readonly Dictionary<Guid, List<TicketDto>> _ticketsBySprint = [];
     private readonly HashSet<Guid> _selectedTicketIds = [];
 
+    private string? _currentUserId;
+
     private bool _loading = true;
     private bool _busy;
+    private bool _defaultsBusy;
+    private bool _defaultsSaved;
     private bool _showTicket;
     private bool _showSprint;
     private bool _showStatus;
@@ -531,6 +575,7 @@ else if (_project is not null)
     private SprintForm _sprintForm = new();
     private StatusForm _statusForm = new();
     private ProjectForm _projectForm = new();
+    private DefaultsForm _defaultsForm = new();
 
     private sealed class TicketForm
     {
@@ -543,6 +588,13 @@ else if (_project is not null)
         public int? StoryPoints { get; set; }
         public DateTime? DueDate { get; set; }
         public Guid? SprintId { get; set; }
+        public string? AssigneeId { get; set; }
+    }
+
+    private sealed class DefaultsForm
+    {
+        public TicketType DefaultTicketType { get; set; } = TicketType.Story;
+        public DefaultAssigneePolicy DefaultAssigneePolicy { get; set; } = DefaultAssigneePolicy.None;
     }
 
     private sealed class SprintForm
@@ -569,7 +621,12 @@ else if (_project is not null)
     }
 
     protected override async Task OnParametersSetAsync()
-        => await LoadAsync();
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? authState.User.FindFirst("sub")?.Value;
+        await LoadAsync();
+    }
 
     private SprintDto? ActiveSprint
         => _sprints.FirstOrDefault(s => s.Status == SprintStatus.Active);
@@ -581,6 +638,8 @@ else if (_project is not null)
         try
         {
             _project = await Projects.GetProjectAsync(Id);
+            if (_project is not null)
+                _defaultsForm = new() { DefaultTicketType = _project.DefaultTicketType, DefaultAssigneePolicy = _project.DefaultAssigneePolicy };
             _backlog.Clear();
             _backlog.AddRange(await Tickets.GetBacklogAsync(Id) ?? []);
             _sprints.Clear();
@@ -659,6 +718,17 @@ else if (_project is not null)
                     <span class="text-gray-400 text-xs">@ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
                 }
             </div>
+            @if (ticket.Labels.Count > 0)
+            {
+                <div class="flex flex-wrap gap-1 mt-2" @onclick:stopPropagation>
+                    @foreach (var lbl in ticket.Labels)
+                    {
+                        var lblUrl = $"/labels/{lbl.Id}";
+                        <a href="@lblUrl" class="label-badge"
+                           style="background:@lbl.Color; color:@TicketLabelTextColor(lbl.Color)">@lbl.Name</a>
+                    }
+                </div>
+            }
             <select class="form-select text-xs mt-3 py-1"
                     value="@ticket.Status.Id"
                     @onchange="e => ChangeStatusAsync(ticket.Id, Guid.Parse(e.Value?.ToString() ?? string.Empty))">
@@ -696,6 +766,20 @@ else if (_project is not null)
         _ => "badge badge-gray"
     };
 
+    private static string TicketLabelTextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
+
     private void ToggleTicketSelection(Guid ticketId, ChangeEventArgs args)
     {
         if (args.Value is bool selected && selected)
@@ -706,14 +790,18 @@ else if (_project is not null)
 
     private void ShowCreateTicket()
     {
-        _ticketForm = new();
+        var type = _project?.DefaultTicketType ?? TicketType.Story;
+        var assigneeId = _project?.DefaultAssigneePolicy == DefaultAssigneePolicy.Creator ? _currentUserId : null;
+        _ticketForm = new() { Type = type, AssigneeId = assigneeId };
         _modalError = null;
         _showTicket = true;
     }
 
     private void ShowCreateTicketForSprint(Guid? sprintId)
     {
-        _ticketForm = new() { SprintId = sprintId };
+        var type = _project?.DefaultTicketType ?? TicketType.Story;
+        var assigneeId = _project?.DefaultAssigneePolicy == DefaultAssigneePolicy.Creator ? _currentUserId : null;
+        _ticketForm = new() { SprintId = sprintId, Type = type, AssigneeId = assigneeId };
         _modalError = null;
         _showTicket = true;
     }
@@ -733,7 +821,7 @@ else if (_project is not null)
                 _ticketForm.DueDate,
                 _ticketForm.SprintId,
                 null,
-                null));
+                _ticketForm.AssigneeId));
             _showTicket = false;
             await LoadAsync();
         }
@@ -860,6 +948,21 @@ else if (_project is not null)
         _modalError = null;
         _settingsEditMode = true;
         _tab = "settings";
+    }
+
+    private async Task SaveDefaultsAsync()
+    {
+        _defaultsBusy = true;
+        _defaultsSaved = false;
+        try
+        {
+            var updated = await Projects.UpdateDefaultsAsync(Id, new UpdateProjectDefaultsRequest(
+                _defaultsForm.DefaultTicketType, _defaultsForm.DefaultAssigneePolicy));
+            if (updated is not null) _project = updated;
+            _defaultsSaved = true;
+        }
+        catch { _modalError = L["Error.Update"]; }
+        finally { _defaultsBusy = false; }
     }
 
     private async Task UpdateProjectAsync()

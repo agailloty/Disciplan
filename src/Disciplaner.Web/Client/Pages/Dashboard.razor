@@ -53,6 +53,16 @@ else if (_boards is not null)
                         {
                             <p class="text-gray-500 text-sm mt-1 line-clamp-2">@b.Description</p>
                         }
+                        @if (b.Labels.Count > 0)
+                        {
+                            <div class="flex flex-wrap gap-1 px-4 mt-2">
+                                @foreach (var lbl in b.Labels)
+                                {
+                                    <a href="/labels/@lbl.Id" @onclick:stopPropagation
+                                       class="label-badge" style="background:@lbl.Color; color:@LabelTextColor(lbl.Color)">@lbl.Name</a>
+                                }
+                            </div>
+                        }
                     </div>
                     <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100">
                         <span class="text-xs text-gray-400">
@@ -131,6 +141,20 @@ else if (_boards is not null)
 
     private void ShowCreateModal() { _editTarget = null; _form = new(); _formError = null; _showForm = true; }
     private void ShowEditModal(BoardSummaryDto b) { _editTarget = b; _form = new() { Name = b.Name, Description = b.Description }; _formError = null; _showForm = true; }
+
+    private static string LabelTextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
     private void ShowDeleteConfirm(BoardSummaryDto b) { _deleteTarget = b; _showDelete = true; }
     private void CloseForm() { _showForm = false; _formError = null; }
     private void NavigateToBoard(Guid id) => Nav.NavigateTo($"/boards/{id}");

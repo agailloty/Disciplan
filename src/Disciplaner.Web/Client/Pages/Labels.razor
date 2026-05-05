@@ -1,0 +1,204 @@
+@page "/labels"
+@attribute [Authorize]
+@inject LabelApiClient LabelApi
+@inject IStringLocalizer<AppResources> L
+@inject NavigationManager Nav
+
+<PageTitle>@L["Label.Title"] — Disciplaner</PageTitle>
+
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="page-title">@L["Label.Title"]</h1>
+        @if (_labels is not null && _labels.Count > 0)
+        {
+            <p class="text-sm text-gray-400 mt-0.5">@string.Format(L["Label.Count"].Value, _labels.Count)</p>
+        }
+    </div>
+    <button class="btn btn-primary" @onclick="ShowCreate">
+        <i class="bi bi-plus"></i> @L["Label.CreateTitle"]
+    </button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_labels is not null)
+{
+    @if (_labels.Count == 0)
+    {
+        <div class="text-center py-20 text-gray-400">
+            <i class="bi bi-tags" style="font-size:2.5rem"></i>
+            <p class="mt-3 text-sm">@L["Label.Empty"]</p>
+            <button class="btn btn-primary mt-4" @onclick="ShowCreate">@L["Label.CreateFirst"]</button>
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col gap-2">
+            @foreach (var label in _labels)
+            {
+                var l = label;
+                var labelUrl = $"/labels/{l.Id}";
+                <div class="surface flex items-center gap-3 px-4 py-3">
+                    <span class="w-4 h-4 rounded-full shrink-0" style="background:@l.Color"></span>
+                    <button class="flex-1 text-left font-medium text-gray-900 hover:text-indigo-600 transition-colors text-sm"
+                            @onclick="() => Nav.NavigateTo(labelUrl)">
+                        @l.Name
+                    </button>
+                    <span class="text-xs text-gray-400">@l.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                    <button class="btn-icon" title="Modifier" @onclick="() => ShowEdit(l)"><i class="bi bi-pencil text-xs"></i></button>
+                    <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => ShowDelete(l)"><i class="bi bi-trash text-xs"></i></button>
+                </div>
+            }
+        </div>
+    }
+}
+
+@* Create / Edit modal *@
+@if (_showForm)
+{
+    <Modal Title="@(_editTarget is null ? L["Label.CreateTitle"].Value : L["Label.EditTitle"].Value)" Visible="_showForm" OnClose="CloseForm">
+        <EditForm Model="_form" OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label class="form-label">@L["Label.Name"]</label>
+                <InputText class="form-input" @bind-Value="_form.Name" />
+                <ValidationMessage For="() => _form.Name" />
+            </div>
+            <div class="mb-4">
+                <label class="form-label">@L["Label.Color"]</label>
+                <div class="flex items-center gap-3">
+                    <input type="color" class="w-10 h-10 cursor-pointer rounded border border-gray-200"
+                           @bind="_form.Color" />
+                    <InputText class="form-input font-mono" @bind-Value="_form.Color" />
+                </div>
+            </div>
+            @* Preview *@
+            <div class="mb-4">
+                <span class="label-badge" style="background:@_form.Color; color:@TextColor(_form.Color)">@(_form.Name.Length > 0 ? _form.Name : L["Label.Preview"].Value)</span>
+            </div>
+            @if (_formError is not null) { <ErrorAlert Message="@_formError" /> }
+            <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 mt-2">
+                <button type="button" class="btn btn-outline" @onclick="CloseForm">@L["Cancel"]</button>
+                <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
+            </div>
+        </EditForm>
+    </Modal>
+}
+
+@* Confirm delete *@
+<ConfirmModal Title="@L["Label.Delete.Title"].Value"
+              Message="@string.Format(L["Label.Delete.Confirm"].Value, _deleteTarget?.Name)"
+              Visible="_showDelete"
+              OnConfirm="DeleteAsync"
+              OnCancel="() => _showDelete = false" />
+
+@code {
+    private List<LabelDto>? _labels;
+    private bool _loading = true;
+    private bool _busy;
+    private string? _error;
+    private string? _formError;
+    private bool _showForm;
+    private bool _showDelete;
+    private LabelDto? _editTarget;
+    private LabelDto? _deleteTarget;
+    private LabelFormModel _form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _labels = await LabelApi.GetLabelsAsync() ?? []; }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private void ShowCreate()
+    {
+        _editTarget = null;
+        _form = new();
+        _formError = null;
+        _showForm = true;
+    }
+
+    private void ShowEdit(LabelDto l)
+    {
+        _editTarget = l;
+        _form = new() { Name = l.Name, Color = l.Color };
+        _formError = null;
+        _showForm = true;
+    }
+
+    private void ShowDelete(LabelDto l)
+    {
+        _deleteTarget = l;
+        _showDelete = true;
+    }
+
+    private void CloseForm() => _showForm = false;
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _formError = null;
+        try
+        {
+            if (_editTarget is null)
+            {
+                var created = await LabelApi.CreateLabelAsync(new(_form.Name, _form.Color));
+                if (created is not null) _labels!.Add(created);
+            }
+            else
+            {
+                var updated = await LabelApi.UpdateLabelAsync(_editTarget.Id, new(_form.Name, _form.Color));
+                if (updated is not null)
+                {
+                    var idx = _labels!.FindIndex(l => l.Id == _editTarget.Id);
+                    if (idx >= 0) _labels[idx] = updated;
+                }
+            }
+            _showForm = false;
+        }
+        catch (Exception ex) { _formError = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_deleteTarget is null) return;
+        _showDelete = false;
+        try
+        {
+            await LabelApi.DeleteLabelAsync(_deleteTarget.Id);
+            _labels!.RemoveAll(l => l.Id == _deleteTarget.Id);
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private static string TextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
+
+    private sealed class LabelFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string Name { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Color { get; set; } = "#6366f1";
+    }
+}

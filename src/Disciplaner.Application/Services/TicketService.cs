@@ -1,3 +1,4 @@
+using Disciplaner.Application.DTOs.Label;
 using Disciplaner.Application.DTOs.Ticket;
 using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.Exceptions;
@@ -241,6 +242,7 @@ public sealed class TicketService : ITicketService
         t.AssigneeId,
         assigneeName,
         t.CreatedAt,
-        t.UpdatedAt
+        t.UpdatedAt,
+        t.Labels.Select(l => new LabelDto(l.Id, l.Name, l.Color, l.CreatedAt)).ToList().AsReadOnly()
     );
 }

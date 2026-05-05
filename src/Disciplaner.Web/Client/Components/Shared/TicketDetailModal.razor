@@ -1,13 +1,22 @@
 @inject TicketApiClient TicketApi
 @inject CommentApiClient CommentApi
 @inject UserApiClient UserApi
+@inject LabelApiClient LabelApi
 @inject IStringLocalizer<AppResources> L
 @using Disciplaner.Application.DTOs.User
 
 @if (Visible && Ticket is not null)
 {
     <Modal Title="" Visible="true" OnClose="CloseAsync" SizeClass="modal-lg">
-
+        <ExtraHeaderContent>
+            @if (!_editing)
+            {
+                <button type="button" class="modal-close-btn" title="@L["Edit"]" @onclick="EnterEdit">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            }
+        </ExtraHeaderContent>
+        <ChildContent>
         @if (!_editing)
         {
             @* ── Ticket header ── *@
@@ -203,6 +212,16 @@
 
                     <div class="border-t border-gray-100 my-3"></div>
 
+                    @* Labels *@
+                    <div class="tdm-prop">
+                        <span class="tdm-sidebar-label">@L["Label.Field"]</span>
+                        <LabelPicker SelectedLabels="_labels" Editable="true"
+                                     OnAttach="async l => { await LabelApi.AttachToTicketAsync(l.Id, Ticket!.Id); }"
+                                     OnDetach="async l => { await LabelApi.DetachFromTicketAsync(l.Id, Ticket!.Id); }" />
+                    </div>
+
+                    <div class="border-t border-gray-100 my-3"></div>
+
                     @* Reporter + timestamps *@
                     <div class="tdm-meta-row">
                         <i class="bi bi-person tdm-meta-icon"></i>
@@ -242,12 +261,6 @@
                             <i class="bi bi-lightning mr-1"></i>@L["Sprint.AddTicket"]
                         </button>
                     }
-                    <button class="btn btn-danger btn-sm" @onclick="OnDeleteAsync" disabled="@_busy">
-                        <i class="bi bi-trash mr-1"></i>@L["Delete"]
-                    </button>
-                    <button class="btn btn-primary btn-sm" @onclick="EnterEdit">
-                        <i class="bi bi-pencil mr-1"></i>@L["Edit"]
-                    </button>
                 </div>
             </div>
         }
@@ -316,6 +329,7 @@
             </EditForm>
         }
 
+        </ChildContent>
     </Modal>
 }
 
@@ -341,12 +355,14 @@
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
     private Guid? _lastLoadedTicketId;
+    private List<LabelDto> _labels = [];
 
     protected override async Task OnParametersSetAsync()
     {
         if (Visible && Ticket is not null && Ticket.Id != _lastLoadedTicketId)
         {
             _lastLoadedTicketId = Ticket.Id;
+            _labels = Ticket.Labels.ToList();
             _commentsLoading = true;
             try { _comments = await CommentApi.GetByTicketAsync(Ticket.Id); }
             catch { _comments = []; }

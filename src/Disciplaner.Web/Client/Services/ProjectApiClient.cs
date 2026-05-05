@@ -27,6 +27,13 @@ public sealed class ProjectApiClient
     public async Task UpdateProjectAsync(Guid id, UpdateProjectRequest request)
         => (await _http.PutAsJsonAsync($"/api/projects/{id}", request)).EnsureSuccessStatusCode();
 
+    public async Task<ProjectDetailDto?> UpdateDefaultsAsync(Guid id, UpdateProjectDefaultsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"/api/projects/{id}/defaults", request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<ProjectDetailDto>();
+    }
+
     public async Task DeleteProjectAsync(Guid id)
         => (await _http.DeleteAsync($"/api/projects/{id}")).EnsureSuccessStatusCode();
 

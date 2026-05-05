@@ -19,6 +19,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<ISprintRepository, SprintRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<ILabelRepository, LabelRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services
@@ -30,6 +31,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ISprintService, SprintService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<IActivityService, ActivityService>();
+        services.AddScoped<ILabelService, LabelService>();
 
         return services;
     }

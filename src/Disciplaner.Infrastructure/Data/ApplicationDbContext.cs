@@ -18,6 +18,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Sprint> Sprints => Set<Sprint>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketStatus> TicketStatuses => Set<TicketStatus>();
+    public DbSet<Label> Labels => Set<Label>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

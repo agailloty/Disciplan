@@ -9,8 +9,9 @@
              @onkeydown="OnKeyDown" tabindex="-1">
             @if (string.IsNullOrEmpty(Title))
             {
-                @* Compact header — just a close button *@
+                @* Compact header — close button + optional extra actions *@
                 <div class="modal-close-only">
+                    @ExtraHeaderContent
                     <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="Fermer">
                         <i class="bi bi-x-lg"></i>
                     </button>
@@ -37,6 +38,7 @@
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment? ExtraHeaderContent { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     /// <summary>"modal-lg" | "modal-sm" | "" (default)</summary>

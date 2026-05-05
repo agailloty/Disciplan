@@ -1,5 +1,6 @@
 using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.DTOs.Sprint;
+using Disciplaner.Domain.Enums;
 
 namespace Disciplaner.Application.DTOs.Project;
 
@@ -12,5 +13,7 @@ public sealed record ProjectDetailDto(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<TicketStatusDto> Statuses,
-    IReadOnlyList<SprintDto> Sprints
+    IReadOnlyList<SprintDto> Sprints,
+    TicketType DefaultTicketType,
+    DefaultAssigneePolicy DefaultAssigneePolicy
 );

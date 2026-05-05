@@ -90,6 +90,21 @@ public sealed class ProjectService : IProjectService
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<ProjectDetailDto> UpdateDefaultsAsync(
+        Guid projectId, string requestingUserId, UpdateProjectDefaultsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Project), projectId);
+        EnsureOwner(project, requestingUserId);
+
+        project.UpdateDefaults(request.DefaultTicketType, request.DefaultAssigneePolicy);
+        await _uow.Projects.UpdateAsync(project, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return project.ToDetailDto([]);
+    }
+
     public async Task<TicketStatusDto> AddStatusAsync(
         Guid projectId, string requestingUserId, CreateTicketStatusRequest request,
         CancellationToken cancellationToken = default)
@@ -99,9 +114,10 @@ public sealed class ProjectService : IProjectService
         EnsureOwner(project, requestingUserId);
 
         var status = project.AddStatus(request.Name, request.Category, request.Color);
-        // Do NOT call UpdateAsync here — the project and its new child are already
-        // tracked by EF (loaded via GetByIdWithDetailsAsync). Calling Update() would
-        // reset the new TicketStatus state from Added → Modified, causing a failed UPDATE.
+        // Explicitly mark the new TicketStatus as Added so EF generates INSERT.
+        // Without this, EF sees a non-default Guid key with ValueGeneratedOnAdd
+        // and generates UPDATE instead of INSERT, causing DbUpdateConcurrencyException.
+        await _uow.Projects.AddTicketStatusAsync(status, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return status.ToDto();
