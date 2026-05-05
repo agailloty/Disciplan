@@ -8,7 +8,15 @@
 @if (Visible && Ticket is not null)
 {
     <Modal Title="" Visible="true" OnClose="CloseAsync" SizeClass="modal-lg">
-
+        <ExtraHeaderContent>
+            @if (!_editing)
+            {
+                <button type="button" class="modal-close-btn" title="@L["Edit"]" @onclick="EnterEdit">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            }
+        </ExtraHeaderContent>
+        <ChildContent>
         @if (!_editing)
         {
             @* ── Ticket header ── *@
@@ -253,12 +261,6 @@
                             <i class="bi bi-lightning mr-1"></i>@L["Sprint.AddTicket"]
                         </button>
                     }
-                    <button class="btn btn-danger btn-sm" @onclick="OnDeleteAsync" disabled="@_busy">
-                        <i class="bi bi-trash mr-1"></i>@L["Delete"]
-                    </button>
-                    <button class="btn btn-primary btn-sm" @onclick="EnterEdit">
-                        <i class="bi bi-pencil mr-1"></i>@L["Edit"]
-                    </button>
                 </div>
             </div>
         }
@@ -327,6 +329,7 @@
             </EditForm>
         }
 
+        </ChildContent>
     </Modal>
 }
 

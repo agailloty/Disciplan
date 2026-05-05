@@ -6,7 +6,7 @@
     @foreach (var label in SelectedLabels)
     {
         <span class="label-badge" style="background:@label.Color;color:@TextColor(label.Color)" title="@label.Name">
-            @label.Name
+            <a href="/labels/@label.Id" style="color:inherit;text-decoration:none">@label.Name</a>
             @if (Editable)
             {
                 <button type="button" class="label-badge-remove" @onclick="() => RemoveLabelAsync(label)" aria-label="Retirer">&#x2715;</button>
