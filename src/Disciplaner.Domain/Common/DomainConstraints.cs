@@ -54,4 +54,10 @@ public static class DomainConstraints
         public const int NameMaxLength = 100;
         public const int GoalMaxLength = 500;
     }
+
+    public static class Label
+    {
+        public const int NameMaxLength = 50;
+        public const int ColorMaxLength = 20;
+    }
 }

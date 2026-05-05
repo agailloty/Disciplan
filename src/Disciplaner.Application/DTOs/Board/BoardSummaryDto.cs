@@ -1,3 +1,5 @@
+using Disciplaner.Application.DTOs.Label;
+
 namespace Disciplaner.Application.DTOs.Board;
 
 public sealed record BoardSummaryDto(
@@ -5,5 +7,6 @@ public sealed record BoardSummaryDto(
     string Name,
     string? Description,
     int ColumnCount,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    IReadOnlyList<LabelDto> Labels
 );

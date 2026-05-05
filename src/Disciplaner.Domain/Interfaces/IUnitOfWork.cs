@@ -10,6 +10,7 @@ public interface IUnitOfWork
     IProjectRepository Projects { get; }
     ISprintRepository Sprints { get; }
     ITicketRepository Tickets { get; }
+    ILabelRepository Labels { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

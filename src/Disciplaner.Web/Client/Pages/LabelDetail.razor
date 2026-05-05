@@ -1,0 +1,111 @@
+@page "/labels/{Id:guid}"
+@attribute [Authorize]
+@inject LabelApiClient LabelApi
+@inject NavigationManager Nav
+
+<PageTitle>@(_data?.Label.Name ?? "Étiquette") — Disciplaner</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else if (_data is not null)
+{
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="flex items-center gap-1 text-sm text-gray-500">
+            <li><a href="/labels" class="hover:text-gray-700">Étiquettes</a></li>
+            <li class="text-gray-300">/</li>
+            <li class="text-gray-800">@_data.Label.Name</li>
+        </ol>
+    </nav>
+
+    <div class="flex items-center gap-3 mb-6">
+        <span class="label-badge text-base px-3 py-1" style="background:@_data.Label.Color; color:@TextColor(_data.Label.Color)">
+            @_data.Label.Name
+        </span>
+        <span class="text-gray-400 text-sm">
+            @_data.Tickets.Count ticket(s) · @_data.Boards.Count board(s)
+        </span>
+    </div>
+
+    @if (_data.Tickets.Count > 0)
+    {
+        <h2 class="text-base font-semibold text-gray-800 mb-3">Tickets</h2>
+        <div class="surface mb-6">
+            @foreach (var t in _data.Tickets)
+            {
+                <a href="/tickets/@t.TicketRef"
+                   class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors text-sm text-gray-800">
+                    <span class="font-mono text-xs text-gray-400 shrink-0">@t.TicketRef</span>
+                    <span class="flex-1 font-medium">@t.Title</span>
+                    <span class="badge badge-gray shrink-0">@t.Type</span>
+                    <span class="shrink-0">
+                        <span class="inline-flex items-center gap-1 text-xs">
+                            <span class="w-2 h-2 rounded-full inline-block" style="background:@t.StatusColor"></span>
+                            @t.StatusName
+                        </span>
+                    </span>
+                </a>
+            }
+        </div>
+    }
+
+    @if (_data.Boards.Count > 0)
+    {
+        <h2 class="text-base font-semibold text-gray-800 mb-3">Boards</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            @foreach (var b in _data.Boards)
+            {
+                <a href="/boards/@b.Id" class="surface surface-hover p-4 block">
+                    <h3 class="font-semibold text-gray-900 text-sm">@b.Name</h3>
+                    @if (b.Description is not null)
+                    {
+                        <p class="text-gray-500 text-xs mt-1 line-clamp-2">@b.Description</p>
+                    }
+                    <p class="text-xs text-gray-400 mt-2">@b.ColumnCount colonnes</p>
+                </a>
+            }
+        </div>
+    }
+
+    @if (_data.Tickets.Count == 0 && _data.Boards.Count == 0)
+    {
+        <div class="text-center py-16 text-gray-400">
+            <i class="bi bi-tags" style="font-size:2rem"></i>
+            <p class="mt-2 text-sm">Aucun ticket ni board avec cette étiquette pour le moment.</p>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private LabelItemsDto? _data;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _data = await LabelApi.GetItemsAsync(Id); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private static string TextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
+}

@@ -1,4 +1,5 @@
 using Disciplaner.Application.DTOs.Column;
+using Disciplaner.Application.DTOs.Label;
 
 namespace Disciplaner.Application.DTOs.Board;
 
@@ -9,5 +10,6 @@ public sealed record BoardDetailDto(
     string OwnerId,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    IReadOnlyList<ColumnDto> Columns
+    IReadOnlyList<ColumnDto> Columns,
+    IReadOnlyList<LabelDto> Labels
 );

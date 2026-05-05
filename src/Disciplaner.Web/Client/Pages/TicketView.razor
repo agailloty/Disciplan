@@ -6,6 +6,7 @@
 @inject CommentApiClient CommentApi
 @inject UserApiClient UserApi
 @inject SprintApiClient SprintApi
+@inject LabelApiClient LabelApi
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 @using Disciplaner.Application.DTOs.User
@@ -306,6 +307,16 @@ else if (_ticket is not null)
 
                 <div class="border-t border-gray-100 my-3"></div>
 
+                @* Labels *@
+                <div class="tdm-prop">
+                    <span class="tdm-sidebar-label">Étiquettes</span>
+                    <LabelPicker SelectedLabels="_labels" Editable="true"
+                                 OnAttach="async l => { await LabelApi.AttachToTicketAsync(l.Id, _ticket!.Id); }"
+                                 OnDetach="async l => { await LabelApi.DetachFromTicketAsync(l.Id, _ticket!.Id); }" />
+                </div>
+
+                <div class="border-t border-gray-100 my-3"></div>
+
                 @* Reporter + timestamps (always visible) *@
                 <div class="tdm-meta-row">
                     <i class="bi bi-person tdm-meta-icon"></i>
@@ -354,6 +365,7 @@ else if (_ticket is not null)
     [Parameter] public string? Ref { get; set; }
 
     private TicketDto? _ticket;
+    private List<LabelDto> _labels = [];
     private readonly List<TicketStatusDto> _statuses = [];
     private List<UserSummaryDto> _users = [];
     private List<SprintDto> _sprints = [];
@@ -412,6 +424,7 @@ else if (_ticket is not null)
 
             if (_ticket is not null)
             {
+                _labels = _ticket.Labels.ToList();
                 var project = await ProjectApi.GetProjectAsync(_ticket.ProjectId);
                 _statuses.Clear();
                 if (project is not null)

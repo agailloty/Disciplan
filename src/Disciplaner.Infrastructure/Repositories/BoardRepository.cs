@@ -16,6 +16,7 @@ internal sealed class BoardRepository : IBoardRepository
 
     public async Task<Board?> GetByIdWithColumnsAsync(Guid id, CancellationToken cancellationToken = default)
         => await _context.Boards
+            .Include(b => b.Labels)
             .Include(b => b.Columns.OrderBy(c => c.Order))
                 .ThenInclude(c => c.Cards.OrderBy(card => card.Order))
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
@@ -23,6 +24,7 @@ internal sealed class BoardRepository : IBoardRepository
     public async Task<IReadOnlyList<Board>> GetByOwnerIdAsync(string ownerId, CancellationToken cancellationToken = default)
         => await _context.Boards
             .Include(b => b.Columns)
+            .Include(b => b.Labels)
             .Where(b => b.OwnerId == ownerId)
             .OrderBy(b => b.CreatedAt)
             .ToListAsync(cancellationToken);

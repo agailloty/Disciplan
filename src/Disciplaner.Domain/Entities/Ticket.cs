@@ -108,4 +108,8 @@ public class Ticket
     }
 
     private void Touch() => UpdatedAt = DateTime.UtcNow;
+
+    // ── Labels (M-N) ─────────────────────────────────────────────────────────
+    private readonly List<Label> _labels = [];
+    public IReadOnlyCollection<Label> Labels => _labels.AsReadOnly();
 }

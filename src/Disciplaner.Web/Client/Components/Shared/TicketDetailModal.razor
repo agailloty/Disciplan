@@ -1,6 +1,7 @@
 @inject TicketApiClient TicketApi
 @inject CommentApiClient CommentApi
 @inject UserApiClient UserApi
+@inject LabelApiClient LabelApi
 @inject IStringLocalizer<AppResources> L
 @using Disciplaner.Application.DTOs.User
 
@@ -203,6 +204,16 @@
 
                     <div class="border-t border-gray-100 my-3"></div>
 
+                    @* Labels *@
+                    <div class="tdm-prop">
+                        <span class="tdm-sidebar-label">Étiquettes</span>
+                        <LabelPicker SelectedLabels="_labels" Editable="true"
+                                     OnAttach="async l => { await LabelApi.AttachToTicketAsync(l.Id, Ticket!.Id); }"
+                                     OnDetach="async l => { await LabelApi.DetachFromTicketAsync(l.Id, Ticket!.Id); }" />
+                    </div>
+
+                    <div class="border-t border-gray-100 my-3"></div>
+
                     @* Reporter + timestamps *@
                     <div class="tdm-meta-row">
                         <i class="bi bi-person tdm-meta-icon"></i>
@@ -341,12 +352,14 @@
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
     private Guid? _lastLoadedTicketId;
+    private List<LabelDto> _labels = [];
 
     protected override async Task OnParametersSetAsync()
     {
         if (Visible && Ticket is not null && Ticket.Id != _lastLoadedTicketId)
         {
             _lastLoadedTicketId = Ticket.Id;
+            _labels = Ticket.Labels.ToList();
             _commentsLoading = true;
             try { _comments = await CommentApi.GetByTicketAsync(Ticket.Id); }
             catch { _comments = []; }

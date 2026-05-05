@@ -1,0 +1,131 @@
+@using Disciplaner.Application.DTOs.Label
+@inject LabelApiClient LabelApi
+
+@* ── Badges des étiquettes affichées ── *@
+<div class="flex flex-wrap gap-1.5 items-center">
+    @foreach (var label in SelectedLabels)
+    {
+        <span class="label-badge" style="background:@label.Color;color:@TextColor(label.Color)" title="@label.Name">
+            @label.Name
+            @if (Editable)
+            {
+                <button type="button" class="label-badge-remove" @onclick="() => RemoveLabelAsync(label)" aria-label="Retirer">&#x2715;</button>
+            }
+        </span>
+    }
+
+    @if (Editable)
+    {
+        <div class="relative" @ref="_anchor">
+            <button type="button"
+                    class="label-add-btn"
+                    @onclick="TogglePickerAsync">
+                <i class="bi bi-tag mr-1"></i>Étiquettes
+            </button>
+
+            @if (_open)
+            {
+                <div class="label-picker-dropdown">
+                    @* Search *@
+                    <input class="label-picker-search"
+                           type="text"
+                           placeholder="Filtrer…"
+                           @bind="_search"
+                           @bind:event="oninput" />
+
+                    @if (_allLabels is null)
+                    {
+                        <p class="px-3 py-2 text-xs text-gray-400">Chargement…</p>
+                    }
+                    else
+                    {
+                        var filtered = string.IsNullOrWhiteSpace(_search)
+                            ? _allLabels
+                            : _allLabels.Where(l => l.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                        @if (filtered.Count == 0)
+                        {
+                            <p class="px-3 py-2 text-xs text-gray-400">Aucune étiquette trouvée.</p>
+                        }
+
+                        @foreach (var label in filtered)
+                        {
+                            var l = label;
+                            bool active = SelectedLabels.Any(s => s.Id == l.Id);
+                            <button type="button"
+                                    class="label-picker-row @(active ? "label-picker-row-active" : "")"
+                                    @onclick="() => ToggleLabelAsync(l)">
+                                <span class="w-3 h-3 rounded-full shrink-0" style="background:@l.Color"></span>
+                                <span class="flex-1 text-left text-sm">@l.Name</span>
+                                @if (active)
+                                {
+                                    <i class="bi bi-check2 text-xs text-green-600"></i>
+                                }
+                            </button>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<LabelDto> SelectedLabels { get; set; } = [];
+    [Parameter] public bool Editable { get; set; } = true;
+
+    /// <summary>Called when the label is toggled on (attach).</summary>
+    [Parameter] public EventCallback<LabelDto> OnAttach { get; set; }
+
+    /// <summary>Called when the label is toggled off (detach).</summary>
+    [Parameter] public EventCallback<LabelDto> OnDetach { get; set; }
+
+    private bool _open;
+    private string _search = string.Empty;
+    private List<LabelDto>? _allLabels;
+    private ElementReference _anchor;
+
+    private async Task TogglePickerAsync()
+    {
+        _open = !_open;
+        if (_open && _allLabels is null)
+            _allLabels = await LabelApi.GetLabelsAsync() ?? [];
+    }
+
+    private async Task ToggleLabelAsync(LabelDto label)
+    {
+        if (SelectedLabels.Any(s => s.Id == label.Id))
+        {
+            SelectedLabels.RemoveAll(s => s.Id == label.Id);
+            await OnDetach.InvokeAsync(label);
+        }
+        else
+        {
+            SelectedLabels.Add(label);
+            await OnAttach.InvokeAsync(label);
+        }
+    }
+
+    private async Task RemoveLabelAsync(LabelDto label)
+    {
+        SelectedLabels.RemoveAll(s => s.Id == label.Id);
+        await OnDetach.InvokeAsync(label);
+    }
+
+    /// <summary>Compute readable text color (black or white) based on background luminance.</summary>
+    private static string TextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3)
+                hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return luminance > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
+}

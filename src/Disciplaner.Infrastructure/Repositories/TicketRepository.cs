@@ -67,5 +67,6 @@ internal sealed class TicketRepository : ITicketRepository
             .Include(t => t.Project)
             .Include(t => t.Status)
             .Include(t => t.Sprint)
-            .Include(t => t.ParentTicket);
+            .Include(t => t.ParentTicket)
+            .Include(t => t.Labels);
 }
