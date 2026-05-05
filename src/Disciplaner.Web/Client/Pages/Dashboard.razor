@@ -7,7 +7,13 @@
 <PageTitle>@L["Nav.Boards"]</PageTitle>
 
 <div class="flex items-center justify-between mb-6">
-    <h1 class="page-title">@L["Nav.Boards"]</h1>
+    <div>
+        <h1 class="page-title">@L["Nav.Boards"]</h1>
+        @if (_boards is not null && _boards.Count > 0)
+        {
+            <p class="text-sm text-gray-400 mt-0.5">@_boards.Count @(_boards.Count > 1 ? "boards" : "board")</p>
+        }
+    </div>
     <button class="btn btn-primary" @onclick="ShowCreateModal">
         <i class="bi bi-plus"></i> @L["Board.CreateTitle"]
     </button>
