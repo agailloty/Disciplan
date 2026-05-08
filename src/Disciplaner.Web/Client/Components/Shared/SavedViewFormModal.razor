@@ -90,6 +90,10 @@
                 <input type="checkbox" id="sv-reportedme" @bind="_form.OnlyReportedByMe" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
                 <label for="sv-reportedme" class="form-label mb-0">@L["SavedView.OnlyReportedByMe"]</label>
             </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="sv-collapsed" @bind="_form.IsCollapsedByDefault" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <label for="sv-collapsed" class="form-label mb-0">@L["SavedView.CollapsedByDefault"]</label>
+            </div>
         </div>
 
         @if (_error is not null)
@@ -139,7 +143,8 @@
                 Priority = View.Priority,
                 StatusCategories = View.StatusCategories.ToHashSet(),
                 OnlyAssignedToMe = View.OnlyAssignedToMe,
-                OnlyReportedByMe = View.OnlyReportedByMe
+                OnlyReportedByMe = View.OnlyReportedByMe,
+                IsCollapsedByDefault = View.IsCollapsedByDefault
             };
         }
         else
@@ -173,6 +178,7 @@
             _form.StatusCategories.ToList().AsReadOnly(),
             _form.OnlyAssignedToMe,
             _form.OnlyReportedByMe,
+            _form.IsCollapsedByDefault,
             View?.CreatedAt ?? DateTime.UtcNow,
             View?.UpdatedAt));
         _saving = false;
@@ -190,5 +196,6 @@
         public HashSet<StatusCategory> StatusCategories { get; set; } = [];
         public bool OnlyAssignedToMe { get; set; }
         public bool OnlyReportedByMe { get; set; }
+        public bool IsCollapsedByDefault { get; set; }
     }
 }

@@ -209,6 +209,7 @@
   <data name="SavedView.AllCategories" xml:space="preserve"><value>All categories</value></data>
   <data name="SavedView.OnlyAssignedToMe" xml:space="preserve"><value>Only assigned to me</value></data>
   <data name="SavedView.OnlyReportedByMe" xml:space="preserve"><value>Only reported by me</value></data>
+  <data name="SavedView.CollapsedByDefault" xml:space="preserve"><value>Collapsed by default on dashboard</value></data>
   <data name="SavedView.NameRequired" xml:space="preserve"><value>Name is required.</value></data>
 
   <!-- ── Table columns ────────────────────────────────────────────────────── -->

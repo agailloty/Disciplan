@@ -16,6 +16,7 @@ public sealed record SavedViewDto(
     IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
     bool OnlyReportedByMe,
+    bool IsCollapsedByDefault,
     DateTime CreatedAt,
     DateTime? UpdatedAt
 );
@@ -32,7 +33,8 @@ public sealed record CreateSavedViewRequest(
     CardPriority? Priority,
     IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
-    bool OnlyReportedByMe
+    bool OnlyReportedByMe,
+    bool IsCollapsedByDefault
 );
 
 public sealed record UpdateSavedViewRequest(
@@ -47,5 +49,6 @@ public sealed record UpdateSavedViewRequest(
     CardPriority? Priority,
     IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
-    bool OnlyReportedByMe
+    bool OnlyReportedByMe,
+    bool IsCollapsedByDefault
 );

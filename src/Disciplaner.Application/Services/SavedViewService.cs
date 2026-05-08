@@ -38,7 +38,8 @@ public sealed class SavedViewService : ISavedViewService
             request.Priority,
             request.StatusCategories,
             request.OnlyAssignedToMe,
-            request.OnlyReportedByMe);
+            request.OnlyReportedByMe,
+            request.IsCollapsedByDefault);
 
         await _uow.SavedViews.AddAsync(view, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -65,7 +66,8 @@ public sealed class SavedViewService : ISavedViewService
             request.Priority,
             request.StatusCategories,
             request.OnlyAssignedToMe,
-            request.OnlyReportedByMe);
+            request.OnlyReportedByMe,
+            request.IsCollapsedByDefault);
 
         await _uow.SavedViews.UpdateAsync(view, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -181,6 +183,7 @@ public sealed class SavedViewService : ISavedViewService
         v.StatusCategories.AsReadOnly(),
         v.OnlyAssignedToMe,
         v.OnlyReportedByMe,
+        v.IsCollapsedByDefault,
         v.CreatedAt,
         v.UpdatedAt);
 }

@@ -207,6 +207,7 @@
   <data name="SavedView.AllCategories" xml:space="preserve"><value>Toutes les catégories</value></data>
   <data name="SavedView.OnlyAssignedToMe" xml:space="preserve"><value>Uniquement assignés à moi</value></data>
   <data name="SavedView.OnlyReportedByMe" xml:space="preserve"><value>Uniquement créés par moi</value></data>
+  <data name="SavedView.CollapsedByDefault" xml:space="preserve"><value>Réduit par défaut sur le tableau de bord</value></data>
   <data name="SavedView.NameRequired" xml:space="preserve"><value>Le nom est requis.</value></data>
 
   <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->

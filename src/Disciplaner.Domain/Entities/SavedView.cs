@@ -23,6 +23,7 @@ public class SavedView
     public List<StatusCategory> StatusCategories { get; private set; } = [];
     public bool OnlyAssignedToMe { get; private set; }
     public bool OnlyReportedByMe { get; private set; }
+    public bool IsCollapsedByDefault { get; private set; }
 
     protected SavedView() { }
 
@@ -45,7 +46,8 @@ public class SavedView
         CardPriority? priority,
         IReadOnlyList<StatusCategory> statusCategories,
         bool onlyAssignedToMe,
-        bool onlyReportedByMe)
+        bool onlyReportedByMe,
+        bool isCollapsedByDefault)
     {
         SetName(name);
         Description = description;
@@ -59,6 +61,7 @@ public class SavedView
         StatusCategories = [.. statusCategories];
         OnlyAssignedToMe = onlyAssignedToMe;
         OnlyReportedByMe = onlyReportedByMe;
+        IsCollapsedByDefault = isCollapsedByDefault;
         UpdatedAt = DateTime.UtcNow;
     }
 

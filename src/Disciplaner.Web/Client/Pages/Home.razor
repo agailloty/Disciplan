@@ -276,6 +276,17 @@ else
         _expanded.Add("my_tickets");
         _expanded.Add("recent_activity");
 
+        // Expand saved views that are not collapsed by default, and pre-load their tickets
+        var preLoadTasks = new List<Task>();
+        foreach (var w in _widgets.Where(w => w.Kind == "saved_view" && w.ViewId.HasValue))
+        {
+            if (_savedViewsById.TryGetValue(w.ViewId!.Value, out var view) && !view.IsCollapsedByDefault)
+            {
+                _expanded.Add(DashboardConfigService.WidgetKey(w));
+                preLoadTasks.Add(LoadViewTicketsAsync(w.ViewId.Value));
+            }
+        }
+
         _dashboardLoading = false;
         StateHasChanged();
     }
@@ -325,7 +336,11 @@ else
             _viewTickets[viewId] = tickets ?? [];
         }
         catch { _viewTickets[viewId] = []; }
-        finally { _viewLoading.Remove(viewId); }
+        finally
+        {
+            _viewLoading.Remove(viewId);
+            StateHasChanged();
+        }
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

@@ -299,7 +299,7 @@
                     dto.Name, dto.Description, true, 0,
                     dto.ProjectId, dto.StatusId, dto.SprintId,
                     dto.Type, dto.Priority, dto.StatusCategories,
-                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe, dto.IsCollapsedByDefault));
                 if (created is not null)
                 {
                     _savedViewsById[created.Id] = created;
@@ -315,7 +315,7 @@
                     dto.Name, dto.Description, _editingView.IsVisibleOnHome, _editingView.DisplayOrder,
                     dto.ProjectId, dto.StatusId, dto.SprintId,
                     dto.Type, dto.Priority, dto.StatusCategories,
-                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe, dto.IsCollapsedByDefault));
                 if (updated is not null)
                     _savedViewsById[updated.Id] = updated;
             }
