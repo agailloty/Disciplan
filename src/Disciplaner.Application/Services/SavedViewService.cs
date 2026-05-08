@@ -36,7 +36,7 @@ public sealed class SavedViewService : ISavedViewService
             request.SprintId,
             request.Type,
             request.Priority,
-            request.StatusCategory,
+            request.StatusCategories,
             request.OnlyAssignedToMe,
             request.OnlyReportedByMe);
 
@@ -63,7 +63,7 @@ public sealed class SavedViewService : ISavedViewService
             request.SprintId,
             request.Type,
             request.Priority,
-            request.StatusCategory,
+            request.StatusCategories,
             request.OnlyAssignedToMe,
             request.OnlyReportedByMe);
 
@@ -101,7 +101,7 @@ public sealed class SavedViewService : ISavedViewService
             view.SprintId,
             view.Type,
             view.Priority,
-            view.StatusCategory,
+            view.StatusCategories.Count > 0 ? view.StatusCategories : null,
             assigneeId,
             reporterId,
             cancellationToken);
@@ -178,7 +178,7 @@ public sealed class SavedViewService : ISavedViewService
         v.SprintId,
         v.Type,
         v.Priority,
-        v.StatusCategory,
+        v.StatusCategories.AsReadOnly(),
         v.OnlyAssignedToMe,
         v.OnlyReportedByMe,
         v.CreatedAt,

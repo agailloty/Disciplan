@@ -20,7 +20,7 @@ public class SavedView
     public Guid? SprintId { get; private set; }
     public TicketType? Type { get; private set; }
     public CardPriority? Priority { get; private set; }
-    public StatusCategory? StatusCategory { get; private set; }
+    public List<StatusCategory> StatusCategories { get; private set; } = [];
     public bool OnlyAssignedToMe { get; private set; }
     public bool OnlyReportedByMe { get; private set; }
 
@@ -43,7 +43,7 @@ public class SavedView
         Guid? sprintId,
         TicketType? type,
         CardPriority? priority,
-        StatusCategory? statusCategory,
+        IReadOnlyList<StatusCategory> statusCategories,
         bool onlyAssignedToMe,
         bool onlyReportedByMe)
     {
@@ -56,7 +56,7 @@ public class SavedView
         SprintId = sprintId;
         Type = type;
         Priority = priority;
-        StatusCategory = statusCategory;
+        StatusCategories = [.. statusCategories];
         OnlyAssignedToMe = onlyAssignedToMe;
         OnlyReportedByMe = onlyReportedByMe;
         UpdatedAt = DateTime.UtcNow;

@@ -18,7 +18,7 @@ public interface ITicketRepository
         Guid? sprintId,
         TicketType? type,
         CardPriority? priority,
-        StatusCategory? statusCategory,
+        IReadOnlyList<StatusCategory>? statusCategories,
         string? assigneeId,
         string? reporterId,
         CancellationToken cancellationToken = default);

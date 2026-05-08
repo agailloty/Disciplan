@@ -60,16 +60,23 @@
                 </select>
             </div>
 
-            @* ── Catégorie de statut ── *@
-            <div>
+            @* ── Catégories de statut ── *@
+            <div class="sm:col-span-2">
                 <label class="form-label">@L["SavedView.StatusCategory"]</label>
-                <select class="form-select" @bind="_form.StatusCategory">
-                    <option value="">@L["SavedView.AllCategories"]</option>
-                    @foreach (var c in Enum.GetValues<StatusCategory>())
+                <div class="flex flex-wrap gap-3 mt-1">
+                    @foreach (var cat in Enum.GetValues<StatusCategory>())
                     {
-                        <option value="@c">@c</option>
+                        var c = cat;
+                        var id = "sv-cat-" + c;
+                        <div class="flex items-center gap-1.5">
+                            <input type="checkbox" id="@id"
+                                   class="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                   checked="@_form.StatusCategories.Contains(c)"
+                                   @onchange="e => ToggleCategory(c, (bool)e.Value!)" />
+                            <label for="@id" class="form-label mb-0 cursor-pointer">@L["StatusCategory." + c]</label>
+                        </div>
                     }
-                </select>
+                </div>
             </div>
         </div>
 
@@ -111,6 +118,12 @@
     private bool _saving;
     private string? _error;
 
+    private void ToggleCategory(StatusCategory cat, bool add)
+    {
+        if (add) _form.StatusCategories.Add(cat);
+        else _form.StatusCategories.Remove(cat);
+    }
+
     protected override void OnParametersSet()
     {
         if (View is not null)
@@ -124,7 +137,7 @@
                 ProjectId = View.ProjectId,
                 Type = View.Type,
                 Priority = View.Priority,
-                StatusCategory = View.StatusCategory,
+                StatusCategories = View.StatusCategories.ToHashSet(),
                 OnlyAssignedToMe = View.OnlyAssignedToMe,
                 OnlyReportedByMe = View.OnlyReportedByMe
             };
@@ -157,7 +170,7 @@
             null,
             _form.Type,
             _form.Priority,
-            _form.StatusCategory,
+            _form.StatusCategories.ToList().AsReadOnly(),
             _form.OnlyAssignedToMe,
             _form.OnlyReportedByMe,
             View?.CreatedAt ?? DateTime.UtcNow,
@@ -174,7 +187,7 @@
         public Guid? ProjectId { get; set; }
         public TicketType? Type { get; set; }
         public CardPriority? Priority { get; set; }
-        public StatusCategory? StatusCategory { get; set; }
+        public HashSet<StatusCategory> StatusCategories { get; set; } = [];
         public bool OnlyAssignedToMe { get; set; }
         public bool OnlyReportedByMe { get; set; }
     }

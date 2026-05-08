@@ -57,7 +57,7 @@ internal sealed class TicketRepository : ITicketRepository
         Guid? sprintId,
         TicketType? type,
         CardPriority? priority,
-        StatusCategory? statusCategory,
+        IReadOnlyList<StatusCategory>? statusCategories,
         string? assigneeId,
         string? reporterId,
         CancellationToken cancellationToken = default)
@@ -69,7 +69,8 @@ internal sealed class TicketRepository : ITicketRepository
         if (sprintId.HasValue)      query = query.Where(t => t.SprintId == sprintId.Value);
         if (type.HasValue)          query = query.Where(t => t.Type == type.Value);
         if (priority.HasValue)      query = query.Where(t => t.Priority == priority.Value);
-        if (statusCategory.HasValue) query = query.Where(t => t.Status.Category == statusCategory.Value);
+        if (statusCategories is not null && statusCategories.Count > 0)
+            query = query.Where(t => statusCategories.Contains(t.Status.Category));
         if (assigneeId is not null) query = query.Where(t => t.AssigneeId == assigneeId);
         if (reporterId is not null) query = query.Where(t => t.ReporterId == reporterId);
 

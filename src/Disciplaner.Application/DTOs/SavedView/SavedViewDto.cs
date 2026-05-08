@@ -13,7 +13,7 @@ public sealed record SavedViewDto(
     Guid? SprintId,
     TicketType? Type,
     CardPriority? Priority,
-    StatusCategory? StatusCategory,
+    IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
     bool OnlyReportedByMe,
     DateTime CreatedAt,
@@ -30,7 +30,7 @@ public sealed record CreateSavedViewRequest(
     Guid? SprintId,
     TicketType? Type,
     CardPriority? Priority,
-    StatusCategory? StatusCategory,
+    IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
     bool OnlyReportedByMe
 );
@@ -45,7 +45,7 @@ public sealed record UpdateSavedViewRequest(
     Guid? SprintId,
     TicketType? Type,
     CardPriority? Priority,
-    StatusCategory? StatusCategory,
+    IReadOnlyList<StatusCategory> StatusCategories,
     bool OnlyAssignedToMe,
     bool OnlyReportedByMe
 );

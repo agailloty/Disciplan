@@ -298,7 +298,7 @@
                 var created = await SavedViewApi.CreateAsync(new CreateSavedViewRequest(
                     dto.Name, dto.Description, true, 0,
                     dto.ProjectId, dto.StatusId, dto.SprintId,
-                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.Type, dto.Priority, dto.StatusCategories,
                     dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
                 if (created is not null)
                 {
@@ -314,7 +314,7 @@
                 var updated = await SavedViewApi.UpdateAsync(_editingView.Id, new UpdateSavedViewRequest(
                     dto.Name, dto.Description, _editingView.IsVisibleOnHome, _editingView.DisplayOrder,
                     dto.ProjectId, dto.StatusId, dto.SprintId,
-                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.Type, dto.Priority, dto.StatusCategories,
                     dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
                 if (updated is not null)
                     _savedViewsById[updated.Id] = updated;
