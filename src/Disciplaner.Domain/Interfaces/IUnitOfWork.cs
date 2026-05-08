@@ -12,6 +12,7 @@ public interface IUnitOfWork
     ITicketRepository Tickets { get; }
     ILabelRepository Labels { get; }
     ISavedViewRepository SavedViews { get; }
+    ITicketHistoryRepository TicketHistory { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -96,6 +96,12 @@ public sealed class TicketService : ITicketService
 
         await _uow.Tickets.AddAsync(ticket, cancellationToken);
         await _uow.Projects.UpdateAsync(project, cancellationToken); // persist incremented ticketNumber
+
+        var actorName = await GetActorNameAsync(requestingUserId, cancellationToken);
+        await _uow.TicketHistory.AddAsync(
+            TicketHistory.Record(ticket.Id, "created", requestingUserId, actorName,
+                newValue: request.Title), cancellationToken);
+
         await _uow.SaveChangesAsync(cancellationToken);
 
         return await ToDtoAsync(ticket, cancellationToken);
@@ -108,6 +114,24 @@ public sealed class TicketService : ITicketService
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
         await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+
+        var actorName = await GetActorNameAsync(requestingUserId, cancellationToken);
+        var history   = new List<TicketHistory>();
+
+        if (ticket.Title != request.Title)
+            history.Add(TicketHistory.Record(ticketId, "title_changed",       requestingUserId, actorName, ticket.Title,                                    request.Title));
+        if (ticket.Description != request.Description)
+            history.Add(TicketHistory.Record(ticketId, "description_changed", requestingUserId, actorName, ticket.Description,                              request.Description));
+        if (ticket.Type != request.Type)
+            history.Add(TicketHistory.Record(ticketId, "type_changed",        requestingUserId, actorName, ticket.Type.ToString(),                          request.Type.ToString()));
+        if (ticket.Priority != request.Priority)
+            history.Add(TicketHistory.Record(ticketId, "priority_changed",    requestingUserId, actorName, ticket.Priority.ToString(),                      request.Priority.ToString()));
+        if (ticket.StoryPoints != request.StoryPoints)
+            history.Add(TicketHistory.Record(ticketId, "story_points_changed",requestingUserId, actorName, ticket.StoryPoints?.ToString(),                  request.StoryPoints?.ToString()));
+        if (ticket.DueDate != request.DueDate)
+            history.Add(TicketHistory.Record(ticketId, "due_date_changed",    requestingUserId, actorName, ticket.DueDate?.ToString("yyyy-MM-dd"),          request.DueDate?.ToString("yyyy-MM-dd")));
+        if (ticket.AssigneeId != request.AssigneeId)
+            history.Add(TicketHistory.Record(ticketId, "assignee_changed",    requestingUserId, actorName, ticket.AssigneeId,                               request.AssigneeId));
 
         ticket.UpdateTitle(request.Title);
         ticket.UpdateDescription(request.Description);
@@ -123,6 +147,8 @@ public sealed class TicketService : ITicketService
         ticket.Assign(request.AssigneeId);
 
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
+        foreach (var h in history)
+            await _uow.TicketHistory.AddAsync(h, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return await ToDtoAsync(ticket, cancellationToken);
@@ -142,7 +168,14 @@ public sealed class TicketService : ITicketService
         var status = project.Statuses.FirstOrDefault(s => s.Id == request.StatusId)
             ?? throw new NotFoundException(nameof(TicketStatus), request.StatusId);
 
+        var oldStatusName = ticket.Status?.Name ?? ticket.StatusId.ToString();
         ticket.MoveToStatus(status);
+
+        var actorName = await GetActorNameAsync(requestingUserId, cancellationToken);
+        await _uow.TicketHistory.AddAsync(
+            TicketHistory.Record(ticketId, "status_changed", requestingUserId, actorName,
+                oldValue: oldStatusName, newValue: status.Name), cancellationToken);
+
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
@@ -216,6 +249,12 @@ public sealed class TicketService : ITicketService
         var project = await _uow.Projects.GetByIdAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
         EnsureOwner(project, userId);
+    }
+
+    private async Task<string> GetActorNameAsync(string userId, CancellationToken ct)
+    {
+        var user = await _uow.Users.GetByIdAsync(userId, ct);
+        return user?.DisplayName ?? user?.Email ?? userId;
     }
 
     private static TicketDto ToDto(Ticket t, string reporterName, string? assigneeName) => new(

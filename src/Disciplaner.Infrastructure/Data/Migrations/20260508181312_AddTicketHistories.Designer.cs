@@ -3,6 +3,7 @@ using System;
 using Disciplaner.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Disciplaner.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508181312_AddTicketHistories")]
+    partial class AddTicketHistories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
@@ -419,49 +422,6 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.ToTable("Tickets");
                 });
 
-            modelBuilder.Entity("Disciplaner.Domain.Entities.TicketHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ActorId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ActorName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NewValue")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("OldValue")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("TicketId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TicketId");
-
-                    b.HasIndex("ActorId", "OccurredAt");
-
-                    b.ToTable("TicketHistories", (string)null);
-                });
-
             modelBuilder.Entity("Disciplaner.Domain.Entities.TicketStatus", b =>
                 {
                     b.Property<Guid>("Id")
@@ -806,17 +766,6 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.Navigation("Sprint");
 
                     b.Navigation("Status");
-                });
-
-            modelBuilder.Entity("Disciplaner.Domain.Entities.TicketHistory", b =>
-                {
-                    b.HasOne("Disciplaner.Domain.Entities.Ticket", "Ticket")
-                        .WithMany()
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("Disciplaner.Domain.Entities.TicketStatus", b =>

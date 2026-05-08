@@ -212,6 +212,22 @@
   <data name="SavedView.CollapsedByDefault" xml:space="preserve"><value>Collapsed by default on dashboard</value></data>
   <data name="SavedView.NameRequired" xml:space="preserve"><value>Name is required.</value></data>
 
+  <!-- ── Ticket History ───────────────────────────────────────────────────── -->
+  <data name="Ticket.History" xml:space="preserve"><value>Activity</value></data>
+  <data name="Ticket.History.Empty" xml:space="preserve"><value>No activity recorded yet.</value></data>
+  <data name="History.created" xml:space="preserve"><value>created this ticket</value></data>
+  <data name="History.title_changed" xml:space="preserve"><value>updated the title</value></data>
+  <data name="History.description_changed" xml:space="preserve"><value>updated the description</value></data>
+  <data name="History.status_changed" xml:space="preserve"><value>changed the status</value></data>
+  <data name="History.type_changed" xml:space="preserve"><value>changed the type</value></data>
+  <data name="History.priority_changed" xml:space="preserve"><value>changed the priority</value></data>
+  <data name="History.assignee_changed" xml:space="preserve"><value>reassigned the ticket</value></data>
+  <data name="History.sprint_changed" xml:space="preserve"><value>changed the sprint</value></data>
+  <data name="History.story_points_changed" xml:space="preserve"><value>updated the story points</value></data>
+  <data name="History.due_date_changed" xml:space="preserve"><value>updated the due date</value></data>
+  <data name="History.comment_added" xml:space="preserve"><value>added a comment</value></data>
+  <data name="History.comment_deleted" xml:space="preserve"><value>deleted a comment</value></data>
+
   <!-- ── Table columns ────────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>New column</value></data>
   <data name="Col.EditTitle" xml:space="preserve"><value>Rename column</value></data>

@@ -3,7 +3,6 @@ using Disciplaner.Application.Exceptions;
 using Disciplaner.Application.Interfaces;
 using Disciplaner.Domain.Entities;
 using Disciplaner.Domain.Interfaces;
-
 namespace Disciplaner.Application.Services;
 
 public sealed class CommentService : ICommentService
@@ -54,9 +53,17 @@ public sealed class CommentService : ICommentService
 
         var comment = Comment.CreateForTicket(request.Content, authorId, ticketId);
         await _uow.Comments.AddAsync(comment, cancellationToken);
+
+        var author = await _uow.Users.GetByIdAsync(authorId, cancellationToken);
+        var actorName = author?.DisplayName ?? author?.Email ?? authorId;
+        var preview = request.Content.Length > 120 ? request.Content[..120] + "…" : request.Content;
+        await _uow.TicketHistory.AddAsync(
+            TicketHistory.Record(ticketId, "comment_added", authorId, actorName, newValue: preview),
+            cancellationToken);
+
         await _uow.SaveChangesAsync(cancellationToken);
         return await ToDtoAsync(comment, cancellationToken);
-}
+    }
 
     public async Task<CommentDto> UpdateAsync(
         Guid commentId, string requestingUserId, UpdateCommentRequest request,
@@ -84,6 +91,17 @@ public sealed class CommentService : ICommentService
 
         if (!isAdmin && comment.AuthorId != requestingUserId)
             throw new UnauthorizedAccessException("Only the author or an admin can delete a comment.");
+
+        // Record history for ticket comments
+        if (comment.TicketId.HasValue)
+        {
+            var actor = await _uow.Users.GetByIdAsync(requestingUserId, cancellationToken);
+            var actorName = actor?.DisplayName ?? actor?.Email ?? requestingUserId;
+            var preview = comment.Content.Length > 120 ? comment.Content[..120] + "…" : comment.Content;
+            await _uow.TicketHistory.AddAsync(
+                TicketHistory.Record(comment.TicketId.Value, "comment_deleted", requestingUserId, actorName,
+                    oldValue: preview), cancellationToken);
+        }
 
         await _uow.Comments.DeleteAsync(comment, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);

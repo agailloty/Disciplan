@@ -104,9 +104,9 @@ else
                                         <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                         <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
                                         <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
-                                        <span class="flex items-center gap-1 shrink-0">
-                                            <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
-                                            <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
+                                        <span class="flex items-center gap-1 shrink-0 w-24">
+                                            <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
+                                            <span class="text-xs text-gray-500 hidden sm:block truncate">@t.Status.Name</span>
                                         </span>
                                         @if (t.DueDate.HasValue)
                                         {
@@ -122,7 +122,7 @@ else
                     }
                     else if (w.Kind == "recent_activity")
                     {
-                        <div class="overflow-y-auto" style="max-height:420px">
+                        <div class="overflow-y-auto" style="max-height:480px">
                             @if (_activityLoading)
                             {
                                 <div class="p-4"><LoadingSpinner /></div>
@@ -131,7 +131,7 @@ else
                             {
                                 <div class="p-4"><ErrorAlert Message="@_activityError" /></div>
                             }
-                            else if (_activity is null || _activity.Count == 0)
+                            else if (_activityGroups is null || _activityGroups.Count == 0)
                             {
                                 <div class="py-10 text-center text-gray-400 text-sm">
                                     <i class="bi bi-calendar-x text-2xl block mb-1"></i>
@@ -140,24 +140,29 @@ else
                             }
                             else
                             {
-                                <div class="divide-y divide-gray-50">
-                                    @foreach (var item in _activity)
+                                <div class="divide-y divide-gray-100">
+                                    @foreach (var group in _activityGroups)
                                     {
-                                        var a = item;
-                                        <div class="flex items-start gap-3 px-4 py-3">
-                                            <span class="mt-0.5 shrink-0 @ActivityIconColor(a.Kind)">
-                                                <i class="bi @ActivityIcon(a.Kind) text-sm"></i>
-                                            </span>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="text-xs font-semibold text-gray-700">@ActivityLabel(a.Kind)</div>
-                                                <div class="text-xs text-gray-500 truncate">@a.Summary</div>
+                                        var g = group;
+                                        <div class="px-4 py-3">
+                                            @* Ticket header *@
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <a href="/tickets/@g.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">@g.TicketRef</a>
+                                                <span class="text-xs font-semibold text-gray-700 truncate">@g.TicketTitle</span>
+                                                <span class="ml-auto text-gray-400 shrink-0" style="font-size:.68rem">@RelativeTime(g.LastOccurredAt)</span>
                                             </div>
-                                            <div class="text-right shrink-0">
-                                                @if (a.TicketRef is not null && a.TicketId.HasValue)
+                                            @* Event list *@
+                                            <div class="flex flex-col gap-1 pl-2 border-l-2 border-gray-100">
+                                                @foreach (var ev in g.Events)
                                                 {
-                                                    <a href="/tickets/@a.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">@a.TicketRef</a>
+                                                    var e = ev;
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="shrink-0 w-3.5 text-center @ActivityIconColor(e.Kind)">
+                                                            <i class="bi @ActivityIcon(e.Kind) text-xs"></i>
+                                                        </span>
+                                                        <span class="text-xs text-gray-500 truncate">@e.Summary</span>
+                                                    </div>
                                                 }
-                                                <div class="text-gray-400" style="font-size:.68rem;margin-top:.1rem">@RelativeTime(a.OccurredAt)</div>
                                             </div>
                                         </div>
                                     }
@@ -193,9 +198,9 @@ else
                                             <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                             <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
                                             <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
-                                            <span class="flex items-center gap-1 shrink-0">
-                                                <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
-                                                <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
+                                            <span class="flex items-center gap-1 shrink-0 w-24">
+                                                <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
+                                                <span class="text-xs text-gray-500 hidden sm:block truncate">@t.Status.Name</span>
                                             </span>
                                             @if (t.DueDate.HasValue)
                                             {
@@ -221,7 +226,7 @@ else
 
     // ── Built-in widget data ───────────────────────────────────────────────────
     private List<TicketDto>? _tickets;
-    private List<ActivityItemDto>? _activity;
+    private List<TicketActivityGroupDto>? _activityGroups;
     private bool _ticketsLoading = true;
     private bool _activityLoading = true;
     private string? _ticketsError;
@@ -308,7 +313,7 @@ else
 
     private async Task LoadActivityAsync()
     {
-        try { _activity = await ActivityApi.GetRecentAsync(20); }
+        try { _activityGroups = await ActivityApi.GetGroupedAsync(20); }
         catch { _activityError = L["Error.Load"]; }
         finally { _activityLoading = false; StateHasChanged(); }
     }

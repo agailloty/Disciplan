@@ -26,4 +26,12 @@ public sealed class ActivityController : ControllerBase
         var items = await _activity.GetRecentActivityAsync(UserId, Math.Clamp(limit, 1, 50), ct);
         return Ok(items);
     }
+
+    [HttpGet("grouped")]
+    [ProducesResponseType(typeof(IReadOnlyList<TicketActivityGroupDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetGrouped([FromQuery] int limit = 20, CancellationToken ct = default)
+    {
+        var groups = await _activity.GetRecentGroupedAsync(UserId, Math.Clamp(limit, 1, 50), ct);
+        return Ok(groups);
+    }
 }

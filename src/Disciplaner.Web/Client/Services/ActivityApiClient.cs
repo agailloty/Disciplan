@@ -12,4 +12,10 @@ public sealed class ActivityApiClient
 
     public Task<List<ActivityItemDto>?> GetRecentAsync(int limit = 20, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<ActivityItemDto>>($"/api/activity/recent?limit={limit}", ct);
+
+    public Task<List<TicketActivityGroupDto>?> GetGroupedAsync(int limit = 20, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<TicketActivityGroupDto>>($"/api/activity/grouped?limit={limit}", ct);
+
+    public Task<List<TicketHistoryEntryDto>?> GetTicketHistoryAsync(Guid ticketId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<TicketHistoryEntryDto>>($"/api/tickets/{ticketId}/history", ct);
 }

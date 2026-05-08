@@ -20,6 +20,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TicketStatus> TicketStatuses => Set<TicketStatus>();
     public DbSet<Label> Labels => Set<Label>();
     public DbSet<SavedView> SavedViews => Set<SavedView>();
+    public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

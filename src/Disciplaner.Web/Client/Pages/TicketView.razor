@@ -7,10 +7,12 @@
 @inject UserApiClient UserApi
 @inject SprintApiClient SprintApi
 @inject LabelApiClient LabelApi
+@inject ActivityApiClient ActivityApi
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 @using Disciplaner.Application.DTOs.User
 @using Disciplaner.Application.DTOs.Sprint
+@using Disciplaner.Application.DTOs.Activity
 
 <PageTitle>@(_ticket?.TicketRef ?? L["Title"].Value) — Disciplaner</PageTitle>
 
@@ -119,78 +121,130 @@ else if (_ticket is not null)
                         }
                     </div>
 
-                    @* Comments *@
+                    @* ── Onglets Commentaires / Activité ── *@
                     <div>
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="tdm-section-label">@L["Ticket.Comments"]</span>
-                            @if (_comments.Count > 0)
-                            {
-                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">@_comments.Count</span>
-                            }
+                        @* Tab bar *@
+                        <div class="flex gap-0 border-b border-gray-200 mb-4">
+                            <button type="button"
+                                    class="px-4 py-2 text-sm font-medium transition-colors @(_activeTab == "comments" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700")"
+                                    @onclick='() => SetTab("comments")'>
+                                <span class="flex items-center gap-2">
+                                    @L["Ticket.Comments"]
+                                    @if (_comments.Count > 0)
+                                    {
+                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">@_comments.Count</span>
+                                    }
+                                </span>
+                            </button>
+                            <button type="button"
+                                    class="px-4 py-2 text-sm font-medium transition-colors @(_activeTab == "history" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700")"
+                                    @onclick='() => SetTab("history")'>
+                                @L["Ticket.History"]
+                            </button>
                         </div>
 
-                        @if (_commentsLoading)
+                        @* Tab: Comments *@
+                        @if (_activeTab == "comments")
                         {
-                            <p class="text-sm text-gray-400 py-2">@L["Loading"]</p>
-                        }
-                        else
-                        {
-                            @if (_comments.Count > 0)
+                            @if (_commentsLoading)
                             {
-                                <div class="flex flex-col gap-3 mb-4">
-                                    @foreach (var c in _comments)
-                                    {
-                                        <div class="tdm-comment-row group">
-                                            <div class="tdm-avatar @AvatarColor(c.AuthorName)">
-                                                @(c.AuthorName.Length > 0 ? c.AuthorName[0].ToString().ToUpper() : "?")
-                                            </div>
-                                            <div class="tdm-comment-body">
-                                                <div class="tdm-comment-header">
-                                                    <span class="tdm-comment-author">@c.AuthorName</span>
-                                                    <span class="tdm-comment-date">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                <p class="text-sm text-gray-400 py-2">@L["Loading"]</p>
+                            }
+                            else
+                            {
+                                @if (_comments.Count > 0)
+                                {
+                                    <div class="flex flex-col gap-3 mb-4">
+                                        @foreach (var c in _comments)
+                                        {
+                                            <div class="tdm-comment-row group">
+                                                <div class="tdm-avatar @AvatarColor(c.AuthorName)">
+                                                    @(c.AuthorName.Length > 0 ? c.AuthorName[0].ToString().ToUpper() : "?")
                                                 </div>
-                                                @if (_editingCommentId == c.Id)
-                                                {
-                                                    <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
-                                                    <div class="flex gap-1.5 mt-1.5">
-                                                        <button class="btn btn-primary btn-sm" type="button" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
-                                                        <button class="btn btn-outline btn-sm" type="button" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
+                                                <div class="tdm-comment-body">
+                                                    <div class="tdm-comment-header">
+                                                        <span class="tdm-comment-author">@c.AuthorName</span>
+                                                        <span class="tdm-comment-date">@c.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                                     </div>
-                                                }
-                                                else
+                                                    @if (_editingCommentId == c.Id)
+                                                    {
+                                                        <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
+                                                        <div class="flex gap-1.5 mt-1.5">
+                                                            <button class="btn btn-primary btn-sm" type="button" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
+                                                            <button class="btn btn-outline btn-sm" type="button" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="tdm-comment-bubble">@c.Content</div>
+                                                        <div class="tdm-comment-actions">
+                                                            <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
+                                                            <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                @* Add comment *@
+                                <div class="flex gap-2.5 items-start">
+                                    <div class="tdm-avatar av-gray shrink-0">
+                                        <i class="bi bi-person" style="font-size:.8rem"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <textarea class="form-textarea text-sm"
+                                                  rows="2"
+                                                  placeholder="@L["Ticket.Comment.Add"]"
+                                                  @bind="_newCommentContent"
+                                                  @bind:event="oninput"></textarea>
+                                        <div class="flex justify-end mt-1.5">
+                                            <button class="btn btn-primary btn-sm" type="button"
+                                                    @onclick="AddCommentAsync"
+                                                    disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
+                                                <i class="bi bi-send-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                        @* Tab: History *@
+                        @if (_activeTab == "history")
+                        {
+                            @if (_historyLoading)
+                            {
+                                <p class="text-sm text-gray-400 py-2">@L["Loading"]</p>
+                            }
+                            else if (_history.Count == 0)
+                            {
+                                <p class="text-sm text-gray-400 italic py-2">@L["Ticket.History.Empty"]</p>
+                            }
+                            else
+                            {
+                                <div class="flex flex-col gap-3">
+                                    @foreach (var entry in _history)
+                                    {
+                                        var h = entry;
+                                        <div class="flex items-start gap-3">
+                                            <span class="mt-1 w-2.5 h-2.5 rounded-full @HistoryDotColor(h.Kind) shrink-0"></span>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                                                    <span class="text-xs font-semibold text-gray-700">@h.ActorName</span>
+                                                    <span class="text-xs text-gray-500">@HistoryLabel(h)</span>
+                                                    <span class="ml-auto text-xs text-gray-400 shrink-0">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                                </div>
+                                                @if (HistoryDetail(h) is { } detail)
                                                 {
-                                                    <div class="tdm-comment-bubble">@c.Content</div>
-                                                    <div class="tdm-comment-actions">
-                                                        <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
-                                                        <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
-                                                    </div>
+                                                    <div class="mt-0.5 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1 break-words">@detail</div>
                                                 }
                                             </div>
                                         </div>
                                     }
                                 </div>
                             }
-
-                            @* Add comment *@
-                            <div class="flex gap-2.5 items-start">
-                                <div class="tdm-avatar av-gray shrink-0">
-                                    <i class="bi bi-person" style="font-size:.8rem"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <textarea class="form-textarea text-sm"
-                                              rows="2"
-                                              placeholder="@L["Ticket.Comment.Add"]"
-                                              @bind="_newCommentContent"
-                                              @bind:event="oninput"></textarea>
-                                    <div class="flex justify-end mt-1.5">
-                                        <button class="btn btn-primary btn-sm" type="button"
-                                                @onclick="AddCommentAsync"
-                                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
-                                            <i class="bi bi-send-fill"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         }
                     </div>
 
@@ -370,9 +424,16 @@ else if (_ticket is not null)
     private string? _actionError;
     private TicketEditForm _form = new();
 
+    // Tabs
+    private string _activeTab = "comments";
+
     // Comments
     private IReadOnlyList<CommentDto> _comments = [];
     private bool _commentsLoading;
+
+    // History
+    private IReadOnlyList<TicketHistoryEntryDto> _history = [];
+    private bool _historyLoading;
     private string _newCommentContent = string.Empty;
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
@@ -435,6 +496,9 @@ else if (_ticket is not null)
                 try { _comments = await CommentApi.GetByTicketAsync(_ticket.Id); }
                 catch { _comments = []; }
                 finally { _commentsLoading = false; }
+
+                // Preload history silently
+                _ = LoadHistoryAsync(_ticket.Id);
             }
             else if (_error is null)
             {
@@ -444,6 +508,57 @@ else if (_ticket is not null)
         catch { _error = L["Error.Load"]; }
         finally { _loading = false; }
     }
+
+    private async Task LoadHistoryAsync(Guid ticketId)
+    {
+        _historyLoading = true;
+        StateHasChanged();
+        try { _history = await ActivityApi.GetTicketHistoryAsync(ticketId) ?? []; }
+        catch { _history = []; }
+        finally { _historyLoading = false; StateHasChanged(); }
+    }
+
+    private async Task SetTab(string tab)
+    {
+        _activeTab = tab;
+        if (tab == "history" && _history.Count == 0 && !_historyLoading && _ticket is not null)
+            await LoadHistoryAsync(_ticket.Id);
+    }
+
+    private static string HistoryDotColor(string kind) => kind switch
+    {
+        "created" => "bg-green-400",
+        "comment_added" or "comment_deleted" => "bg-blue-400",
+        "status_changed" => "bg-purple-400",
+        _ => "bg-gray-300"
+    };
+
+    private string HistoryLabel(TicketHistoryEntryDto h) => h.Kind switch
+    {
+        "created" => L["History.created"],
+        "title_changed" => L["History.title_changed"],
+        "description_changed" => L["History.description_changed"],
+        "status_changed" => L["History.status_changed"],
+        "type_changed" => L["History.type_changed"],
+        "priority_changed" => L["History.priority_changed"],
+        "assignee_changed" => L["History.assignee_changed"],
+        "sprint_changed" => L["History.sprint_changed"],
+        "story_points_changed" => L["History.story_points_changed"],
+        "due_date_changed" => L["History.due_date_changed"],
+        "comment_added" => L["History.comment_added"],
+        "comment_deleted" => L["History.comment_deleted"],
+        _ => h.Kind
+    };
+
+    private static string? HistoryDetail(TicketHistoryEntryDto h) => h.Kind switch
+    {
+        "created" => null,
+        "comment_added" => h.NewValue is { Length: > 0 } v ? $"« {v} »" : null,
+        "comment_deleted" => h.OldValue is { Length: > 0 } v ? $"« {v} »" : null,
+        _ when h.OldValue is not null && h.NewValue is not null => $"{h.OldValue} → {h.NewValue}",
+        _ when h.NewValue is not null => h.NewValue,
+        _ => null
+    };
 
     private void EnterEdit()
     {
