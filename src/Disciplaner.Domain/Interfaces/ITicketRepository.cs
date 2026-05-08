@@ -1,4 +1,5 @@
 using Disciplaner.Domain.Entities;
+using Disciplaner.Domain.Enums;
 
 namespace Disciplaner.Domain.Interfaces;
 
@@ -11,6 +12,16 @@ public interface ITicketRepository
     Task<int> CountByProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetAssignedToUserAsync(string userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetCreatedByUserAsync(string userId, int limit, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Ticket>> GetFilteredAsync(
+        Guid? projectId,
+        Guid? statusId,
+        Guid? sprintId,
+        TicketType? type,
+        CardPriority? priority,
+        StatusCategory? statusCategory,
+        string? assigneeId,
+        string? reporterId,
+        CancellationToken cancellationToken = default);
     Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default);
     Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default);
     Task DeleteAsync(Ticket ticket, CancellationToken cancellationToken = default);

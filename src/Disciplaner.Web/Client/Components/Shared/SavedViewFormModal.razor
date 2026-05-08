@@ -1,0 +1,187 @@
+@using Disciplaner.Application.DTOs.SavedView
+@using Disciplaner.Application.DTOs.Project
+@using Disciplaner.Domain.Enums
+@inject IStringLocalizer<AppResources> L
+
+<Modal Title="@(View is null ? "Nouvelle vue" : "Modifier la vue")" Visible="Visible" OnClose="OnClose">
+    <EditForm Model="_form" OnValidSubmit="SubmitAsync">
+        <DataAnnotationsValidator />
+
+        @* ── Nom ── *@
+        <div class="mb-4">
+            <label class="form-label">Nom <span class="text-red-500">*</span></label>
+            <input type="text" class="form-input" @bind="_form.Name" @bind:event="oninput" maxlength="100" />
+        </div>
+
+        @* ── Description ── *@
+        <div class="mb-4">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" rows="2" @bind="_form.Description" maxlength="500"></textarea>
+        </div>
+
+        @* ── Visibilité ── *@
+        <div class="mb-4 flex items-center gap-2">
+            <input type="checkbox" id="sv-visible" @bind="_form.IsVisibleOnHome" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+            <label for="sv-visible" class="form-label mb-0">Afficher sur l'accueil</label>
+        </div>
+
+        <hr class="border-gray-100 my-4" />
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Filtres</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            @* ── Projet ── *@
+            <div>
+                <label class="form-label">Projet</label>
+                <select class="form-select" @bind="_form.ProjectId">
+                    <option value="">Tous les projets</option>
+                    @foreach (var p in Projects)
+                    {
+                        <option value="@p.Id">@p.Name (@p.Key)</option>
+                    }
+                </select>
+            </div>
+
+            @* ── Type ── *@
+            <div>
+                <label class="form-label">Type</label>
+                <select class="form-select" @bind="_form.Type">
+                    <option value="">Tous les types</option>
+                    @foreach (var t in Enum.GetValues<TicketType>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+
+            @* ── Priorité ── *@
+            <div>
+                <label class="form-label">Priorité</label>
+                <select class="form-select" @bind="_form.Priority">
+                    <option value="">Toutes les priorités</option>
+                    @foreach (var p in Enum.GetValues<CardPriority>())
+                    {
+                        <option value="@p">@p</option>
+                    }
+                </select>
+            </div>
+
+            @* ── Catégorie de statut ── *@
+            <div>
+                <label class="form-label">Catégorie de statut</label>
+                <select class="form-select" @bind="_form.StatusCategory">
+                    <option value="">Toutes les catégories</option>
+                    @foreach (var c in Enum.GetValues<StatusCategory>())
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        @* ── Assignation ── *@
+        <div class="mt-4 space-y-2">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="sv-assignedme" @bind="_form.OnlyAssignedToMe" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <label for="sv-assignedme" class="form-label mb-0">Uniquement assignés à moi</label>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="sv-reportedme" @bind="_form.OnlyReportedByMe" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
+                <label for="sv-reportedme" class="form-label mb-0">Uniquement créés par moi</label>
+            </div>
+        </div>
+
+        @if (_error is not null)
+        {
+            <div class="mt-4"><ErrorAlert Message="@_error" /></div>
+        }
+
+        <div class="flex justify-end gap-2 mt-6">
+            <button type="button" class="btn btn-secondary" @onclick="OnClose">Annuler</button>
+            <button type="submit" class="btn btn-primary" disabled="@_saving">
+                @if (_saving) { <i class="bi bi-arrow-repeat animate-spin me-1"></i> }
+                @(View is null ? "Créer" : "Enregistrer")
+            </button>
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    [Parameter, EditorRequired] public bool Visible { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnClose { get; set; }
+    [Parameter, EditorRequired] public EventCallback<SavedViewDto> OnSaved { get; set; }
+    [Parameter] public SavedViewDto? View { get; set; }
+    [Parameter] public IReadOnlyList<ProjectSummaryDto> Projects { get; set; } = [];
+
+    private SavedViewFormModel _form = new();
+    private bool _saving;
+    private string? _error;
+
+    protected override void OnParametersSet()
+    {
+        if (View is not null)
+        {
+            _form = new SavedViewFormModel
+            {
+                Name = View.Name,
+                Description = View.Description,
+                IsVisibleOnHome = View.IsVisibleOnHome,
+                DisplayOrder = View.DisplayOrder,
+                ProjectId = View.ProjectId,
+                Type = View.Type,
+                Priority = View.Priority,
+                StatusCategory = View.StatusCategory,
+                OnlyAssignedToMe = View.OnlyAssignedToMe,
+                OnlyReportedByMe = View.OnlyReportedByMe
+            };
+        }
+        else
+        {
+            _form = new SavedViewFormModel { IsVisibleOnHome = true };
+        }
+        _error = null;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name))
+        {
+            _error = "Le nom est requis.";
+            return;
+        }
+
+        _saving = true;
+        _error = null;
+        await OnSaved.InvokeAsync(new SavedViewDto(
+            View?.Id ?? Guid.Empty,
+            _form.Name,
+            _form.Description,
+            _form.IsVisibleOnHome,
+            _form.DisplayOrder,
+            _form.ProjectId,
+            null,
+            null,
+            _form.Type,
+            _form.Priority,
+            _form.StatusCategory,
+            _form.OnlyAssignedToMe,
+            _form.OnlyReportedByMe,
+            View?.CreatedAt ?? DateTime.UtcNow,
+            View?.UpdatedAt));
+        _saving = false;
+    }
+
+    private sealed class SavedViewFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public bool IsVisibleOnHome { get; set; } = true;
+        public int DisplayOrder { get; set; }
+        public Guid? ProjectId { get; set; }
+        public TicketType? Type { get; set; }
+        public CardPriority? Priority { get; set; }
+        public StatusCategory? StatusCategory { get; set; }
+        public bool OnlyAssignedToMe { get; set; }
+        public bool OnlyReportedByMe { get; set; }
+    }
+}

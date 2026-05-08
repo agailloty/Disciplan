@@ -11,6 +11,7 @@ public interface IUnitOfWork
     ISprintRepository Sprints { get; }
     ITicketRepository Tickets { get; }
     ILabelRepository Labels { get; }
+    ISavedViewRepository SavedViews { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -16,6 +16,7 @@ public sealed class UnitOfWork : IUnitOfWork
     public ISprintRepository Sprints { get; }
     public ITicketRepository Tickets { get; }
     public ILabelRepository Labels { get; }
+    public ISavedViewRepository SavedViews { get; }
 
     public UnitOfWork(
         ApplicationDbContext context,
@@ -27,7 +28,8 @@ public sealed class UnitOfWork : IUnitOfWork
         IProjectRepository projects,
         ISprintRepository sprints,
         ITicketRepository tickets,
-        ILabelRepository labels)
+        ILabelRepository labels,
+        ISavedViewRepository savedViews)
     {
         _context = context;
         Boards = boards;
@@ -39,6 +41,7 @@ public sealed class UnitOfWork : IUnitOfWork
         Sprints = sprints;
         Tickets = tickets;
         Labels = labels;
+        SavedViews = savedViews;
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

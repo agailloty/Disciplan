@@ -1,4 +1,5 @@
 using Disciplaner.Domain.Entities;
+using Disciplaner.Domain.Enums;
 using Disciplaner.Domain.Interfaces;
 using Disciplaner.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,31 @@ internal sealed class TicketRepository : ITicketRepository
 
     public async Task AddAsync(Ticket ticket, CancellationToken cancellationToken = default)
         => await _context.Tickets.AddAsync(ticket, cancellationToken);
+
+    public async Task<IReadOnlyList<Ticket>> GetFilteredAsync(
+        Guid? projectId,
+        Guid? statusId,
+        Guid? sprintId,
+        TicketType? type,
+        CardPriority? priority,
+        StatusCategory? statusCategory,
+        string? assigneeId,
+        string? reporterId,
+        CancellationToken cancellationToken = default)
+    {
+        var query = IncludeDetails(_context.Tickets);
+
+        if (projectId.HasValue)     query = query.Where(t => t.ProjectId == projectId.Value);
+        if (statusId.HasValue)      query = query.Where(t => t.StatusId == statusId.Value);
+        if (sprintId.HasValue)      query = query.Where(t => t.SprintId == sprintId.Value);
+        if (type.HasValue)          query = query.Where(t => t.Type == type.Value);
+        if (priority.HasValue)      query = query.Where(t => t.Priority == priority.Value);
+        if (statusCategory.HasValue) query = query.Where(t => t.Status.Category == statusCategory.Value);
+        if (assigneeId is not null) query = query.Where(t => t.AssigneeId == assigneeId);
+        if (reporterId is not null) query = query.Where(t => t.ReporterId == reporterId);
+
+        return await query.OrderByDescending(t => t.CreatedAt).ToListAsync(cancellationToken);
+    }
 
     public Task UpdateAsync(Ticket ticket, CancellationToken cancellationToken = default)
     {

@@ -47,6 +47,7 @@ builder.Services.AddScoped<TicketApiClient>();
 builder.Services.AddScoped<UserApiClient>();
 builder.Services.AddScoped<ActivityApiClient>();
 builder.Services.AddScoped<LabelApiClient>();
+builder.Services.AddScoped<SavedViewApiClient>();
 builder.Services.AddScoped<KanbanDragState>();
 builder.Services.AddScoped<UserProfileService>();
 

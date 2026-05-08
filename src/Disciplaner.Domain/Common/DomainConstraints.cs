@@ -60,4 +60,10 @@ public static class DomainConstraints
         public const int NameMaxLength = 50;
         public const int ColorMaxLength = 20;
     }
+
+    public static class SavedView
+    {
+        public const int NameMaxLength = 100;
+        public const int DescriptionMaxLength = 500;
+    }
 }

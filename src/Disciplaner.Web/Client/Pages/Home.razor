@@ -3,6 +3,8 @@
 @implements IDisposable
 @inject TicketApiClient TicketApi
 @inject ActivityApiClient ActivityApi
+@inject SavedViewApiClient SavedViewApi
+@inject ProjectApiClient ProjectApi
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserProfileService UserProfile
 @inject NavigationManager Nav
@@ -11,6 +13,8 @@
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Application.DTOs.Activity
+@using Disciplaner.Application.DTOs.SavedView
+@using Disciplaner.Application.DTOs.Project
 @using Disciplaner.Domain.Enums
 
 <PageTitle>@L["Nav.Home"] — Disciplaner</PageTitle>
@@ -130,6 +134,124 @@
     </div>
 </div>
 
+@* ── Vues sauvegardées ──────────────────────────────────────────────────────── *@
+<div class="mt-8">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-gray-800">Vues sauvegardées</h2>
+        <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
+            <i class="bi bi-plus me-1"></i> Nouvelle vue
+        </button>
+    </div>
+
+    @if (_viewsLoading)
+    {
+        <LoadingSpinner />
+    }
+    else if (_views.Count == 0)
+    {
+        <div class="surface py-10 text-center text-gray-400 text-sm">
+            <i class="bi bi-funnel text-2xl block mb-2"></i>
+            Aucune vue sauvegardée. Créez-en une pour filtrer vos tickets.
+        </div>
+    }
+    else
+    {
+        <div class="space-y-3">
+            @foreach (var view in _views.OrderBy(v => v.DisplayOrder).ThenBy(v => v.Name))
+            {
+                var v = view;
+                <div class="surface">
+                    @* En-tête de la vue *@
+                    <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                        <button class="flex-1 flex items-center gap-2 text-left"
+                                @onclick="() => ToggleView(v.Id)">
+                            <i class="bi @(_expandedViews.Contains(v.Id) ? "bi-chevron-down" : "bi-chevron-right") text-gray-400 text-xs"></i>
+                            <span class="text-sm font-semibold text-gray-800">@v.Name</span>
+                            @if (!string.IsNullOrEmpty(v.Description))
+                            {
+                                <span class="text-xs text-gray-400 truncate">— @v.Description</span>
+                            }
+                            @if (_viewTickets.TryGetValue(v.Id, out var cachedTickets))
+                            {
+                                <span class="badge badge-gray shrink-0">@cachedTickets.Count</span>
+                            }
+                        </button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button class="icon-btn @(v.IsVisibleOnHome ? "text-blue-600" : "text-gray-300")"
+                                    title="@(v.IsVisibleOnHome ? "Masquer de l'accueil" : "Afficher sur l'accueil")"
+                                    @onclick="() => ToggleVisibilityAsync(v)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                                    title="Modifier"
+                                    @onclick="() => ShowEditView(v)">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="icon-btn text-gray-400 hover:text-red-600"
+                                    title="Supprimer"
+                                    @onclick="() => DeleteViewAsync(v)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Corps expandable *@
+                    @if (_expandedViews.Contains(v.Id))
+                    {
+                        @if (_viewLoading.Contains(v.Id))
+                        {
+                            <div class="p-4"><LoadingSpinner /></div>
+                        }
+                        else if (_viewTickets.TryGetValue(v.Id, out var tickets))
+                        {
+                            @if (tickets.Count == 0)
+                            {
+                                <div class="py-8 text-center text-gray-400 text-sm">
+                                    <i class="bi bi-inbox text-2xl block mb-1"></i>
+                                    Aucun ticket pour cette vue.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="divide-y divide-gray-50">
+                                    @foreach (var ticket in tickets)
+                                    {
+                                        var t = ticket;
+                                        var url = $"/tickets/{t.TicketRef}";
+                                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                             @onclick="() => Nav.NavigateTo(url)">
+                                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                                            <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
+                                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                                            <span class="flex items-center gap-1 shrink-0">
+                                                <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
+                                                <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
+                                            </span>
+                                            @if (t.DueDate.HasValue)
+                                            {
+                                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                                <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                                    @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<SavedViewFormModal Visible="_showViewModal"
+                    View="_editingView"
+                    Projects="_projects"
+                    OnClose="CloseViewModal"
+                    OnSaved="SaveViewAsync" />
+
 @code {
     private string? _displayName;
     private List<TicketDto>? _tickets;
@@ -138,6 +260,16 @@
     private bool _activityLoading = true;
     private string? _ticketsError;
     private string? _activityError;
+
+    // ── Vues sauvegardées ─────────────────────────────────────────────────────
+    private List<SavedViewDto> _views = [];
+    private List<ProjectSummaryDto> _projects = [];
+    private bool _viewsLoading = true;
+    private readonly HashSet<Guid> _expandedViews = [];
+    private readonly HashSet<Guid> _viewLoading = [];
+    private readonly Dictionary<Guid, List<TicketDto>> _viewTickets = [];
+    private bool _showViewModal;
+    private SavedViewDto? _editingView;
 
     protected override async Task OnInitializedAsync()
     {
@@ -157,7 +289,7 @@
         }
 
         UserProfile.OnChange += OnProfileChanged;
-        await Task.WhenAll(LoadTicketsAsync(), LoadActivityAsync());
+        await Task.WhenAll(LoadTicketsAsync(), LoadActivityAsync(), LoadViewsAsync());
     }
 
     private void OnProfileChanged()
@@ -180,6 +312,124 @@
         try { _activity = await ActivityApi.GetRecentAsync(20); }
         catch { _activityError = L["Error.Load"]; }
         finally { _activityLoading = false; }
+    }
+
+    // ── Vues sauvegardées ─────────────────────────────────────────────────────
+
+    private async Task LoadViewsAsync()
+    {
+        try
+        {
+            var viewsTask = SavedViewApi.GetAllAsync();
+            var projectsTask = ProjectApi.GetProjectsAsync();
+            await Task.WhenAll(viewsTask, projectsTask);
+            _views = viewsTask.Result ?? [];
+            _projects = projectsTask.Result ?? [];
+        }
+        catch { }
+        finally { _viewsLoading = false; }
+    }
+
+    private async Task ToggleView(Guid viewId)
+    {
+        if (_expandedViews.Contains(viewId))
+        {
+            _expandedViews.Remove(viewId);
+            return;
+        }
+        _expandedViews.Add(viewId);
+        if (!_viewTickets.ContainsKey(viewId))
+            await LoadViewTicketsAsync(viewId);
+    }
+
+    private async Task LoadViewTicketsAsync(Guid viewId)
+    {
+        _viewLoading.Add(viewId);
+        StateHasChanged();
+        try
+        {
+            var tickets = await SavedViewApi.ExecuteAsync(viewId);
+            _viewTickets[viewId] = tickets ?? [];
+        }
+        catch { _viewTickets[viewId] = []; }
+        finally { _viewLoading.Remove(viewId); }
+    }
+
+    private void ShowCreateView()
+    {
+        _editingView = null;
+        _showViewModal = true;
+    }
+
+    private void ShowEditView(SavedViewDto view)
+    {
+        _editingView = view;
+        _showViewModal = true;
+    }
+
+    private void CloseViewModal() => _showViewModal = false;
+
+    private async Task SaveViewAsync(SavedViewDto dto)
+    {
+        try
+        {
+            if (_editingView is null)
+            {
+                var created = await SavedViewApi.CreateAsync(new CreateSavedViewRequest(
+                    dto.Name, dto.Description, dto.IsVisibleOnHome, dto.DisplayOrder,
+                    dto.ProjectId, dto.StatusId, dto.SprintId,
+                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                if (created is not null) _views.Add(created);
+            }
+            else
+            {
+                var updated = await SavedViewApi.UpdateAsync(_editingView.Id, new UpdateSavedViewRequest(
+                    dto.Name, dto.Description, dto.IsVisibleOnHome, dto.DisplayOrder,
+                    dto.ProjectId, dto.StatusId, dto.SprintId,
+                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                if (updated is not null)
+                {
+                    var idx = _views.FindIndex(v => v.Id == _editingView.Id);
+                    if (idx >= 0) _views[idx] = updated;
+                    // Invalidate cached tickets so they reload on next expand
+                    _viewTickets.Remove(_editingView.Id);
+                }
+            }
+        }
+        catch { }
+        _showViewModal = false;
+    }
+
+    private async Task ToggleVisibilityAsync(SavedViewDto view)
+    {
+        try
+        {
+            var updated = await SavedViewApi.UpdateAsync(view.Id, new UpdateSavedViewRequest(
+                view.Name, view.Description, !view.IsVisibleOnHome, view.DisplayOrder,
+                view.ProjectId, view.StatusId, view.SprintId,
+                view.Type, view.Priority, view.StatusCategory,
+                view.OnlyAssignedToMe, view.OnlyReportedByMe));
+            if (updated is not null)
+            {
+                var idx = _views.FindIndex(v => v.Id == view.Id);
+                if (idx >= 0) _views[idx] = updated;
+            }
+        }
+        catch { }
+    }
+
+    private async Task DeleteViewAsync(SavedViewDto view)
+    {
+        try
+        {
+            await SavedViewApi.DeleteAsync(view.Id);
+            _views.RemoveAll(v => v.Id == view.Id);
+            _viewTickets.Remove(view.Id);
+            _expandedViews.Remove(view.Id);
+        }
+        catch { }
     }
 
     private static string PriorityBadge(CardPriority p) => p switch
