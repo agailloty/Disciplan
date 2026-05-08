@@ -190,6 +190,26 @@
   <data name="Settings.DisplayName.Placeholder" xml:space="preserve"><value>Your display name</value></data>
   <data name="Settings.DisplayName.Saved" xml:space="preserve"><value>Name updated.</value></data>
   <data name="Settings.DisplayName.Error" xml:space="preserve"><value>Failed to update display name. Please try again.</value></data>
+  <data name="Settings.Tab.Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Settings.Tab.Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Settings.Dashboard.Hint" xml:space="preserve"><value>Reorder and toggle the visibility of your dashboard widgets.</value></data>
+  <data name="Settings.Dashboard.Empty" xml:space="preserve"><value>No widgets configured.</value></data>
+  <data name="Settings.Dashboard.Hide" xml:space="preserve"><value>Hide</value></data>
+  <data name="Settings.Dashboard.Show" xml:space="preserve"><value>Show</value></data>
+
+  <!-- ── Saved views ────────────────────────────────────────────────────────── -->
+  <data name="SavedView.Label" xml:space="preserve"><value>View</value></data>
+  <data name="SavedView.CreateTitle" xml:space="preserve"><value>New view</value></data>
+  <data name="SavedView.EditTitle" xml:space="preserve"><value>Edit view</value></data>
+  <data name="SavedView.Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="SavedView.AllProjects" xml:space="preserve"><value>All projects</value></data>
+  <data name="SavedView.AllTypes" xml:space="preserve"><value>All types</value></data>
+  <data name="SavedView.AllPriorities" xml:space="preserve"><value>All priorities</value></data>
+  <data name="SavedView.StatusCategory" xml:space="preserve"><value>Status category</value></data>
+  <data name="SavedView.AllCategories" xml:space="preserve"><value>All categories</value></data>
+  <data name="SavedView.OnlyAssignedToMe" xml:space="preserve"><value>Only assigned to me</value></data>
+  <data name="SavedView.OnlyReportedByMe" xml:space="preserve"><value>Only reported by me</value></data>
+  <data name="SavedView.NameRequired" xml:space="preserve"><value>Name is required.</value></data>
 
   <!-- ── Table columns ────────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>New column</value></data>
@@ -215,6 +235,10 @@
   <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket created</value></data>
   <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket updated</value></data>
   <data name="Home.Activity.Commented" xml:space="preserve"><value>Comment added</value></data>
+  <data name="Home.Configure" xml:space="preserve"><value>Configure</value></data>
+  <data name="Home.NoDashboardWidgets" xml:space="preserve"><value>No visible widgets.</value></data>
+  <data name="Home.ConfigureDashboard" xml:space="preserve"><value>Configure dashboard</value></data>
+  <data name="Home.NoViewTickets" xml:space="preserve"><value>No tickets for this view.</value></data>
 
   <!-- ── My Tickets ────────────────────────────────────────────────────────── -->
   <data name="MyTickets.Title" xml:space="preserve"><value>My tickets</value></data>

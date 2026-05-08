@@ -25,12 +25,12 @@
     <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
                    @(_tab == "profile" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
             @onclick='() => _tab = "profile"'>
-        <i class="bi bi-person-circle mr-1.5"></i>Profil
+        <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.Tab.Profile"]
     </button>
     <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
                    @(_tab == "dashboard" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
             @onclick='() => _tab = "dashboard"'>
-        <i class="bi bi-layout-wtf mr-1.5"></i>Tableau de bord
+        <i class="bi bi-layout-wtf mr-1.5"></i>@L["Settings.Tab.Dashboard"]
     </button>
 </div>
 
@@ -106,9 +106,9 @@
 {
     <div class="max-w-2xl">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-xs text-gray-500">Ordonnez et affichez les widgets de votre tableau de bord.</p>
+            <p class="text-xs text-gray-500">@L["Settings.Dashboard.Hint"]</p>
             <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
-                <i class="bi bi-plus me-1"></i> Nouvelle vue
+                <i class="bi bi-plus me-1"></i> @L["SavedView.CreateTitle"]
             </button>
         </div>
 
@@ -120,7 +120,7 @@
         {
             <div class="surface py-10 text-center text-gray-400 text-sm">
                 <i class="bi bi-layout-wtf text-2xl block mb-2"></i>
-                Aucun widget configuré.
+                @L["Settings.Dashboard.Empty"]
             </div>
         }
         else
@@ -156,7 +156,7 @@
 
                         @* Visibility toggle *@
                         <button class="icon-btn shrink-0 @(w.Visible ? "text-blue-600" : "text-gray-300")"
-                                title="@(w.Visible ? "Masquer" : "Afficher")"
+                                title="@(w.Visible ? L["Settings.Dashboard.Hide"].Value : L["Settings.Dashboard.Show"].Value)"
                                 @onclick="() => ToggleVisible(idx)">
                             <i class="bi bi-eye"></i>
                         </button>
@@ -166,12 +166,12 @@
                         {
                             var svRef = sv;
                             <button class="icon-btn text-gray-400 hover:text-gray-700 shrink-0"
-                                    title="Modifier"
+                                    title="@L["Edit"]"
                                     @onclick="() => ShowEditView(svRef)">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="icon-btn text-gray-400 hover:text-red-600 shrink-0"
-                                    title="Supprimer"
+                                    title="@L["Delete"]"
                                     @onclick="() => DeleteViewAsync(w, svRef.Id)">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -340,9 +340,9 @@
 
     private string DashWidgetLabel(DashboardWidget w) => w.Kind switch
     {
-        "my_tickets"      => "Mes tickets",
-        "recent_activity" => "Activité récente",
-        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : "Vue",
+        "my_tickets"      => L["Home.MyTickets"],
+        "recent_activity" => L["Home.Activity"],
+        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : L["SavedView.Label"],
         _                 => w.Kind
     };
 

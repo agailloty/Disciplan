@@ -188,6 +188,26 @@
   <data name="Settings.DisplayName.Placeholder" xml:space="preserve"><value>Votre nom d'affichage</value></data>
   <data name="Settings.DisplayName.Saved" xml:space="preserve"><value>Nom mis à jour.</value></data>
   <data name="Settings.DisplayName.Error" xml:space="preserve"><value>Impossible de mettre à jour le nom d'affichage. Veuillez réessayer.</value></data>
+  <data name="Settings.Tab.Profile" xml:space="preserve"><value>Profil</value></data>
+  <data name="Settings.Tab.Dashboard" xml:space="preserve"><value>Tableau de bord</value></data>
+  <data name="Settings.Dashboard.Hint" xml:space="preserve"><value>Ordonnez et affichez les widgets de votre tableau de bord.</value></data>
+  <data name="Settings.Dashboard.Empty" xml:space="preserve"><value>Aucun widget configuré.</value></data>
+  <data name="Settings.Dashboard.Hide" xml:space="preserve"><value>Masquer</value></data>
+  <data name="Settings.Dashboard.Show" xml:space="preserve"><value>Afficher</value></data>
+
+  <!-- ── Vues sauvegardées ──────────────────────────────────────────────────── -->
+  <data name="SavedView.Label" xml:space="preserve"><value>Vue</value></data>
+  <data name="SavedView.CreateTitle" xml:space="preserve"><value>Nouvelle vue</value></data>
+  <data name="SavedView.EditTitle" xml:space="preserve"><value>Modifier la vue</value></data>
+  <data name="SavedView.Filters" xml:space="preserve"><value>Filtres</value></data>
+  <data name="SavedView.AllProjects" xml:space="preserve"><value>Tous les projets</value></data>
+  <data name="SavedView.AllTypes" xml:space="preserve"><value>Tous les types</value></data>
+  <data name="SavedView.AllPriorities" xml:space="preserve"><value>Toutes les priorités</value></data>
+  <data name="SavedView.StatusCategory" xml:space="preserve"><value>Catégorie de statut</value></data>
+  <data name="SavedView.AllCategories" xml:space="preserve"><value>Toutes les catégories</value></data>
+  <data name="SavedView.OnlyAssignedToMe" xml:space="preserve"><value>Uniquement assignés à moi</value></data>
+  <data name="SavedView.OnlyReportedByMe" xml:space="preserve"><value>Uniquement créés par moi</value></data>
+  <data name="SavedView.NameRequired" xml:space="preserve"><value>Le nom est requis.</value></data>
 
   <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>Nouvelle colonne</value></data>
@@ -213,6 +233,10 @@
   <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket créé</value></data>
   <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket modifié</value></data>
   <data name="Home.Activity.Commented" xml:space="preserve"><value>Commentaire ajouté</value></data>
+  <data name="Home.Configure" xml:space="preserve"><value>Configurer</value></data>
+  <data name="Home.NoDashboardWidgets" xml:space="preserve"><value>Aucun widget visible.</value></data>
+  <data name="Home.ConfigureDashboard" xml:space="preserve"><value>Configurer le tableau de bord</value></data>
+  <data name="Home.NoViewTickets" xml:space="preserve"><value>Aucun ticket pour cette vue.</value></data>
 
   <!-- ── Mes tickets ──────────────────────────────────────────────────────── -->
   <data name="MyTickets.Title" xml:space="preserve"><value>Mes tickets</value></data>

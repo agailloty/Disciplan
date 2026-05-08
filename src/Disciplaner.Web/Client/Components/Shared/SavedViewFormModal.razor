@@ -3,32 +3,32 @@
 @using Disciplaner.Domain.Enums
 @inject IStringLocalizer<AppResources> L
 
-<Modal Title="@(View is null ? "Nouvelle vue" : "Modifier la vue")" Visible="Visible" OnClose="OnClose">
+<Modal Title="@(View is null ? L["SavedView.CreateTitle"].Value : L["SavedView.EditTitle"].Value)" Visible="Visible" OnClose="OnClose">
     <EditForm Model="_form" OnValidSubmit="SubmitAsync">
         <DataAnnotationsValidator />
 
         @* ── Nom ── *@
         <div class="mb-4">
-            <label class="form-label">Nom <span class="text-red-500">*</span></label>
+            <label class="form-label">@L["Name"] <span class="text-red-500">*</span></label>
             <input type="text" class="form-input" @bind="_form.Name" @bind:event="oninput" maxlength="100" />
         </div>
 
         @* ── Description ── *@
         <div class="mb-4">
-            <label class="form-label">Description</label>
+            <label class="form-label">@L["Description"]</label>
             <textarea class="form-textarea" rows="2" @bind="_form.Description" maxlength="500"></textarea>
         </div>
 
         <hr class="border-gray-100 my-4" />
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Filtres</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">@L["SavedView.Filters"]</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             @* ── Projet ── *@
             <div>
-                <label class="form-label">Projet</label>
+                <label class="form-label">@L["Col.Project"]</label>
                 <select class="form-select" @bind="_form.ProjectId">
-                    <option value="">Tous les projets</option>
+                    <option value="">@L["SavedView.AllProjects"]</option>
                     @foreach (var p in Projects)
                     {
                         <option value="@p.Id">@p.Name (@p.Key)</option>
@@ -38,9 +38,9 @@
 
             @* ── Type ── *@
             <div>
-                <label class="form-label">Type</label>
+                <label class="form-label">@L["Type"]</label>
                 <select class="form-select" @bind="_form.Type">
-                    <option value="">Tous les types</option>
+                    <option value="">@L["SavedView.AllTypes"]</option>
                     @foreach (var t in Enum.GetValues<TicketType>())
                     {
                         <option value="@t">@t</option>
@@ -50,9 +50,9 @@
 
             @* ── Priorité ── *@
             <div>
-                <label class="form-label">Priorité</label>
+                <label class="form-label">@L["Priority"]</label>
                 <select class="form-select" @bind="_form.Priority">
-                    <option value="">Toutes les priorités</option>
+                    <option value="">@L["SavedView.AllPriorities"]</option>
                     @foreach (var p in Enum.GetValues<CardPriority>())
                     {
                         <option value="@p">@p</option>
@@ -62,9 +62,9 @@
 
             @* ── Catégorie de statut ── *@
             <div>
-                <label class="form-label">Catégorie de statut</label>
+                <label class="form-label">@L["SavedView.StatusCategory"]</label>
                 <select class="form-select" @bind="_form.StatusCategory">
-                    <option value="">Toutes les catégories</option>
+                    <option value="">@L["SavedView.AllCategories"]</option>
                     @foreach (var c in Enum.GetValues<StatusCategory>())
                     {
                         <option value="@c">@c</option>
@@ -77,11 +77,11 @@
         <div class="mt-4 space-y-2">
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="sv-assignedme" @bind="_form.OnlyAssignedToMe" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
-                <label for="sv-assignedme" class="form-label mb-0">Uniquement assignés à moi</label>
+                <label for="sv-assignedme" class="form-label mb-0">@L["SavedView.OnlyAssignedToMe"]</label>
             </div>
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="sv-reportedme" @bind="_form.OnlyReportedByMe" class="h-4 w-4 rounded border-gray-300 text-blue-600" />
-                <label for="sv-reportedme" class="form-label mb-0">Uniquement créés par moi</label>
+                <label for="sv-reportedme" class="form-label mb-0">@L["SavedView.OnlyReportedByMe"]</label>
             </div>
         </div>
 
@@ -91,10 +91,10 @@
         }
 
         <div class="flex justify-end gap-2 mt-6">
-            <button type="button" class="btn btn-secondary" @onclick="OnClose">Annuler</button>
+            <button type="button" class="btn btn-secondary" @onclick="OnClose">@L["Cancel"]</button>
             <button type="submit" class="btn btn-primary" disabled="@_saving">
                 @if (_saving) { <i class="bi bi-arrow-repeat animate-spin me-1"></i> }
-                @(View is null ? "Créer" : "Enregistrer")
+                @(View is null ? L["Create"].Value : L["Save"].Value)
             </button>
         </div>
     </EditForm>
@@ -140,7 +140,7 @@
     {
         if (string.IsNullOrWhiteSpace(_form.Name))
         {
-            _error = "Le nom est requis.";
+            _error = L["SavedView.NameRequired"];
             return;
         }
 

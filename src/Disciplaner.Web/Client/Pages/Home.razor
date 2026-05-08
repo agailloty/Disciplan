@@ -25,7 +25,7 @@
         <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
     </div>
     <a href="/settings?tab=dashboard" class="text-xs text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1">
-        <i class="bi bi-sliders"></i> Configurer
+        <i class="bi bi-sliders"></i> @L["Home.Configure"]
     </a>
 </div>
 
@@ -37,7 +37,7 @@ else if (!_widgets.Any(w => w.Visible))
 {
     <div class="surface py-12 text-center text-gray-400 text-sm">
         <i class="bi bi-layout-wtf text-3xl block mb-2"></i>
-        Aucun widget visible. <a href="/settings?tab=dashboard" class="text-blue-600">Configurer le tableau de bord →</a>
+        @L["Home.NoDashboardWidgets"] <a href="/settings?tab=dashboard" class="text-blue-600">@L["Home.ConfigureDashboard"] →</a>
     </div>
 }
 else
@@ -178,7 +178,7 @@ else
                             {
                                 <div class="py-8 text-center text-gray-400 text-sm">
                                     <i class="bi bi-inbox text-2xl block mb-1"></i>
-                                    Aucun ticket pour cette vue.
+                                    @L["Home.NoViewTickets"]
                                 </div>
                             }
                             else
@@ -334,7 +334,7 @@ else
     {
         "my_tickets"      => L["Home.MyTickets"],
         "recent_activity" => L["Home.Activity"],
-        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : "Vue",
+        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : L["SavedView.Label"],
         _                 => w.Kind
     };
 
