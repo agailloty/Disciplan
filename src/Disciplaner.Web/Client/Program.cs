@@ -50,6 +50,7 @@ builder.Services.AddScoped<LabelApiClient>();
 builder.Services.AddScoped<SavedViewApiClient>();
 builder.Services.AddScoped<KanbanDragState>();
 builder.Services.AddScoped<UserProfileService>();
+builder.Services.AddScoped<DashboardConfigService>();
 
 // ── Localization ──────────────────────────────────────────────────────────────
 builder.Services.AddLocalization();

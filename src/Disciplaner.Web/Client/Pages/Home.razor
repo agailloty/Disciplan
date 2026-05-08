@@ -4,7 +4,7 @@
 @inject TicketApiClient TicketApi
 @inject ActivityApiClient ActivityApi
 @inject SavedViewApiClient SavedViewApi
-@inject ProjectApiClient ProjectApi
+@inject DashboardConfigService DashConfig
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserProfileService UserProfile
 @inject NavigationManager Nav
@@ -14,197 +14,167 @@
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Application.DTOs.Activity
 @using Disciplaner.Application.DTOs.SavedView
-@using Disciplaner.Application.DTOs.Project
 @using Disciplaner.Domain.Enums
+@using Disciplaner.Web.Client.Models
 
 <PageTitle>@L["Nav.Home"] — Disciplaner</PageTitle>
 
-<div class="mb-6">
-    <h1 class="text-2xl font-semibold text-gray-900">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
-    <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
+        <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
+    </div>
+    <a href="/settings?tab=dashboard" class="text-xs text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1">
+        <i class="bi bi-sliders"></i> Configurer
+    </a>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+@if (_dashboardLoading)
+{
+    <LoadingSpinner />
+}
+else if (!_widgets.Any(w => w.Visible))
+{
+    <div class="surface py-12 text-center text-gray-400 text-sm">
+        <i class="bi bi-layout-wtf text-3xl block mb-2"></i>
+        Aucun widget visible. <a href="/settings?tab=dashboard" class="text-blue-600">Configurer le tableau de bord →</a>
+    </div>
+}
+else
+{
+    <div class="space-y-4">
+        @foreach (var widget in _widgets.Where(w => w.Visible))
+        {
+            var w = widget;
+            var wKey = DashboardConfigService.WidgetKey(w);
 
-    @* ── Mes tickets ────────────────────────────────────────── *@
-    <div class="lg:col-span-2">
-        <div class="surface">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <span class="text-sm font-semibold text-gray-800">@L["Home.MyTickets"]</span>
-                <a href="/my-tickets" class="text-xs text-blue-600 hover:text-blue-800 transition-colors">@L["Home.ViewAll"] →</a>
-            </div>
-
-            @if (_ticketsLoading)
-            {
-                <LoadingSpinner />
-            }
-            else if (_ticketsError is not null)
-            {
-                <div class="p-4"><ErrorAlert Message="@_ticketsError" /></div>
-            }
-            else if (_tickets is null || _tickets.Count == 0)
-            {
-                <div class="py-12 text-center text-gray-400 text-sm">
-                    <i class="bi bi-inbox text-3xl block mb-2"></i>
-                    @L["Home.NoTickets"]
-                </div>
-            }
-            else
-            {
-                <div class="divide-y divide-gray-50">
-                    @foreach (var ticket in _tickets.Take(7))
+            <div class="surface">
+                @* ── En-tête ── *@
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                    <button class="flex-1 flex items-center gap-2 text-left"
+                            @onclick="() => ToggleWidget(wKey)">
+                        <i class="bi @(_expanded.Contains(wKey) ? "bi-chevron-down" : "bi-chevron-right") text-gray-400 text-xs shrink-0"></i>
+                        <i class="bi @WidgetIcon(w) text-gray-500 text-sm shrink-0"></i>
+                        <span class="text-sm font-semibold text-gray-800">@WidgetLabel(w)</span>
+                        @if (w.Kind == "my_tickets" && _tickets is not null)
+                        {
+                            <span class="badge badge-gray shrink-0">@_tickets.Count</span>
+                        }
+                        @if (w.Kind == "saved_view" && w.ViewId.HasValue && _viewTickets.TryGetValue(w.ViewId.Value, out var ct))
+                        {
+                            <span class="badge badge-gray shrink-0">@ct.Count</span>
+                        }
+                    </button>
+                    @if (w.Kind == "my_tickets")
                     {
-                        var t = ticket;
-                        var ticketUrl = $"/tickets/{t.TicketRef}";
-                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
-                             @onclick="() => Nav.NavigateTo(ticketUrl)">
-                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
-                            <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
-                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
-                            <span class="flex items-center gap-1 shrink-0">
-                                <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
-                                <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
-                            </span>
-                            @if (t.DueDate.HasValue)
-                            {
-                                var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
-                                    @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
-                                </span>
-                            }
-                        </div>
+                        <a href="/my-tickets" class="text-xs text-blue-600 hover:text-blue-800 shrink-0 transition-colors"
+                           @onclick:stopPropagation>@L["Home.ViewAll"] →</a>
                     }
                 </div>
-            }
-        </div>
-    </div>
 
-    @* ── Activité récente ─────────────────────────────────────── *@
-    <div class="lg:col-span-3">
-        <div class="surface">
-            <div class="px-4 py-3 border-b border-gray-100">
-                <span class="text-sm font-semibold text-gray-800">@L["Home.Activity"]</span>
-            </div>
-
-            <div class="overflow-y-auto" style="max-height:520px">
-                @if (_activityLoading)
+                @* ── Corps ── *@
+                @if (_expanded.Contains(wKey))
                 {
-                    <LoadingSpinner />
-                }
-                else if (_activityError is not null)
-                {
-                    <div class="p-4"><ErrorAlert Message="@_activityError" /></div>
-                }
-                else if (_activity is null || _activity.Count == 0)
-                {
-                    <div class="py-12 text-center text-gray-400 text-sm">
-                        <i class="bi bi-calendar-x text-3xl block mb-2"></i>
-                        @L["Home.NoActivity"]
-                    </div>
-                }
-                else
-                {
-                    <div class="divide-y divide-gray-50">
-                        @foreach (var item in _activity)
-                        {
-                            var a = item;
-                            <div class="flex items-start gap-3 px-4 py-3">
-                                <span class="mt-0.5 shrink-0 @ActivityIconColor(a.Kind)">
-                                    <i class="bi @ActivityIcon(a.Kind) text-sm"></i>
-                                </span>
-                                <div class="flex-1 min-w-0">
-                                    <div class="text-xs font-semibold text-gray-700">@ActivityLabel(a.Kind)</div>
-                                    <div class="text-xs text-gray-500 truncate">@a.Summary</div>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    @if (a.TicketRef is not null && a.TicketId.HasValue)
-                                    {
-                                        <a href="/tickets/@a.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">
-                                            @a.TicketRef
-                                        </a>
-                                    }
-                                    <div class="text-gray-400" style="font-size:.68rem;margin-top:.1rem">@RelativeTime(a.OccurredAt)</div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-@* ── Vues sauvegardées ──────────────────────────────────────────────────────── *@
-<div class="mt-8">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-base font-semibold text-gray-800">Vues sauvegardées</h2>
-        <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
-            <i class="bi bi-plus me-1"></i> Nouvelle vue
-        </button>
-    </div>
-
-    @if (_viewsLoading)
-    {
-        <LoadingSpinner />
-    }
-    else if (_views.Count == 0)
-    {
-        <div class="surface py-10 text-center text-gray-400 text-sm">
-            <i class="bi bi-funnel text-2xl block mb-2"></i>
-            Aucune vue sauvegardée. Créez-en une pour filtrer vos tickets.
-        </div>
-    }
-    else
-    {
-        <div class="space-y-3">
-            @foreach (var view in _views.OrderBy(v => v.DisplayOrder).ThenBy(v => v.Name))
-            {
-                var v = view;
-                <div class="surface">
-                    @* En-tête de la vue *@
-                    <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-                        <button class="flex-1 flex items-center gap-2 text-left"
-                                @onclick="() => ToggleView(v.Id)">
-                            <i class="bi @(_expandedViews.Contains(v.Id) ? "bi-chevron-down" : "bi-chevron-right") text-gray-400 text-xs"></i>
-                            <span class="text-sm font-semibold text-gray-800">@v.Name</span>
-                            @if (!string.IsNullOrEmpty(v.Description))
-                            {
-                                <span class="text-xs text-gray-400 truncate">— @v.Description</span>
-                            }
-                            @if (_viewTickets.TryGetValue(v.Id, out var cachedTickets))
-                            {
-                                <span class="badge badge-gray shrink-0">@cachedTickets.Count</span>
-                            }
-                        </button>
-                        <div class="flex items-center gap-1 shrink-0">
-                            <button class="icon-btn @(v.IsVisibleOnHome ? "text-blue-600" : "text-gray-300")"
-                                    title="@(v.IsVisibleOnHome ? "Masquer de l'accueil" : "Afficher sur l'accueil")"
-                                    @onclick="() => ToggleVisibilityAsync(v)">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="icon-btn text-gray-400 hover:text-gray-700"
-                                    title="Modifier"
-                                    @onclick="() => ShowEditView(v)">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="icon-btn text-gray-400 hover:text-red-600"
-                                    title="Supprimer"
-                                    @onclick="() => DeleteViewAsync(v)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    @* Corps expandable *@
-                    @if (_expandedViews.Contains(v.Id))
+                    @if (w.Kind == "my_tickets")
                     {
-                        @if (_viewLoading.Contains(v.Id))
+                        @if (_ticketsLoading)
                         {
                             <div class="p-4"><LoadingSpinner /></div>
                         }
-                        else if (_viewTickets.TryGetValue(v.Id, out var tickets))
+                        else if (_ticketsError is not null)
                         {
-                            @if (tickets.Count == 0)
+                            <div class="p-4"><ErrorAlert Message="@_ticketsError" /></div>
+                        }
+                        else if (_tickets is null || _tickets.Count == 0)
+                        {
+                            <div class="py-10 text-center text-gray-400 text-sm">
+                                <i class="bi bi-inbox text-2xl block mb-1"></i>
+                                @L["Home.NoTickets"]
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="divide-y divide-gray-50">
+                                @foreach (var ticket in _tickets.Take(7))
+                                {
+                                    var t = ticket;
+                                    var ticketUrl = "/tickets/" + t.TicketRef;
+                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                         @onclick="() => Nav.NavigateTo(ticketUrl)">
+                                        <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
+                                        <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                                        <span class="flex items-center gap-1 shrink-0">
+                                            <span class="w-2 h-2 rounded-full inline-block" style="background:@t.Status.Color"></span>
+                                            <span class="text-xs text-gray-500 hidden sm:block">@t.Status.Name</span>
+                                        </span>
+                                        @if (t.DueDate.HasValue)
+                                        {
+                                            var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
+                                            <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                                @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (w.Kind == "recent_activity")
+                    {
+                        <div class="overflow-y-auto" style="max-height:420px">
+                            @if (_activityLoading)
+                            {
+                                <div class="p-4"><LoadingSpinner /></div>
+                            }
+                            else if (_activityError is not null)
+                            {
+                                <div class="p-4"><ErrorAlert Message="@_activityError" /></div>
+                            }
+                            else if (_activity is null || _activity.Count == 0)
+                            {
+                                <div class="py-10 text-center text-gray-400 text-sm">
+                                    <i class="bi bi-calendar-x text-2xl block mb-1"></i>
+                                    @L["Home.NoActivity"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="divide-y divide-gray-50">
+                                    @foreach (var item in _activity)
+                                    {
+                                        var a = item;
+                                        <div class="flex items-start gap-3 px-4 py-3">
+                                            <span class="mt-0.5 shrink-0 @ActivityIconColor(a.Kind)">
+                                                <i class="bi @ActivityIcon(a.Kind) text-sm"></i>
+                                            </span>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-xs font-semibold text-gray-700">@ActivityLabel(a.Kind)</div>
+                                                <div class="text-xs text-gray-500 truncate">@a.Summary</div>
+                                            </div>
+                                            <div class="text-right shrink-0">
+                                                @if (a.TicketRef is not null && a.TicketId.HasValue)
+                                                {
+                                                    <a href="/tickets/@a.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">@a.TicketRef</a>
+                                                }
+                                                <div class="text-gray-400" style="font-size:.68rem;margin-top:.1rem">@RelativeTime(a.OccurredAt)</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (w.Kind == "saved_view" && w.ViewId.HasValue)
+                    {
+                        var viewId = w.ViewId.Value;
+                        @if (_viewLoading.Contains(viewId))
+                        {
+                            <div class="p-4"><LoadingSpinner /></div>
+                        }
+                        else if (_viewTickets.TryGetValue(viewId, out var svTickets))
+                        {
+                            @if (svTickets.Count == 0)
                             {
                                 <div class="py-8 text-center text-gray-400 text-sm">
                                     <i class="bi bi-inbox text-2xl block mb-1"></i>
@@ -214,12 +184,12 @@
                             else
                             {
                                 <div class="divide-y divide-gray-50">
-                                    @foreach (var ticket in tickets)
+                                    @foreach (var ticket in svTickets)
                                     {
                                         var t = ticket;
-                                        var url = $"/tickets/{t.TicketRef}";
+                                        var svTicketUrl = "/tickets/" + t.TicketRef;
                                         <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
-                                             @onclick="() => Nav.NavigateTo(url)">
+                                             @onclick="() => Nav.NavigateTo(svTicketUrl)">
                                             <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                             <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
                                             <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
@@ -240,20 +210,16 @@
                             }
                         }
                     }
-                </div>
-            }
-        </div>
-    }
-</div>
-
-<SavedViewFormModal Visible="_showViewModal"
-                    View="_editingView"
-                    Projects="_projects"
-                    OnClose="CloseViewModal"
-                    OnSaved="SaveViewAsync" />
+                }
+            </div>
+        }
+    </div>
+}
 
 @code {
     private string? _displayName;
+
+    // ── Built-in widget data ───────────────────────────────────────────────────
     private List<TicketDto>? _tickets;
     private List<ActivityItemDto>? _activity;
     private bool _ticketsLoading = true;
@@ -261,19 +227,18 @@
     private string? _ticketsError;
     private string? _activityError;
 
-    // ── Vues sauvegardées ─────────────────────────────────────────────────────
-    private List<SavedViewDto> _views = [];
-    private List<ProjectSummaryDto> _projects = [];
-    private bool _viewsLoading = true;
-    private readonly HashSet<Guid> _expandedViews = [];
+    // ── Dashboard config ───────────────────────────────────────────────────────
+    private List<DashboardWidget> _widgets = [];
+    private Dictionary<Guid, SavedViewDto> _savedViewsById = [];
+    private bool _dashboardLoading = true;
+    private readonly HashSet<string> _expanded = [];
+
+    // ── Saved view tickets (lazy) ──────────────────────────────────────────────
     private readonly HashSet<Guid> _viewLoading = [];
     private readonly Dictionary<Guid, List<TicketDto>> _viewTickets = [];
-    private bool _showViewModal;
-    private SavedViewDto? _editingView;
 
     protected override async Task OnInitializedAsync()
     {
-        // Prefer the in-session cache (updated without token refresh)
         if (UserProfile.DisplayName is not null)
         {
             _displayName = UserProfile.DisplayName;
@@ -289,7 +254,30 @@
         }
 
         UserProfile.OnChange += OnProfileChanged;
-        await Task.WhenAll(LoadTicketsAsync(), LoadActivityAsync(), LoadViewsAsync());
+        _ = LoadTicketsAsync();
+        _ = LoadActivityAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var storedTask = DashConfig.LoadAsync();
+        var viewsTask  = SavedViewApi.GetAllAsync();
+        await Task.WhenAll(storedTask, viewsTask);
+
+        var stored = storedTask.Result;
+        var views  = viewsTask.Result ?? [];
+
+        _savedViewsById = views.ToDictionary(v => v.Id);
+        _widgets = DashboardConfigService.Merge(stored, views.Select(v => v.Id));
+        await DashConfig.SaveAsync(_widgets);
+
+        _expanded.Add("my_tickets");
+        _expanded.Add("recent_activity");
+
+        _dashboardLoading = false;
+        StateHasChanged();
     }
 
     private void OnProfileChanged()
@@ -304,42 +292,27 @@
     {
         try { _tickets = await TicketApi.GetAssignedToMeAsync(); }
         catch { _ticketsError = L["Error.Load"]; }
-        finally { _ticketsLoading = false; }
+        finally { _ticketsLoading = false; StateHasChanged(); }
     }
 
     private async Task LoadActivityAsync()
     {
         try { _activity = await ActivityApi.GetRecentAsync(20); }
         catch { _activityError = L["Error.Load"]; }
-        finally { _activityLoading = false; }
+        finally { _activityLoading = false; StateHasChanged(); }
     }
 
-    // ── Vues sauvegardées ─────────────────────────────────────────────────────
-
-    private async Task LoadViewsAsync()
+    private async Task ToggleWidget(string key)
     {
-        try
-        {
-            var viewsTask = SavedViewApi.GetAllAsync();
-            var projectsTask = ProjectApi.GetProjectsAsync();
-            await Task.WhenAll(viewsTask, projectsTask);
-            _views = viewsTask.Result ?? [];
-            _projects = projectsTask.Result ?? [];
-        }
-        catch { }
-        finally { _viewsLoading = false; }
-    }
+        if (_expanded.Contains(key)) { _expanded.Remove(key); return; }
+        _expanded.Add(key);
 
-    private async Task ToggleView(Guid viewId)
-    {
-        if (_expandedViews.Contains(viewId))
+        if (key.StartsWith("saved_view:", StringComparison.Ordinal))
         {
-            _expandedViews.Remove(viewId);
-            return;
+            var viewId = Guid.Parse(key["saved_view:".Length..]);
+            if (!_viewTickets.ContainsKey(viewId))
+                await LoadViewTicketsAsync(viewId);
         }
-        _expandedViews.Add(viewId);
-        if (!_viewTickets.ContainsKey(viewId))
-            await LoadViewTicketsAsync(viewId);
     }
 
     private async Task LoadViewTicketsAsync(Guid viewId)
@@ -355,82 +328,22 @@
         finally { _viewLoading.Remove(viewId); }
     }
 
-    private void ShowCreateView()
-    {
-        _editingView = null;
-        _showViewModal = true;
-    }
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
-    private void ShowEditView(SavedViewDto view)
+    private string WidgetLabel(DashboardWidget w) => w.Kind switch
     {
-        _editingView = view;
-        _showViewModal = true;
-    }
+        "my_tickets"      => L["Home.MyTickets"],
+        "recent_activity" => L["Home.Activity"],
+        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : "Vue",
+        _                 => w.Kind
+    };
 
-    private void CloseViewModal() => _showViewModal = false;
-
-    private async Task SaveViewAsync(SavedViewDto dto)
+    private static string WidgetIcon(DashboardWidget w) => w.Kind switch
     {
-        try
-        {
-            if (_editingView is null)
-            {
-                var created = await SavedViewApi.CreateAsync(new CreateSavedViewRequest(
-                    dto.Name, dto.Description, dto.IsVisibleOnHome, dto.DisplayOrder,
-                    dto.ProjectId, dto.StatusId, dto.SprintId,
-                    dto.Type, dto.Priority, dto.StatusCategory,
-                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
-                if (created is not null) _views.Add(created);
-            }
-            else
-            {
-                var updated = await SavedViewApi.UpdateAsync(_editingView.Id, new UpdateSavedViewRequest(
-                    dto.Name, dto.Description, dto.IsVisibleOnHome, dto.DisplayOrder,
-                    dto.ProjectId, dto.StatusId, dto.SprintId,
-                    dto.Type, dto.Priority, dto.StatusCategory,
-                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
-                if (updated is not null)
-                {
-                    var idx = _views.FindIndex(v => v.Id == _editingView.Id);
-                    if (idx >= 0) _views[idx] = updated;
-                    // Invalidate cached tickets so they reload on next expand
-                    _viewTickets.Remove(_editingView.Id);
-                }
-            }
-        }
-        catch { }
-        _showViewModal = false;
-    }
-
-    private async Task ToggleVisibilityAsync(SavedViewDto view)
-    {
-        try
-        {
-            var updated = await SavedViewApi.UpdateAsync(view.Id, new UpdateSavedViewRequest(
-                view.Name, view.Description, !view.IsVisibleOnHome, view.DisplayOrder,
-                view.ProjectId, view.StatusId, view.SprintId,
-                view.Type, view.Priority, view.StatusCategory,
-                view.OnlyAssignedToMe, view.OnlyReportedByMe));
-            if (updated is not null)
-            {
-                var idx = _views.FindIndex(v => v.Id == view.Id);
-                if (idx >= 0) _views[idx] = updated;
-            }
-        }
-        catch { }
-    }
-
-    private async Task DeleteViewAsync(SavedViewDto view)
-    {
-        try
-        {
-            await SavedViewApi.DeleteAsync(view.Id);
-            _views.RemoveAll(v => v.Id == view.Id);
-            _viewTickets.Remove(view.Id);
-            _expandedViews.Remove(view.Id);
-        }
-        catch { }
-    }
+        "my_tickets"      => "bi-ticket-detailed",
+        "recent_activity" => "bi-clock-history",
+        _                 => "bi-funnel"
+    };
 
     private static string PriorityBadge(CardPriority p) => p switch
     {
@@ -448,6 +361,7 @@
         "comment_added"  => "bi-chat-left-fill",
         _                => "bi-activity"
     };
+
     private static string ActivityIconColor(string kind) => kind switch
     {
         "ticket_created" => "text-green-500",
@@ -455,6 +369,7 @@
         "comment_added"  => "text-blue-500",
         _                => "text-gray-400"
     };
+
     private string ActivityLabel(string kind) => kind switch
     {
         "ticket_created" => L["Home.Activity.Created"],
@@ -462,6 +377,7 @@
         "comment_added"  => L["Home.Activity.Commented"],
         _                => kind
     };
+
     private string RelativeTime(DateTime utc)
     {
         var diff = DateTime.UtcNow - utc;

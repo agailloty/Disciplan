@@ -4,9 +4,15 @@
 @inject NavigationManager Nav
 @inject UserApiClient UserApi
 @inject UserProfileService UserProfile
+@inject SavedViewApiClient SavedViewApi
+@inject ProjectApiClient ProjectApi
+@inject DashboardConfigService DashConfig
 @inject IStringLocalizer<AppResources> L
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using Disciplaner.Application.DTOs.SavedView
+@using Disciplaner.Application.DTOs.Project
+@using Disciplaner.Web.Client.Models
 
 <PageTitle>@L["Settings.Title"] — Disciplaner</PageTitle>
 
@@ -14,68 +20,174 @@
     <h1 class="page-title">@L["Settings.Title"]</h1>
 </div>
 
-@* ── Display name ────────────────────────────────────────────────────────────── *@
-<div class="surface max-w-md mb-6">
-    <div class="px-4 py-3 border-b border-gray-100">
-        <span class="text-sm font-semibold text-gray-800">
-            <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.DisplayName"]
-        </span>
-    </div>
-    <div class="p-4">
-        <p class="text-xs text-gray-400 mb-3">@L["Settings.DisplayName.Hint"]</p>
-        <div class="flex gap-2 items-start">
-            <div class="flex-1">
-                <input type="text"
-                       class="form-input"
-                       placeholder="@L["Settings.DisplayName.Placeholder"]"
-                       @bind="_displayName"
-                       @bind:event="oninput"
-                       maxlength="100" />
-                @if (_nameError is not null)
-                {
-                    <p class="text-xs text-red-500 mt-1">@_nameError</p>
-                }
-                @if (_nameSaved)
-                {
-                    <p class="text-xs text-green-600 mt-1"><i class="bi bi-check2 mr-1"></i>@L["Settings.DisplayName.Saved"]</p>
-                }
-            </div>
-            <button class="btn btn-primary shrink-0"
-                    @onclick="SaveDisplayNameAsync"
-                    disabled="@(_nameBusy || string.IsNullOrWhiteSpace(_displayName))">
-                @(_nameBusy ? "…" : L["Save"].Value)
-            </button>
-        </div>
-    </div>
+@* ── Tab bar ──────────────────────────────────────────────────────────────────── *@
+<div class="flex gap-1 mb-6 border-b border-gray-200">
+    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
+                   @(_tab == "profile" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+            @onclick='() => _tab = "profile"'>
+        <i class="bi bi-person-circle mr-1.5"></i>Profil
+    </button>
+    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
+                   @(_tab == "dashboard" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+            @onclick='() => _tab = "dashboard"'>
+        <i class="bi bi-layout-wtf mr-1.5"></i>Tableau de bord
+    </button>
 </div>
 
-@* ── Language ─────────────────────────────────────────────────────────────────── *@
-<div class="surface max-w-md">
-    <div class="px-4 py-3 border-b border-gray-100">
-        <span class="text-sm font-semibold text-gray-800">
-            <i class="bi bi-translate mr-1.5"></i>@L["Settings.Language"]
-        </span>
+@* ── Profile tab ──────────────────────────────────────────────────────────────── *@
+@if (_tab == "profile")
+{
+    @* ── Display name ────────────────────────────────────────────────────────── *@
+    <div class="surface max-w-md mb-6">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <span class="text-sm font-semibold text-gray-800">
+                <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.DisplayName"]
+            </span>
+        </div>
+        <div class="p-4">
+            <p class="text-xs text-gray-400 mb-3">@L["Settings.DisplayName.Hint"]</p>
+            <div class="flex gap-2 items-start">
+                <div class="flex-1">
+                    <input type="text"
+                           class="form-input"
+                           placeholder="@L["Settings.DisplayName.Placeholder"]"
+                           @bind="_displayName"
+                           @bind:event="oninput"
+                           maxlength="100" />
+                    @if (_nameError is not null)
+                    {
+                        <p class="text-xs text-red-500 mt-1">@_nameError</p>
+                    }
+                    @if (_nameSaved)
+                    {
+                        <p class="text-xs text-green-600 mt-1"><i class="bi bi-check2 mr-1"></i>@L["Settings.DisplayName.Saved"]</p>
+                    }
+                </div>
+                <button class="btn btn-primary shrink-0"
+                        @onclick="SaveDisplayNameAsync"
+                        disabled="@(_nameBusy || string.IsNullOrWhiteSpace(_displayName))">
+                    @(_nameBusy ? "…" : L["Save"].Value)
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="p-4 flex flex-col gap-2">
-        @foreach (var (code, flag, label) in _langs)
-        {
-            var c = code;
-            <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full
-                           @(_current == c ? "border-gray-900 bg-gray-50 shadow-sm" : "border-gray-200 hover:bg-gray-50")"
-                    @onclick="() => SetCultureAsync(c)">
-                <span class="text-xl">@flag</span>
-                <span class="text-sm font-medium text-gray-800 flex-1">@label</span>
-                @if (_current == c)
-                {
-                    <i class="bi bi-check2 text-gray-900 font-bold text-base"></i>
-                }
+
+    @* ── Language ─────────────────────────────────────────────────────────────── *@
+    <div class="surface max-w-md">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <span class="text-sm font-semibold text-gray-800">
+                <i class="bi bi-translate mr-1.5"></i>@L["Settings.Language"]
+            </span>
+        </div>
+        <div class="p-4 flex flex-col gap-2">
+            @foreach (var (code, flag, label) in _langs)
+            {
+                var c = code;
+                <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full
+                               @(_current == c ? "border-gray-900 bg-gray-50 shadow-sm" : "border-gray-200 hover:bg-gray-50")"
+                        @onclick="() => SetCultureAsync(c)">
+                    <span class="text-xl">@flag</span>
+                    <span class="text-sm font-medium text-gray-800 flex-1">@label</span>
+                    @if (_current == c)
+                    {
+                        <i class="bi bi-check2 text-gray-900 font-bold text-base"></i>
+                    }
+                </button>
+            }
+        </div>
+        <p class="px-4 pb-4 text-xs text-gray-400">
+            <i class="bi bi-info-circle mr-1"></i>@L["Settings.Language.Hint"]
+        </p>
+    </div>
+}
+
+@* ── Dashboard tab ────────────────────────────────────────────────────────────── *@
+@if (_tab == "dashboard")
+{
+    <div class="max-w-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-xs text-gray-500">Ordonnez et affichez les widgets de votre tableau de bord.</p>
+            <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
+                <i class="bi bi-plus me-1"></i> Nouvelle vue
             </button>
+        </div>
+
+        @if (!_dashLoaded)
+        {
+            <LoadingSpinner />
+        }
+        else if (_widgets.Count == 0)
+        {
+            <div class="surface py-10 text-center text-gray-400 text-sm">
+                <i class="bi bi-layout-wtf text-2xl block mb-2"></i>
+                Aucun widget configuré.
+            </div>
+        }
+        else
+        {
+            <div class="surface divide-y divide-gray-100">
+                @for (int i = 0; i < _widgets.Count; i++)
+                {
+                    var idx = i;
+                    var w = _widgets[i];
+                    <div class="flex items-center gap-3 px-4 py-3 @(w.Visible ? "" : "opacity-50")">
+
+                        @* Kind icon *@
+                        <span class="text-gray-400 shrink-0">
+                            <i class="bi @DashWidgetIcon(w)"></i>
+                        </span>
+
+                        @* Label *@
+                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@DashWidgetLabel(w)</span>
+
+                        @* Move up / down *@
+                        <div class="flex gap-0.5 shrink-0">
+                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                                    disabled="@(idx == 0)"
+                                    @onclick="() => MoveWidget(idx, -1)">
+                                <i class="bi bi-chevron-up text-xs"></i>
+                            </button>
+                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                                    disabled="@(idx == _widgets.Count - 1)"
+                                    @onclick="() => MoveWidget(idx, 1)">
+                                <i class="bi bi-chevron-down text-xs"></i>
+                            </button>
+                        </div>
+
+                        @* Visibility toggle *@
+                        <button class="icon-btn shrink-0 @(w.Visible ? "text-blue-600" : "text-gray-300")"
+                                title="@(w.Visible ? "Masquer" : "Afficher")"
+                                @onclick="() => ToggleVisible(idx)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        @* Edit / delete (only for saved_view) *@
+                        @if (w.Kind == "saved_view" && w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var sv))
+                        {
+                            var svRef = sv;
+                            <button class="icon-btn text-gray-400 hover:text-gray-700 shrink-0"
+                                    title="Modifier"
+                                    @onclick="() => ShowEditView(svRef)">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="icon-btn text-gray-400 hover:text-red-600 shrink-0"
+                                    title="Supprimer"
+                                    @onclick="() => DeleteViewAsync(w, svRef.Id)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
         }
     </div>
-    <p class="px-4 pb-4 text-xs text-gray-400">
-        <i class="bi bi-info-circle mr-1"></i>@L["Settings.Language.Hint"]
-    </p>
-</div>
+
+    <SavedViewFormModal Visible="_showViewModal"
+                        View="_editingView"
+                        Projects="_projects"
+                        OnClose="CloseViewModal"
+                        OnSaved="SaveViewAsync" />
+}
 
 @code {
     private static readonly (string code, string flag, string label)[] _langs =
@@ -84,6 +196,7 @@
         ("en", "🇬🇧", "English"),
     ];
 
+    private string _tab = "profile";
     private string _current = "fr";
 
     // ── Display name ──────────────────────────────────────────────────────────
@@ -92,25 +205,155 @@
     private bool _nameSaved;
     private string? _nameError;
 
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+    private List<DashboardWidget> _widgets = [];
+    private Dictionary<Guid, SavedViewDto> _savedViewsById = [];
+    private List<ProjectSummaryDto> _projects = [];
+    private bool _dashLoaded;
+    private bool _showViewModal;
+    private SavedViewDto? _editingView;
+
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+
+        _current = await JS.InvokeAsync<string>("blazorCulture.get") ?? "fr";
+
+        if (AuthState is not null)
         {
-            _current = await JS.InvokeAsync<string>("blazorCulture.get") ?? "fr";
-
-            if (AuthState is not null)
-            {
-                var state = await AuthState;
-                _displayName = state.User.FindFirst("displayName")?.Value
-                    ?? state.User.FindFirst(ClaimTypes.Name)?.Value
-                    ?? string.Empty;
-            }
-
-            StateHasChanged();
+            var state = await AuthState;
+            _displayName = state.User.FindFirst("displayName")?.Value
+                ?? state.User.FindFirst(ClaimTypes.Name)?.Value
+                ?? string.Empty;
         }
+
+        // Check for ?tab=dashboard query param
+        var uri = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        if (query["tab"] == "dashboard")
+            _tab = "dashboard";
+
+        await LoadDashboardAsync();
+
+        StateHasChanged();
     }
+
+    private async Task LoadDashboardAsync()
+    {
+        var storedTask  = DashConfig.LoadAsync();
+        var viewsTask   = SavedViewApi.GetAllAsync();
+        var projectTask = ProjectApi.GetProjectsAsync();
+        await Task.WhenAll(storedTask, viewsTask, projectTask);
+
+        var views = viewsTask.Result ?? [];
+        _savedViewsById = views.ToDictionary(v => v.Id);
+        _widgets = DashboardConfigService.Merge(storedTask.Result, views.Select(v => v.Id));
+        await DashConfig.SaveAsync(_widgets);
+
+        _projects = projectTask.Result ?? [];
+        _dashLoaded = true;
+    }
+
+    // ── Dashboard widget actions ──────────────────────────────────────────────
+
+    private async Task MoveWidget(int index, int direction)
+    {
+        var target = index + direction;
+        if (target < 0 || target >= _widgets.Count) return;
+        (_widgets[index], _widgets[target]) = (_widgets[target], _widgets[index]);
+        // Normalize orders
+        for (int i = 0; i < _widgets.Count; i++)
+            _widgets[i] = _widgets[i] with { Order = i * 10 };
+        await DashConfig.SaveAsync(_widgets);
+    }
+
+    private async Task ToggleVisible(int index)
+    {
+        _widgets[index] = _widgets[index] with { Visible = !_widgets[index].Visible };
+        await DashConfig.SaveAsync(_widgets);
+    }
+
+    private void ShowCreateView()
+    {
+        _editingView = null;
+        _showViewModal = true;
+    }
+
+    private void ShowEditView(SavedViewDto view)
+    {
+        _editingView = view;
+        _showViewModal = true;
+    }
+
+    private void CloseViewModal() => _showViewModal = false;
+
+    private async Task SaveViewAsync(SavedViewDto dto)
+    {
+        try
+        {
+            if (_editingView is null)
+            {
+                var created = await SavedViewApi.CreateAsync(new CreateSavedViewRequest(
+                    dto.Name, dto.Description, true, 0,
+                    dto.ProjectId, dto.StatusId, dto.SprintId,
+                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                if (created is not null)
+                {
+                    _savedViewsById[created.Id] = created;
+                    var newOrder = _widgets.Count > 0 ? _widgets.Max(w => w.Order) + 10 : 0;
+                    var newWidget = new DashboardWidget("saved_view", created.Id, newOrder, true);
+                    _widgets.Add(newWidget);
+                    await DashConfig.SaveAsync(_widgets);
+                }
+            }
+            else
+            {
+                var updated = await SavedViewApi.UpdateAsync(_editingView.Id, new UpdateSavedViewRequest(
+                    dto.Name, dto.Description, _editingView.IsVisibleOnHome, _editingView.DisplayOrder,
+                    dto.ProjectId, dto.StatusId, dto.SprintId,
+                    dto.Type, dto.Priority, dto.StatusCategory,
+                    dto.OnlyAssignedToMe, dto.OnlyReportedByMe));
+                if (updated is not null)
+                    _savedViewsById[updated.Id] = updated;
+            }
+        }
+        catch { }
+        _showViewModal = false;
+    }
+
+    private async Task DeleteViewAsync(DashboardWidget w, Guid viewId)
+    {
+        try
+        {
+            await SavedViewApi.DeleteAsync(viewId);
+            _savedViewsById.Remove(viewId);
+            _widgets.RemoveAll(x => x.Kind == "saved_view" && x.ViewId == viewId);
+            await DashConfig.SaveAsync(_widgets);
+        }
+        catch { }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private string DashWidgetLabel(DashboardWidget w) => w.Kind switch
+    {
+        "my_tickets"      => "Mes tickets",
+        "recent_activity" => "Activité récente",
+        "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : "Vue",
+        _                 => w.Kind
+    };
+
+    private static string DashWidgetIcon(DashboardWidget w) => w.Kind switch
+    {
+        "my_tickets"      => "bi-ticket-detailed",
+        "recent_activity" => "bi-clock-history",
+        _                 => "bi-funnel"
+    };
+
+    // ── Profile actions ───────────────────────────────────────────────────────
 
     private async Task SaveDisplayNameAsync()
     {
