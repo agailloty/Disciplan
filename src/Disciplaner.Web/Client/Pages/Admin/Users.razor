@@ -3,20 +3,21 @@
 @inject AdminApiClient AdminApi
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> L
 @using Disciplaner.Application.DTOs.Auth
 @using Disciplaner.Application.DTOs.User
 @using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Gestion des utilisateurs — Disciplaner</PageTitle>
+<PageTitle>@L["Admin.Users.Title"] — Disciplaner</PageTitle>
 
 <div class="mb-6 flex items-center justify-between">
-    <h1 class="page-title">Gestion des utilisateurs</h1>
+    <h1 class="page-title">@L["Admin.Users.Title"]</h1>
     <div class="flex gap-2">
         <button class="btn btn-secondary" @onclick="ShowInviteModal">
-            <i class="bi bi-envelope me-1"></i> Inviter
+            <i class="bi bi-envelope me-1"></i> @L["Admin.Users.Invite"]
         </button>
         <button class="btn btn-primary" @onclick="ShowCreateModal">
-            <i class="bi bi-person-plus me-1"></i> Créer un utilisateur
+            <i class="bi bi-person-plus me-1"></i> @L["Admin.Users.Create"]
         </button>
     </div>
 </div>
@@ -39,12 +40,12 @@ else
     <div class="surface mb-8">
         <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <span class="text-sm font-semibold text-gray-800">
-                <i class="bi bi-people mr-1.5"></i>Utilisateurs (@_users.Count)
+                <i class="bi bi-people mr-1.5"></i>@string.Format(L["Admin.Users.HeadingCount"].Value, _users.Count)
             </span>
         </div>
         @if (_users.Count == 0)
         {
-            <div class="py-10 text-center text-gray-400 text-sm">Aucun utilisateur.</div>
+            <div class="py-10 text-center text-gray-400 text-sm">@L["Admin.Users.Empty"]</div>
         }
         else
         {
@@ -67,13 +68,13 @@ else
                             }
                         </div>
                         <div class="text-xs text-gray-400 shrink-0 hidden sm:block">
-                            Créé le @u.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                            @L["Admin.Users.CreatedOn"] @u.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
                         </div>
                         <div class="flex gap-1 shrink-0">
                             @if (u.IsActive)
                             {
                                 <button class="icon-btn text-gray-400 hover:text-orange-600"
-                                        title="Désactiver"
+                                        title="@L["Admin.Users.Deactivate"]"
                                         @onclick="() => DeactivateAsync(u)">
                                     <i class="bi bi-person-slash"></i>
                                 </button>
@@ -97,7 +98,7 @@ else
                             else
                             {
                                 <button class="icon-btn text-gray-400 hover:text-gray-600"
-                                        title="Rétrograder en User"
+                                        title="@L["Admin.Users.DemoteUser"]"
                                         @onclick="() => ChangeRoleAsync(u, RoleUser)">
                                     <i class="bi bi-shield-minus"></i>
                                 </button>
@@ -113,12 +114,12 @@ else
     <div class="surface">
         <div class="px-4 py-3 border-b border-gray-100">
             <span class="text-sm font-semibold text-gray-800">
-                <i class="bi bi-envelope-open mr-1.5"></i>Invitations actives (@_invitations.Count)
+                <i class="bi bi-envelope-open mr-1.5"></i>@string.Format(L["Admin.Invitations.Heading"].Value, _invitations.Count)
             </span>
         </div>
         @if (_invitations.Count == 0)
         {
-            <div class="py-8 text-center text-gray-400 text-sm">Aucune invitation en attente.</div>
+            <div class="py-8 text-center text-gray-400 text-sm">@L["Admin.Invitations.Empty"]</div>
         }
         else
         {
@@ -129,11 +130,11 @@ else
                     <div class="flex items-center gap-3 px-4 py-3">
                         <i class="bi bi-envelope text-gray-400 shrink-0"></i>
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium text-gray-900">@(i.Email ?? "Lien ouvert")</div>
-                            <div class="text-xs text-gray-400">Expire le @i.ExpiresAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                            <div class="text-sm font-medium text-gray-900">@(i.Email ?? L["Admin.Invite.OpenLink"].Value)</div>
+                            <div class="text-xs text-gray-400">@L["Admin.Invite.ExpiresOn"] @i.ExpiresAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
                         </div>
                         <button class="icon-btn text-gray-400 hover:text-blue-600"
-                                title="Copier le lien"
+                                title="@L["Admin.Invite.CopyLink"]"
                                 @onclick="() => CopyInviteLinkAsync(i.Token)">
                             <i class="bi bi-link-45deg"></i>
                         </button>
@@ -150,7 +151,7 @@ else
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @onclick="CloseModals">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" @onclick:stopPropagation>
             <h2 class="text-base font-semibold text-gray-900 mb-4">
-                <i class="bi bi-person-plus mr-1.5"></i>Créer un utilisateur
+                <i class="bi bi-person-plus mr-1.5"></i>@L["Admin.Users.CreateTitle"]
             </h2>
             @if (_modalError is not null)
             {
@@ -159,31 +160,31 @@ else
             <EditForm Model="_createForm" OnValidSubmit="SubmitCreateUserAsync">
                 <DataAnnotationsValidator />
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
+                    <label class="form-label">@L["Auth.Email"]</label>
                     <InputText @bind-Value="_createForm.Email" class="form-input" type="email" />
                     <ValidationMessage For="() => _createForm.Email" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Nom d'affichage</label>
+                    <label class="form-label">@L["Admin.Users.DisplayName"]</label>
                     <InputText @bind-Value="_createForm.DisplayName" class="form-input" />
                     <ValidationMessage For="() => _createForm.DisplayName" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Mot de passe</label>
+                    <label class="form-label">@L["Auth.Password"]</label>
                     <InputText @bind-Value="_createForm.Password" class="form-input" type="password" />
                     <ValidationMessage For="() => _createForm.Password" />
                 </div>
                 <div class="mb-5">
-                    <label class="form-label">Rôle</label>
+                    <label class="form-label">@L["Admin.Users.Role"]</label>
                     <InputSelect @bind-Value="_createForm.Role" class="form-input">
-                        <option value="User">Utilisateur</option>
-                        <option value="Admin">Administrateur</option>
+                        <option value="User">@L["Admin.Users.RoleUser"]</option>
+                        <option value="Admin">@L["Admin.Users.RoleAdmin"]</option>
                     </InputSelect>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">Annuler</button>
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">@L["Cancel"]</button>
                     <button type="submit" class="btn btn-primary" disabled="@_modalBusy">
-                        @(_modalBusy ? "…" : "Créer")
+                        @(_modalBusy ? "…" : L["Create"].Value)
                     </button>
                 </div>
             </EditForm>
@@ -197,12 +198,9 @@ else
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @onclick="CloseModals">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" @onclick:stopPropagation>
             <h2 class="text-base font-semibold text-gray-900 mb-4">
-                <i class="bi bi-envelope mr-1.5"></i>Inviter un utilisateur
+                <i class="bi bi-envelope mr-1.5"></i>@L["Admin.Invite.Title"]
             </h2>
-            <p class="text-sm text-gray-500 mb-4">
-                Un lien d'invitation sera généré. Partagez-le avec la personne à inviter.
-                Le lien expire après 7 jours.
-            </p>
+            <p class="text-sm text-gray-500 mb-4">@L["Admin.Invite.Description"]</p>
             @if (_inviteLink is not null)
             {
                 <div class="flex gap-2 items-center mb-4">
@@ -212,7 +210,7 @@ else
                     </button>
                 </div>
                 <div class="flex justify-end">
-                    <button class="btn btn-secondary" @onclick="CloseModals">Fermer</button>
+                    <button class="btn btn-secondary" @onclick="CloseModals">@L["Close"]</button>
                 </div>
             }
             else
@@ -222,14 +220,14 @@ else
                     <div class="text-sm text-red-600 mb-3">@_modalError</div>
                 }
                 <div class="mb-4">
-                    <label class="form-label">Email (optionnel)</label>
-                    <input class="form-input" type="email" @bind="_inviteEmail" placeholder="prenom@exemple.com" />
-                    <p class="text-xs text-gray-400 mt-1">Si renseigné, l'invitation sera limitée à cette adresse.</p>
+                    <label class="form-label">@L["Admin.Invite.EmailLabel"]</label>
+                    <input class="form-input" type="email" @bind="_inviteEmail" placeholder="firstname@example.com" />
+                    <p class="text-xs text-gray-400 mt-1">@L["Admin.Invite.EmailHint"]</p>
                 </div>
                 <div class="flex gap-2 justify-end">
-                    <button class="btn btn-secondary" @onclick="CloseModals">Annuler</button>
+                    <button class="btn btn-secondary" @onclick="CloseModals">@L["Cancel"]</button>
                     <button class="btn btn-primary" @onclick="SubmitInviteAsync" disabled="@_modalBusy">
-                        @(_modalBusy ? "…" : "Générer le lien")
+                        @(_modalBusy ? "…" : L["Admin.Invite.Generate"].Value)
                     </button>
                 </div>
             }
@@ -281,7 +279,7 @@ else
             _users = usersTask.Result ?? [];
             _invitations = invitesTask.Result ?? [];
         }
-        catch { _error = "Erreur lors du chargement des données."; }
+        catch { _error = L["Error.Load"].Value; }
         finally { _loaded = true; }
     }
 

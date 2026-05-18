@@ -276,6 +276,30 @@
   <data name="Admin.Users.Title" xml:space="preserve"><value>Gestion des utilisateurs</value></data>
   <data name="Admin.Users.Heading" xml:space="preserve"><value>Utilisateurs</value></data>
   <data name="Admin.Users.Placeholder" xml:space="preserve"><value>Administration des comptes. À implémenter.</value></data>
+  <data name="Admin.Users.Invite" xml:space="preserve"><value>Inviter</value></data>
+  <data name="Admin.Users.Create" xml:space="preserve"><value>Créer un utilisateur</value></data>
+  <data name="Admin.Users.HeadingCount" xml:space="preserve"><value>Utilisateurs ({0})</value></data>
+  <data name="Admin.Users.Empty" xml:space="preserve"><value>Aucun utilisateur.</value></data>
+  <data name="Admin.Users.CreatedOn" xml:space="preserve"><value>Créé le</value></data>
+  <data name="Admin.Users.Deactivate" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="Admin.Users.Activate" xml:space="preserve"><value>Activer</value></data>
+  <data name="Admin.Users.PromoteAdmin" xml:space="preserve"><value>Promouvoir Admin</value></data>
+  <data name="Admin.Users.DemoteUser" xml:space="preserve"><value>Rétrograder en User</value></data>
+  <data name="Admin.Users.CreateTitle" xml:space="preserve"><value>Créer un utilisateur</value></data>
+  <data name="Admin.Users.DisplayName" xml:space="preserve"><value>Nom d'affichage</value></data>
+  <data name="Admin.Users.Role" xml:space="preserve"><value>Rôle</value></data>
+  <data name="Admin.Users.RoleUser" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="Admin.Users.RoleAdmin" xml:space="preserve"><value>Administrateur</value></data>
+  <data name="Admin.Invitations.Heading" xml:space="preserve"><value>Invitations actives ({0})</value></data>
+  <data name="Admin.Invitations.Empty" xml:space="preserve"><value>Aucune invitation en attente.</value></data>
+  <data name="Admin.Invite.OpenLink" xml:space="preserve"><value>Lien ouvert</value></data>
+  <data name="Admin.Invite.ExpiresOn" xml:space="preserve"><value>Expire le</value></data>
+  <data name="Admin.Invite.CopyLink" xml:space="preserve"><value>Copier le lien</value></data>
+  <data name="Admin.Invite.Title" xml:space="preserve"><value>Inviter un utilisateur</value></data>
+  <data name="Admin.Invite.Description" xml:space="preserve"><value>Un lien d'invitation sera généré. Partagez-le avec la personne à inviter. Le lien expire après 7 jours.</value></data>
+  <data name="Admin.Invite.EmailLabel" xml:space="preserve"><value>Email (optionnel)</value></data>
+  <data name="Admin.Invite.EmailHint" xml:space="preserve"><value>Si renseigné, l'invitation sera limitée à cette adresse.</value></data>
+  <data name="Admin.Invite.Generate" xml:space="preserve"><value>Générer le lien</value></data>
 
   <!-- ── Page introuvable ─────────────────────────────────────────────────────── -->
   <data name="NotFound.Title" xml:space="preserve"><value>Page introuvable</value></data>
