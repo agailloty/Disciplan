@@ -4,6 +4,7 @@
 @inject TicketApiClient TicketApi
 @inject ActivityApiClient ActivityApi
 @inject SavedViewApiClient SavedViewApi
+@inject SprintApiClient SprintApi
 @inject DashboardConfigService DashConfig
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserProfileService UserProfile
@@ -14,6 +15,7 @@
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Application.DTOs.Activity
 @using Disciplaner.Application.DTOs.SavedView
+@using Disciplaner.Application.DTOs.Sprint
 @using Disciplaner.Domain.Enums
 @using Disciplaner.Web.Client.Models
 
@@ -59,6 +61,10 @@ else
                         @if (w.Kind == "my_tickets" && _tickets is not null)
                         {
                             <span class="badge badge-gray shrink-0">@_tickets.Count</span>
+                        }
+                        @if (w.Kind == "active_sprints" && _activeSprints is not null)
+                        {
+                            <span class="badge badge-gray shrink-0">@_activeSprints.Count</span>
                         }
                         @if (w.Kind == "saved_view" && w.ViewId.HasValue && _viewTickets.TryGetValue(w.ViewId.Value, out var ct))
                         {
@@ -113,6 +119,50 @@ else
                                             var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
                                             <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
                                                 @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (w.Kind == "active_sprints")
+                    {
+                        @if (_activeSprintsLoading)
+                        {
+                            <div class="p-4"><LoadingSpinner /></div>
+                        }
+                        else if (_activeSprints is null || _activeSprints.Count == 0)
+                        {
+                            <div class="py-10 text-center text-gray-400 text-sm">
+                                <i class="bi bi-calendar-check text-2xl block mb-1"></i>
+                                @L["Sprint.NoneActive"]
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="divide-y divide-gray-50">
+                                @foreach (var sprint in _activeSprints)
+                                {
+                                    var sp = sprint;
+                                    var sprintUrl = $"/sprints/{sp.Id}";
+                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                         @onclick="() => Nav.NavigateTo(sprintUrl)">
+                                        @if (sp.ProjectKey is not null)
+                                        {
+                                            <span class="badge badge-dark font-mono shrink-0">@sp.ProjectKey</span>
+                                        }
+                                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@sp.Name</span>
+                                        @if (sp.ProjectName is not null)
+                                        {
+                                            <span class="text-xs text-gray-400 truncate hidden sm:block">@sp.ProjectName</span>
+                                        }
+                                        <span class="badge badge-gray shrink-0">@sp.TicketCount @L["Sprint.Tickets"]</span>
+                                        @if (sp.EndDate.HasValue)
+                                        {
+                                            var daysLeft = (int)(sp.EndDate.Value.ToUniversalTime() - DateTime.UtcNow).TotalDays;
+                                            <span class="text-xs shrink-0 @(daysLeft < 3 ? "text-red-600 font-semibold" : "text-gray-400")">
+                                                @sp.EndDate.Value.ToLocalTime().ToString("dd/MM")
                                             </span>
                                         }
                                     </div>
@@ -227,8 +277,10 @@ else
     // ── Built-in widget data ───────────────────────────────────────────────────
     private List<TicketDto>? _tickets;
     private List<TicketActivityGroupDto>? _activityGroups;
+    private List<SprintDto>? _activeSprints;
     private bool _ticketsLoading = true;
     private bool _activityLoading = true;
+    private bool _activeSprintsLoading = true;
     private string? _ticketsError;
     private string? _activityError;
 
@@ -261,6 +313,7 @@ else
         UserProfile.OnChange += OnProfileChanged;
         _ = LoadTicketsAsync();
         _ = LoadActivityAsync();
+        _ = LoadActiveSprintsAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -279,6 +332,7 @@ else
         await DashConfig.SaveAsync(_widgets);
 
         _expanded.Add("my_tickets");
+        _expanded.Add("active_sprints");
         _expanded.Add("recent_activity");
 
         // Expand saved views that are not collapsed by default, and pre-load their tickets
@@ -331,6 +385,13 @@ else
         }
     }
 
+    private async Task LoadActiveSprintsAsync()
+    {
+        try { _activeSprints = await SprintApi.GetActiveForUserAsync(); }
+        catch { _activeSprints = []; }
+        finally { _activeSprintsLoading = false; StateHasChanged(); }
+    }
+
     private async Task LoadViewTicketsAsync(Guid viewId)
     {
         _viewLoading.Add(viewId);
@@ -353,6 +414,7 @@ else
     private string WidgetLabel(DashboardWidget w) => w.Kind switch
     {
         "my_tickets"      => L["Home.MyTickets"],
+        "active_sprints"  => L["Sprint.MySprints"],
         "recent_activity" => L["Home.Activity"],
         "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : L["SavedView.Label"],
         _                 => w.Kind
@@ -361,6 +423,7 @@ else
     private static string WidgetIcon(DashboardWidget w) => w.Kind switch
     {
         "my_tickets"      => "bi-ticket-detailed",
+        "active_sprints"  => "bi-lightning-charge",
         "recent_activity" => "bi-clock-history",
         _                 => "bi-funnel"
     };

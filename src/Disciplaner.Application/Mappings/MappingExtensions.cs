@@ -71,8 +71,8 @@ internal static class MappingExtensions
     internal static TicketStatusDto ToDto(this TicketStatus s) =>
         new(s.Id, s.ProjectId, s.Name, s.Color, s.Order, s.Category);
 
-    internal static SprintDto ToDto(this Sprint s, int ticketCount) =>
-        new(s.Id, s.ProjectId, s.Name, s.Goal, s.Status, s.StartDate, s.EndDate, s.CreatedAt, ticketCount);
+    internal static SprintDto ToDto(this Sprint s, int ticketCount, string? projectName = null, string? projectKey = null) =>
+        new(s.Id, s.ProjectId, projectName, projectKey, s.Name, s.Goal, s.Status, s.StartDate, s.EndDate, s.CreatedAt, ticketCount);
 
     internal static ProjectSummaryDto ToSummaryDto(this Project p, int ticketCount, string requestingUserId) =>
         new(p.Id, p.Name, p.Description, p.Key, ticketCount, p.Sprints.Count, p.CreatedAt,

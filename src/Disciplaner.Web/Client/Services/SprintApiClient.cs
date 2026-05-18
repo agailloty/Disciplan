@@ -10,6 +10,12 @@ public sealed class SprintApiClient
     public SprintApiClient(IHttpClientFactory factory)
         => _http = factory.CreateClient("Api");
 
+    public Task<List<SprintDto>?> GetActiveForUserAsync(CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<SprintDto>>("/api/sprints/active", ct);
+
+    public Task<SprintDetailDto?> GetSprintAsync(Guid id, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<SprintDetailDto>($"/api/sprints/{id}", ct);
+
     public Task<List<SprintDto>?> GetByProjectAsync(Guid projectId, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<SprintDto>>($"/api/projects/{projectId}/sprints", ct);
 

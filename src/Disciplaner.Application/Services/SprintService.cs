@@ -1,4 +1,5 @@
 using Disciplaner.Application.DTOs.Sprint;
+using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.Exceptions;
 using Disciplaner.Application.Interfaces;
 using Disciplaner.Application.Mappings;
@@ -12,6 +13,49 @@ public sealed class SprintService : ISprintService
     private readonly IUnitOfWork _uow;
 
     public SprintService(IUnitOfWork uow) => _uow = uow;
+
+    public async Task<IReadOnlyList<SprintDto>> GetActiveForUserAsync(
+        string userId, CancellationToken cancellationToken = default)
+    {
+        var sprints = await _uow.Sprints.GetActiveForUserAsync(userId, cancellationToken);
+        var result = new List<SprintDto>(sprints.Count);
+        foreach (var s in sprints)
+        {
+            var project = await _uow.Projects.GetByIdAsync(s.ProjectId, cancellationToken);
+            var count = (await _uow.Tickets.GetBySprintIdAsync(s.Id, cancellationToken)).Count;
+            result.Add(s.ToDto(count, project?.Name, project?.Key));
+        }
+        return result.AsReadOnly();
+    }
+
+    public async Task<SprintDetailDto?> GetByIdAsync(
+        Guid sprintId, string requestingUserId, CancellationToken cancellationToken = default)
+    {
+        var sprint = await _uow.Sprints.GetByIdAsync(sprintId, cancellationToken);
+        if (sprint is null) return null;
+
+        var project = await _uow.Projects.GetByIdWithDetailsAsync(sprint.ProjectId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Project), sprint.ProjectId);
+        EnsureAccess(project, requestingUserId);
+
+        var statusDtos = project.Statuses
+            .OrderBy(s => s.Order)
+            .Select(s => new TicketStatusDto(s.Id, s.ProjectId, s.Name, s.Color, s.Order, s.Category))
+            .ToList().AsReadOnly() as IReadOnlyList<TicketStatusDto>;
+
+        return new SprintDetailDto(
+            sprint.Id,
+            sprint.ProjectId,
+            project.Name,
+            project.Key,
+            sprint.Name,
+            sprint.Goal,
+            sprint.Status,
+            sprint.StartDate,
+            sprint.EndDate,
+            sprint.CreatedAt,
+            statusDtos!);
+    }
 
     public async Task<IReadOnlyList<SprintDto>> GetByProjectAsync(
         Guid projectId, string requestingUserId, CancellationToken cancellationToken = default)
@@ -120,6 +164,12 @@ public sealed class SprintService : ISprintService
     {
         var project = await _uow.Projects.GetByIdWithMembersAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
+        if (!project.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
+    }
+
+    private static void EnsureAccess(Project project, string userId)
+    {
         if (!project.HasAccess(userId))
             throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
     }

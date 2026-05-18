@@ -45,6 +45,7 @@ public sealed class DashboardConfigService
     /// Merges stored config with current saved view IDs:
     /// - removes widgets referencing deleted views
     /// - appends new views not yet in config (visible by default, order at end)
+    /// - inserts any built-in widgets from Defaults() that are missing from stored config
     /// </summary>
     public static List<DashboardWidget> Merge(List<DashboardWidget> stored, IEnumerable<Guid> savedViewIds)
     {
@@ -53,6 +54,13 @@ public sealed class DashboardConfigService
         var result = stored
             .Where(w => w.Kind != "saved_view" || viewIds.Contains(w.ViewId!.Value))
             .ToList();
+
+        // Insert any built-in widgets that are missing (e.g. newly added defaults)
+        foreach (var def in Defaults())
+        {
+            if (!result.Any(w => w.Kind == def.Kind))
+                result.Add(def);
+        }
 
         var nextOrder = result.Count > 0 ? result.Max(w => w.Order) + 10 : 20;
 
@@ -70,7 +78,8 @@ public sealed class DashboardConfigService
 
     public static List<DashboardWidget> Defaults() =>
     [
-        new("my_tickets",     null, 0,  true),
+        new("my_tickets",      null, 0,  true),
+        new("active_sprints",  null, 5,  true),
         new("recent_activity", null, 10, true)
     ];
 

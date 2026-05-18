@@ -341,6 +341,7 @@
     private string DashWidgetLabel(DashboardWidget w) => w.Kind switch
     {
         "my_tickets"      => L["Home.MyTickets"],
+        "active_sprints"  => L["Sprint.MySprints"],
         "recent_activity" => L["Home.Activity"],
         "saved_view"      => w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var v) ? v.Name : L["SavedView.Label"],
         _                 => w.Kind
@@ -349,6 +350,7 @@
     private static string DashWidgetIcon(DashboardWidget w) => w.Kind switch
     {
         "my_tickets"      => "bi-ticket-detailed",
+        "active_sprints"  => "bi-lightning-charge",
         "recent_activity" => "bi-clock-history",
         _                 => "bi-funnel"
     };

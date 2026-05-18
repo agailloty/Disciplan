@@ -1,4 +1,5 @@
 using Disciplaner.Domain.Entities;
+using Disciplaner.Domain.Enums;
 using Disciplaner.Domain.Interfaces;
 using Disciplaner.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,15 @@ internal sealed class SprintRepository : ISprintRepository
         => await _context.Sprints
             .Where(s => s.ProjectId == projectId)
             .OrderBy(s => s.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Sprint>> GetActiveForUserAsync(string userId, CancellationToken cancellationToken = default)
+        => await _context.Sprints
+            .Where(s => s.Status == SprintStatus.Active
+                && _context.Projects
+                    .Where(p => p.Id == s.ProjectId)
+                    .Any(p => p.OwnerId == userId || p.Members.Any(m => m.UserId == userId)))
+            .OrderBy(s => s.StartDate)
             .ToListAsync(cancellationToken);
 
     public async Task AddAsync(Sprint sprint, CancellationToken cancellationToken = default)

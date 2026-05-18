@@ -146,6 +146,12 @@
   <data name="Sprint.CreateButton" xml:space="preserve"><value>Create sprint</value></data>
   <data name="Sprint.MoveToBacklog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Sprint.TicketCount" xml:space="preserve"><value>{0} tickets</value></data>
+  <data name="Sprint.MySprints" xml:space="preserve"><value>My active sprints</value></data>
+  <data name="Sprint.NoneActive" xml:space="preserve"><value>You are not participating in any active sprint.</value></data>
+  <data name="Sprint.Label" xml:space="preserve"><value>Sprint</value></data>
+  <data name="Sprint.Loading" xml:space="preserve"><value>Loading sprint…</value></data>
+  <data name="Sprint.NotFound" xml:space="preserve"><value>Sprint not found.</value></data>
+  <data name="Sprint.Tickets" xml:space="preserve"><value>tickets</value></data>
 
   <!-- ── Kanban cards ────────────────────────────────────────────────────────── -->
   <data name="Card.CreateTitle" xml:space="preserve"><value>New card</value></data>
