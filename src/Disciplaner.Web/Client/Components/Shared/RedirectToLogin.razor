@@ -1,9 +1,19 @@
 @inject NavigationManager Nav
+@inject AuthApiClient Auth
 
 @code {
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
+        // If no users exist, go to setup instead of login
+        var setupRequired = await Auth.IsSetupRequiredAsync();
+        if (setupRequired)
+        {
+            Nav.NavigateTo("/setup", replace: true);
+            return;
+        }
+
         var returnUrl = Uri.EscapeDataString(Nav.Uri);
         Nav.NavigateTo($"/login?returnUrl={returnUrl}", replace: true);
     }

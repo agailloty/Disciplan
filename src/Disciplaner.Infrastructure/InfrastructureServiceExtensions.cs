@@ -16,6 +16,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ICardRepository, CardRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<ISprintRepository, SprintRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();

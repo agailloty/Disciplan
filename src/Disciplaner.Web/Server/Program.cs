@@ -46,23 +46,8 @@ if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey)
         "Jwt:SecretKey must be at least 32 characters and must not be the placeholder value. " +
         "Set the environment variable Jwt__SecretKey=<your-secret>.");
 
-// Validate AdminSeed credentials early — prevents a cryptic Identity error at seeding time.
-// In production, supply these via environment variables:
-//   AdminSeed__Email=admin@example.com
-//   AdminSeed__Password=YourStr0ngPassword!
-var adminSeedEmail    = builder.Configuration["AdminSeed:Email"];
-var adminSeedPassword = builder.Configuration["AdminSeed:Password"];
-
-if (string.IsNullOrWhiteSpace(adminSeedEmail) || adminSeedEmail.Contains("REPLACE"))
-    throw new InvalidOperationException(
-        "AdminSeed:Email must be configured. " +
-        "Set the environment variable AdminSeed__Email=<your-admin-email>.");
-
-if (string.IsNullOrWhiteSpace(adminSeedPassword) || adminSeedPassword.Contains("REPLACE"))
-    throw new InvalidOperationException(
-        "AdminSeed:Password must be configured. " +
-        "Set the environment variable AdminSeed__Password=<your-admin-password>. " +
-        "The password must be at least 8 characters and contain uppercase, lowercase and a digit.");
+// AdminSeed credentials are optional — if absent or placeholder, the application enters
+// first-run mode and the /api/setup endpoint allows creating the first admin account.
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

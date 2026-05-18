@@ -37,6 +37,7 @@ builder.Services.AddHttpClient("Api", c => c.BaseAddress = new Uri(apiBase))
 
 // ── Application services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<AuthApiClient>();
+builder.Services.AddScoped<AdminApiClient>();
 builder.Services.AddScoped<BoardApiClient>();
 builder.Services.AddScoped<ColumnApiClient>();
 builder.Services.AddScoped<CardApiClient>();

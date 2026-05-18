@@ -1,24 +1,22 @@
-﻿@page "/login"
+@page "/setup"
 @layout AuthLayout
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
-@inject IStringLocalizer<AppResources> L
 
-@if (_checking)
-{
-    <LoadingSpinner />
-}
-else
-{
 <div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
     @* Logo *@
     <div class="text-center mb-8">
         <span style="font-size:2rem">&#9654;</span>
         <h1 class="text-xl font-semibold text-gray-900 mt-2">Disciplaner</h1>
-        <p class="text-sm text-gray-500 mt-1">@L["Auth.Subtitle"]</p>
+        <p class="text-sm text-gray-500 mt-1">Configuration initiale</p>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
+        <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg">
+            <i class="bi bi-shield-lock shrink-0"></i>
+            <span>Aucun compte n'existe encore. Créez le premier compte administrateur.</span>
+        </div>
+
         @if (_error is not null)
         {
             <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
@@ -27,62 +25,73 @@ else
             </div>
         }
 
-        <EditForm Model="_model" OnValidSubmit="HandleLoginAsync">
+        <EditForm Model="_model" OnValidSubmit="HandleSetupAsync">
             <DataAnnotationsValidator />
 
             <div class="mb-4">
-                <label class="form-label">@L["Auth.Email"]</label>
+                <label class="form-label">Email</label>
                 <InputText @bind-Value="_model.Email" class="form-input" type="email" autocomplete="email" />
                 <ValidationMessage For="() => _model.Email" />
             </div>
 
+            <div class="mb-4">
+                <label class="form-label">Nom d'affichage</label>
+                <InputText @bind-Value="_model.DisplayName" class="form-input" autocomplete="name" />
+                <ValidationMessage For="() => _model.DisplayName" />
+            </div>
+
             <div class="mb-6">
-                <label class="form-label">@L["Auth.Password"]</label>
-                <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="current-password" />
+                <label class="form-label">Mot de passe</label>
+                <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="new-password" />
                 <ValidationMessage For="() => _model.Password" />
+                <p class="text-xs text-gray-400 mt-1">Minimum 8 caractères, avec majuscule, minuscule et chiffre.</p>
             </div>
 
             <button type="submit" class="btn btn-primary btn-full" disabled="@_loading">
-                @(_loading ? L["Auth.Submitting"].Value : L["Auth.Submit"].Value)
+                @(_loading ? "Création en cours…" : "Créer le compte administrateur")
             </button>
         </EditForm>
     </div>
 </div>
-}
 
 @code {
-    private sealed class LoginForm
+    private sealed class SetupForm
     {
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(8)]
         public string Password { get; set; } = string.Empty;
     }
 
-    private readonly LoginForm _model = new();
+    private readonly SetupForm _model = new();
     private string? _error;
-    private bool _checking = true;
     private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
-        var setupRequired = await Auth.IsSetupRequiredAsync();
-        if (setupRequired)
-            Nav.NavigateTo("/setup", replace: true);
-        _checking = false;
+        // Redirect to login if setup is not required
+        var required = await Auth.IsSetupRequiredAsync();
+        if (!required)
+            Nav.NavigateTo("/login", replace: true);
     }
 
-    private async Task HandleLoginAsync()
+    private async Task HandleSetupAsync()
     {
         _loading = true;
         _error = null;
-        var (_, error) = await Auth.LoginAsync(new LoginRequest(_model.Email, _model.Password));
+        var (_, error) = await Auth.SetupAsync(
+            new Disciplaner.Application.DTOs.Auth.SetupRequest(_model.Email, _model.DisplayName, _model.Password));
         if (error is not null)
         {
-            _error = L["Auth.Error.Invalid"];
+            _error = error;
             _loading = false;
         }
         else
