@@ -20,6 +20,24 @@ public sealed class SprintsController : ControllerBase
         ?? User.FindFirstValue("sub")
         ?? throw new InvalidOperationException("User ID claim not found.");
 
+    [HttpGet("api/sprints/active")]
+    [ProducesResponseType(typeof(IReadOnlyList<SprintDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetActive(CancellationToken ct)
+        => Ok(await _sprints.GetActiveForUserAsync(UserId, ct));
+
+    [HttpGet("api/sprints/{id:guid}")]
+    [ProducesResponseType(typeof(SprintDetailDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var sprint = await _sprints.GetByIdAsync(id, UserId, ct);
+            return sprint is null ? NotFound() : Ok(sprint);
+        }
+        catch (ForbiddenException) { return Forbid(); }
+        catch (NotFoundException) { return NotFound(); }
+    }
+
     [HttpGet("api/projects/{projectId:guid}/sprints")]
     [ProducesResponseType(typeof(IReadOnlyList<SprintDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByProject(Guid projectId, CancellationToken ct)

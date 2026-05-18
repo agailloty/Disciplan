@@ -1,3 +1,4 @@
+using Disciplaner.Application.DTOs.Member;
 using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.DTOs.Sprint;
 using Disciplaner.Domain.Enums;
@@ -15,5 +16,7 @@ public sealed record ProjectDetailDto(
     IReadOnlyList<TicketStatusDto> Statuses,
     IReadOnlyList<SprintDto> Sprints,
     TicketType DefaultTicketType,
-    DefaultAssigneePolicy DefaultAssigneePolicy
+    DefaultAssigneePolicy DefaultAssigneePolicy,
+    IReadOnlyList<MemberDto> Members,
+    MemberRole RequestingUserRole
 );

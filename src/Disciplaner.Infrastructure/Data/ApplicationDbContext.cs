@@ -21,6 +21,9 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Label> Labels => Set<Label>();
     public DbSet<SavedView> SavedViews => Set<SavedView>();
     public DbSet<TicketHistory> TicketHistories => Set<TicketHistory>();
+    public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
+    public DbSet<BoardMember> BoardMembers => Set<BoardMember>();
+    public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

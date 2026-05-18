@@ -60,6 +60,7 @@
   <data name="Nav.Projects" xml:space="preserve"><value>Projects</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>My tickets</value></data>
   <data name="Nav.Labels" xml:space="preserve"><value>Labels</value></data>
+  <data name="Nav.Admin" xml:space="preserve"><value>Admin</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Sign out</value></data>
 
   <!-- ── Authentication ──────────────────────────────────────────────────── -->
@@ -80,6 +81,9 @@
   <data name="Board.Description" xml:space="preserve"><value>Description (optional)</value></data>
   <data name="Board.Delete.Title" xml:space="preserve"><value>Delete board</value></data>
   <data name="Board.Delete.Confirm" xml:space="preserve"><value>Delete "{0}"? All columns and cards will be lost.</value></data>
+  <data name="Board.Delete.Warning" xml:space="preserve"><value>This action is irreversible. All columns, cards, and data will be deleted.</value></data>
+  <data name="Board.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Board.GeneralInfo" xml:space="preserve"><value>General</value></data>
   <data name="Board.ColumnCount" xml:space="preserve"><value>{0} col.</value></data>
     <data name="Board.AddCard" xml:space="preserve"><value>Add a card</value></data>
 
@@ -142,6 +146,12 @@
   <data name="Sprint.CreateButton" xml:space="preserve"><value>Create sprint</value></data>
   <data name="Sprint.MoveToBacklog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Sprint.TicketCount" xml:space="preserve"><value>{0} tickets</value></data>
+  <data name="Sprint.MySprints" xml:space="preserve"><value>My active sprints</value></data>
+  <data name="Sprint.NoneActive" xml:space="preserve"><value>You are not participating in any active sprint.</value></data>
+  <data name="Sprint.Label" xml:space="preserve"><value>Sprint</value></data>
+  <data name="Sprint.Loading" xml:space="preserve"><value>Loading sprint…</value></data>
+  <data name="Sprint.NotFound" xml:space="preserve"><value>Sprint not found.</value></data>
+  <data name="Sprint.Tickets" xml:space="preserve"><value>tickets</value></data>
 
   <!-- ── Kanban cards ────────────────────────────────────────────────────────── -->
   <data name="Card.CreateTitle" xml:space="preserve"><value>New card</value></data>
@@ -270,6 +280,30 @@
   <data name="Admin.Users.Title" xml:space="preserve"><value>User management</value></data>
   <data name="Admin.Users.Heading" xml:space="preserve"><value>Users</value></data>
   <data name="Admin.Users.Placeholder" xml:space="preserve"><value>Account management. To be implemented.</value></data>
+  <data name="Admin.Users.Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="Admin.Users.Create" xml:space="preserve"><value>Create user</value></data>
+  <data name="Admin.Users.HeadingCount" xml:space="preserve"><value>Users ({0})</value></data>
+  <data name="Admin.Users.Empty" xml:space="preserve"><value>No users yet.</value></data>
+  <data name="Admin.Users.CreatedOn" xml:space="preserve"><value>Created on</value></data>
+  <data name="Admin.Users.Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="Admin.Users.Activate" xml:space="preserve"><value>Activate</value></data>
+  <data name="Admin.Users.PromoteAdmin" xml:space="preserve"><value>Promote to Admin</value></data>
+  <data name="Admin.Users.DemoteUser" xml:space="preserve"><value>Demote to User</value></data>
+  <data name="Admin.Users.CreateTitle" xml:space="preserve"><value>Create user</value></data>
+  <data name="Admin.Users.DisplayName" xml:space="preserve"><value>Display name</value></data>
+  <data name="Admin.Users.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Admin.Users.RoleUser" xml:space="preserve"><value>User</value></data>
+  <data name="Admin.Users.RoleAdmin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Admin.Invitations.Heading" xml:space="preserve"><value>Active invitations ({0})</value></data>
+  <data name="Admin.Invitations.Empty" xml:space="preserve"><value>No pending invitations.</value></data>
+  <data name="Admin.Invite.OpenLink" xml:space="preserve"><value>Open link</value></data>
+  <data name="Admin.Invite.ExpiresOn" xml:space="preserve"><value>Expires on</value></data>
+  <data name="Admin.Invite.CopyLink" xml:space="preserve"><value>Copy link</value></data>
+  <data name="Admin.Invite.Title" xml:space="preserve"><value>Invite a user</value></data>
+  <data name="Admin.Invite.Description" xml:space="preserve"><value>An invitation link will be generated. Share it with the person you want to invite. The link expires after 7 days.</value></data>
+  <data name="Admin.Invite.EmailLabel" xml:space="preserve"><value>Email (optional)</value></data>
+  <data name="Admin.Invite.EmailHint" xml:space="preserve"><value>If provided, the invitation will be limited to this address.</value></data>
+  <data name="Admin.Invite.Generate" xml:space="preserve"><value>Generate link</value></data>
 
   <!-- ── Not found ─────────────────────────────────────────────────────────── -->
   <data name="NotFound.Title" xml:space="preserve"><value>Not found</value></data>
@@ -296,5 +330,13 @@
   <data name="Label.Field" xml:space="preserve"><value>Labels</value></data>
   <data name="Label.NoItems" xml:space="preserve"><value>No tickets or boards with this label yet.</value></data>
   <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
+  <data name="Members.Title" xml:space="preserve"><value>Members</value></data>
+  <data name="Members.Add" xml:space="preserve"><value>Add member</value></data>
+  <data name="Members.None" xml:space="preserve"><value>No members yet.</value></data>
+  <data name="Members.SelectUser" xml:space="preserve"><value>Select a user</value></data>
+  <data name="Members.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Members.ChangeRole" xml:space="preserve"><value>Change role</value></data>
+  <data name="Members.Remove" xml:space="preserve"><value>Remove member</value></data>
+  <data name="Members.RemoveConfirm" xml:space="preserve"><value>Remove {0} from this resource?</value></data>
 
 </root>

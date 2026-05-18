@@ -37,11 +37,14 @@ builder.Services.AddHttpClient("Api", c => c.BaseAddress = new Uri(apiBase))
 
 // ── Application services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<AuthApiClient>();
+builder.Services.AddScoped<AdminApiClient>();
 builder.Services.AddScoped<BoardApiClient>();
+builder.Services.AddScoped<BoardMemberApiClient>();
 builder.Services.AddScoped<ColumnApiClient>();
 builder.Services.AddScoped<CardApiClient>();
 builder.Services.AddScoped<CommentApiClient>();
 builder.Services.AddScoped<ProjectApiClient>();
+builder.Services.AddScoped<ProjectMemberApiClient>();
 builder.Services.AddScoped<SprintApiClient>();
 builder.Services.AddScoped<TicketApiClient>();
 builder.Services.AddScoped<UserApiClient>();
@@ -60,7 +63,7 @@ var host = builder.Build();
 // Read culture persisted in localStorage (defaults to "fr")
 var js = host.Services.GetRequiredService<IJSRuntime>();
 var savedCulture = await js.InvokeAsync<string>("blazorCulture.get");
-var culture = new CultureInfo(!string.IsNullOrWhiteSpace(savedCulture) ? savedCulture : "fr");
+var culture = new CultureInfo(!string.IsNullOrWhiteSpace(savedCulture) ? savedCulture : "en");
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 

@@ -142,14 +142,14 @@ public sealed class CardService : ICardService
 
     private static void EnsureBoardAccess(Board board, string userId)
     {
-        if (board.OwnerId != userId)
+        if (!board.HasAccess(userId))
             throw new ForbiddenException($"User '{userId}' does not have access to board '{board.Id}'.");
     }
 
     private async Task EnsureBoardAccessByIdAsync(
         Guid boardId, string userId, CancellationToken cancellationToken)
     {
-        var board = await _uow.Boards.GetByIdAsync(boardId, cancellationToken)
+        var board = await _uow.Boards.GetByIdWithMembersAsync(boardId, cancellationToken)
             ?? throw new NotFoundException(nameof(Board), boardId);
 
         EnsureBoardAccess(board, userId);

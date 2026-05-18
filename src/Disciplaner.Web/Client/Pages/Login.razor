@@ -4,6 +4,12 @@
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 
+@if (_checking)
+{
+    <LoadingSpinner />
+}
+else
+{
 <div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
     @* Logo *@
     <div class="text-center mb-8">
@@ -42,6 +48,7 @@
         </EditForm>
     </div>
 </div>
+}
 
 @code {
     private sealed class LoginForm
@@ -57,7 +64,16 @@
 
     private readonly LoginForm _model = new();
     private string? _error;
+    private bool _checking = true;
     private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var setupRequired = await Auth.IsSetupRequiredAsync();
+        if (setupRequired)
+            Nav.NavigateTo("/setup", replace: true);
+        _checking = false;
+    }
 
     private async Task HandleLoginAsync()
     {

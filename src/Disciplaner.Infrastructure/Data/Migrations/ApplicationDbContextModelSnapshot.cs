@@ -63,6 +63,34 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.ToTable("Boards", (string)null);
                 });
 
+            modelBuilder.Entity("Disciplaner.Domain.Entities.BoardMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("BoardId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BoardId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("BoardMembers", (string)null);
+                });
+
             modelBuilder.Entity("Disciplaner.Domain.Entities.Card", b =>
                 {
                     b.Property<Guid>("Id")
@@ -247,6 +275,34 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Projects", (string)null);
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.ProjectMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ProjectId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ProjectMembers", (string)null);
                 });
 
             modelBuilder.Entity("Disciplaner.Domain.Entities.SavedView", b =>
@@ -495,6 +551,49 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.ToTable("TicketStatuses");
                 });
 
+            modelBuilder.Entity("Disciplaner.Domain.Entities.UserInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InvitedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UsedByUserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("UserInvitations");
+                });
+
             modelBuilder.Entity("Disciplaner.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -727,6 +826,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Disciplaner.Domain.Entities.BoardMember", b =>
+                {
+                    b.HasOne("Disciplaner.Domain.Entities.Board", null)
+                        .WithMany("Members")
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Disciplaner.Domain.Entities.Card", b =>
                 {
                     b.HasOne("Disciplaner.Domain.Entities.Column", "Column")
@@ -764,6 +872,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.Navigation("Card");
 
                     b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("Disciplaner.Domain.Entities.ProjectMember", b =>
+                {
+                    b.HasOne("Disciplaner.Domain.Entities.Project", null)
+                        .WithMany("Members")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Disciplaner.Domain.Entities.Sprint", b =>
@@ -899,6 +1016,8 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             modelBuilder.Entity("Disciplaner.Domain.Entities.Board", b =>
                 {
                     b.Navigation("Columns");
+
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Disciplaner.Domain.Entities.Column", b =>
@@ -908,6 +1027,8 @@ namespace Disciplaner.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Disciplaner.Domain.Entities.Project", b =>
                 {
+                    b.Navigation("Members");
+
                     b.Navigation("Sprints");
 
                     b.Navigation("Statuses");

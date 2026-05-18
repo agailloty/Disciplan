@@ -1,6 +1,8 @@
 @page "/boards/{Id:guid}"
 @attribute [Authorize]
 @inject BoardApiClient Boards
+@inject BoardMemberApiClient BoardMembers
+@inject UserApiClient Users
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 
@@ -16,42 +18,121 @@ else if (_error is not null)
 }
 else if (_board is not null)
 {
+    @* ── Header ── *@
     <div class="flex items-center mb-4 gap-2">
-        <h1 class="text-2xl font-semibold text-gray-900 flex-1">@_board.Name</h1>
-        @if (_board.Description is not null)
-        {
-            <span class="text-gray-400 text-sm">@_board.Description</span>
-        }
-        <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">&#9998; @L["Edit"]</button>
-        <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">&times; @L["Delete"]</button>
+        <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-semibold text-gray-900 truncate">@_board.Name</h1>
+            @if (!string.IsNullOrWhiteSpace(_board.Description))
+            {
+                <p class="text-gray-400 text-sm mt-0.5">@_board.Description</p>
+            }
+        </div>
     </div>
 
-    <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
-}
-
-@* ── Edit board modal ── *@
-<Modal Title="@L["Board.EditTitle"].Value" Visible="_showEdit" OnClose="() => _showEdit = false">
-    <EditForm Model="_form" OnValidSubmit="UpdateBoardAsync">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">@L["Name"]</label>
-            <InputText @bind-Value="_form.Name" class="form-input" />
-            <ValidationMessage For="() => _form.Name" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">@L["Board.Description"]</label>
-            <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="2" />
-        </div>
-        @if (_formError is not null)
+    @* ── Tabs ── *@
+    <div class="flex gap-1 mb-5 border-b border-gray-200">
+        <button class="tab-link @(_tab == "board" ? "active-tab" : "")" @onclick="@(() => _tab = "board")">
+            <i class="bi bi-kanban me-1"></i>@L["Nav.Boards"]
+        </button>
+        <button class="tab-link @(_tab == "members" ? "active-tab" : "")" @onclick="@(() => _tab = "members")">
+            <i class="bi bi-people me-1"></i>@L["Members.Title"]
+        </button>
+        @if (_board.RequestingUserRole >= MemberRole.Admin)
         {
-            <ErrorAlert Message="@_formError" />
+            <button class="tab-link @(_tab == "settings" ? "active-tab" : "")" @onclick="@(() => { _tab = "settings"; _editMode = false; })">
+                <i class="bi bi-gear me-1"></i>@L["Board.Settings"]
+            </button>
         }
-        <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">@L["Cancel"]</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
+    </div>
+
+    @* ── Board tab ── *@
+    @if (_tab == "board")
+    {
+        <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
+    }
+
+    @* ── Members tab ── *@
+    else if (_tab == "members")
+    {
+        <div class="max-w-2xl">
+            <MembersPanel Members="_board.Members"
+                          AvailableUsers="_allUsers.Where(u => u.Id != _board.OwnerId && !_board.Members.Any(m => m.UserId == u.Id)).ToList()"
+                          CanAdminister="_board.RequestingUserRole >= MemberRole.Admin"
+                          OnAdd="AddMemberAsync"
+                          OnUpdateRole="UpdateRoleAsync"
+                          OnRemove="RemoveMemberAsync" />
         </div>
-    </EditForm>
-</Modal>
+    }
+
+    @* ── Settings tab ── *@
+    else if (_tab == "settings")
+    {
+        <div class="flex flex-col gap-6 max-w-2xl">
+
+            @* General *@
+            <div class="surface">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <span class="font-semibold text-gray-900">@L["Board.GeneralInfo"]</span>
+                    @if (!_editMode)
+                    {
+                        <button class="btn btn-outline btn-sm" @onclick="ShowEdit">@L["Edit"]</button>
+                    }
+                </div>
+                @if (_editMode)
+                {
+                    <EditForm Model="_form" OnValidSubmit="UpdateBoardAsync">
+                        <DataAnnotationsValidator />
+                        <div class="p-4 flex flex-col gap-3">
+                            <div>
+                                <label class="form-label">@L["Name"]</label>
+                                <InputText @bind-Value="_form.Name" class="form-input" />
+                                <ValidationMessage For="() => _form.Name" />
+                            </div>
+                            <div>
+                                <label class="form-label">@L["Board.Description"]</label>
+                                <InputTextArea @bind-Value="_form.Description" class="form-textarea" rows="3" />
+                            </div>
+                            @if (_formError is not null)
+                            {
+                                <ErrorAlert Message="@_formError" />
+                            }
+                        </div>
+                        <div class="flex justify-end gap-2 px-4 py-3 border-t border-gray-100">
+                            <button type="button" class="btn btn-outline" @onclick="() => _editMode = false">@L["Cancel"]</button>
+                            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="p-4 text-sm text-gray-600">
+                        <p><span class="font-medium">@L["Name"] :</span> @_board.Name</p>
+                        @if (!string.IsNullOrWhiteSpace(_board.Description))
+                        {
+                            <p class="mt-1"><span class="font-medium">@L["Board.Description"] :</span> @_board.Description</p>
+                        }
+                        <p class="mt-1 text-xs text-gray-400">@L["Created"] @_board.CreatedAt.ToString("d")</p>
+                    </div>
+                }
+            </div>
+
+            @* Danger zone *@
+            <div class="surface border border-red-100">
+                <div class="px-4 py-3 border-b border-red-100">
+                    <span class="font-semibold text-red-700">@L["Project.DangerZone"]</span>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">@L["Board.Delete.Title"]</p>
+                        <p class="text-xs text-gray-400 mt-0.5">@L["Board.Delete.Warning"]</p>
+                    </div>
+                    <button class="btn btn-danger" @onclick="() => _showDelete = true">@L["Delete"]</button>
+                </div>
+            </div>
+
+        </div>
+    }
+}
 
 @* ── Delete board confirmation ── *@
 <ConfirmModal Title="@L["Board.Delete.Title"].Value"
@@ -64,11 +145,13 @@ else if (_board is not null)
     [Parameter] public Guid Id { get; set; }
 
     private BoardDetailDto? _board;
+    private List<UserSummaryDto> _allUsers = [];
     private bool _loading = true;
     private string? _error;
+    private string _tab = "board";
 
-    private bool _showEdit;
     private bool _showDelete;
+    private bool _editMode;
     private bool _busy;
     private string? _formError;
     private BoardForm _form = new();
@@ -82,7 +165,10 @@ else if (_board is not null)
     }
 
     protected override async Task OnParametersSetAsync()
-        => await ReloadBoardAsync();
+    {
+        _allUsers = await Users.GetAllAsync() ?? [];
+        await ReloadBoardAsync();
+    }
 
     private async Task ReloadBoardAsync()
     {
@@ -92,11 +178,11 @@ else if (_board is not null)
         finally { _loading = false; }
     }
 
-    private void ShowEditModal()
+    private void ShowEdit()
     {
         _form = new() { Name = _board!.Name, Description = _board.Description };
         _formError = null;
-        _showEdit = true;
+        _editMode = true;
     }
 
     private async Task UpdateBoardAsync()
@@ -105,7 +191,7 @@ else if (_board is not null)
         try
         {
             await Boards.UpdateBoardAsync(Id, new UpdateBoardRequest(_form.Name, _form.Description));
-            _showEdit = false;
+            _editMode = false;
             await ReloadBoardAsync();
         }
         catch { _formError = L["Error.Update"]; }
@@ -121,5 +207,25 @@ else if (_board is not null)
         }
         catch { _error = L["Error.Delete"]; }
         finally { _showDelete = false; }
+    }
+
+    // ── Member management ─────────────────────────────────────────────────────
+
+    private async Task AddMemberAsync(AddMemberRequest req)
+    {
+        await BoardMembers.AddMemberAsync(Id, req);
+        await ReloadBoardAsync();
+    }
+
+    private async Task UpdateRoleAsync(string userId, UpdateMemberRoleRequest req)
+    {
+        await BoardMembers.UpdateRoleAsync(Id, userId, req);
+        await ReloadBoardAsync();
+    }
+
+    private async Task RemoveMemberAsync(string userId)
+    {
+        await BoardMembers.RemoveMemberAsync(Id, userId);
+        await ReloadBoardAsync();
     }
 }

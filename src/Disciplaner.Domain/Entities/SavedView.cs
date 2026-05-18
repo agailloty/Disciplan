@@ -74,7 +74,7 @@ public class SavedView
     private void SetName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Le nom de la vue ne peut pas être vide.");
+            throw new ArgumentException("View name cannot be empty.");
         if (name.Length > DomainConstraints.SavedView.NameMaxLength)
             throw new ArgumentOutOfRangeException(nameof(name));
         Name = name;

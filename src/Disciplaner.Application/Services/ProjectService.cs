@@ -1,3 +1,4 @@
+using Disciplaner.Application.DTOs.Member;
 using Disciplaner.Application.DTOs.Project;
 using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.DTOs.Sprint;
@@ -19,12 +20,12 @@ public sealed class ProjectService : IProjectService
     public async Task<IReadOnlyList<ProjectSummaryDto>> GetAllByUserAsync(
         string userId, CancellationToken cancellationToken = default)
     {
-        var projects = await _uow.Projects.GetByOwnerIdAsync(userId, cancellationToken);
+        var projects = await _uow.Projects.GetAccessibleByUserIdAsync(userId, cancellationToken);
         var summaries = new List<ProjectSummaryDto>(projects.Count);
         foreach (var p in projects)
         {
             var ticketCount = await _uow.Tickets.CountByProjectAsync(p.Id, cancellationToken);
-            summaries.Add(p.ToSummaryDto(ticketCount));
+            summaries.Add(p.ToSummaryDto(ticketCount, userId));
         }
         return summaries.AsReadOnly();
     }
@@ -34,7 +35,8 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken);
         if (project is null) return null;
-        EnsureOwner(project, requestingUserId);
+
+        EnsureAccess(project, requestingUserId);
 
         var sprints = await _uow.Sprints.GetByProjectIdAsync(projectId, cancellationToken);
         var sprintDtos = new List<DTOs.Sprint.SprintDto>(sprints.Count);
@@ -44,7 +46,8 @@ public sealed class ProjectService : IProjectService
             sprintDtos.Add(s.ToDto(count));
         }
 
-        return project.ToDetailDto(sprintDtos);
+        var members = await ResolveMembers(project.Members, cancellationToken);
+        return project.ToDetailDto(sprintDtos, requestingUserId, members);
     }
 
     public async Task<ProjectDetailDto> CreateAsync(
@@ -60,7 +63,7 @@ public sealed class ProjectService : IProjectService
         await _uow.Projects.AddAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return project.ToDetailDto([]);
+        return project.ToDetailDto([], ownerId, []);
     }
 
     public async Task<ProjectDetailDto> UpdateAsync(
@@ -69,14 +72,15 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureAdmin(project, requestingUserId);
 
         project.Rename(request.Name);
         project.UpdateDescription(request.Description);
         await _uow.Projects.UpdateAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return project.ToDetailDto([]);
+        var members = await ResolveMembers(project.Members, cancellationToken);
+        return project.ToDetailDto([], requestingUserId, members);
     }
 
     public async Task DeleteAsync(
@@ -84,7 +88,7 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureAdmin(project, requestingUserId);
 
         await _uow.Projects.DeleteAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -96,13 +100,14 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureAdmin(project, requestingUserId);
 
         project.UpdateDefaults(request.DefaultTicketType, request.DefaultAssigneePolicy);
         await _uow.Projects.UpdateAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return project.ToDetailDto([]);
+        var members = await ResolveMembers(project.Members, cancellationToken);
+        return project.ToDetailDto([], requestingUserId, members);
     }
 
     public async Task<TicketStatusDto> AddStatusAsync(
@@ -111,12 +116,9 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
         var status = project.AddStatus(request.Name, request.Category, request.Color);
-        // Explicitly mark the new TicketStatus as Added so EF generates INSERT.
-        // Without this, EF sees a non-default Guid key with ValueGeneratedOnAdd
-        // and generates UPDATE instead of INSERT, causing DbUpdateConcurrencyException.
         await _uow.Projects.AddTicketStatusAsync(status, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
@@ -129,7 +131,7 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
         project.UpdateStatus(statusId, request.Name, request.Category, request.Color);
         await _uow.Projects.UpdateAsync(project, cancellationToken);
@@ -144,9 +146,8 @@ public sealed class ProjectService : IProjectService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
-        // Guard: status must not be in use
         var backlog = await _uow.Tickets.GetBacklogAsync(projectId, cancellationToken);
         var inUse = backlog.Any(t => t.StatusId == statusId);
         if (!inUse)
@@ -161,13 +162,39 @@ public sealed class ProjectService : IProjectService
         if (inUse) throw ProjectDomainException.StatusInUse();
 
         project.RemoveStatus(statusId);
-        // Entities are already tracked; Update() is not needed and would interfere.
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    private static void EnsureOwner(Project project, string userId)
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static void EnsureAccess(Project project, string userId)
     {
-        if (project.OwnerId != userId)
-            throw new UnauthorizedAccessException("Access denied.");
+        if (!project.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
+    }
+
+    private static void EnsureSupervisor(Project project, string userId)
+    {
+        if (!project.CanManage(userId))
+            throw new ForbiddenException($"User '{userId}' requires Supervisor role on project '{project.Id}'.");
+    }
+
+    private static void EnsureAdmin(Project project, string userId)
+    {
+        if (!project.CanAdminister(userId))
+            throw new ForbiddenException($"User '{userId}' requires Admin role on project '{project.Id}'.");
+    }
+
+    private async Task<IReadOnlyList<MemberDto>> ResolveMembers(
+        IReadOnlyCollection<ProjectMember> members, CancellationToken cancellationToken)
+    {
+        var result = new List<MemberDto>(members.Count);
+        foreach (var m in members)
+        {
+            var user = await _uow.Users.GetByIdAsync(m.UserId, cancellationToken);
+            if (user is null) continue;
+            result.Add(new MemberDto(m.UserId, user.DisplayName, user.Email, m.Role, m.JoinedAt));
+        }
+        return result.AsReadOnly();
     }
 }

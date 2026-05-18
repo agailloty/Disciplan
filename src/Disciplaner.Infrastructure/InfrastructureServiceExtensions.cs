@@ -16,12 +16,15 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ICardRepository, CardRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserInvitationRepository, UserInvitationRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<ISprintRepository, SprintRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<ILabelRepository, LabelRepository>();
         services.AddScoped<ISavedViewRepository, SavedViewRepository>();
         services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
+        services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
+        services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services
@@ -36,6 +39,8 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ILabelService, LabelService>();
         services.AddScoped<ISavedViewService, SavedViewService>();
         services.AddScoped<ITicketHistoryService, TicketHistoryService>();
+        services.AddScoped<IBoardMemberService, BoardMemberService>();
+        services.AddScoped<IProjectMemberService, ProjectMemberService>();
 
         return services;
     }

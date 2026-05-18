@@ -1,9 +1,353 @@
 @page "/admin/users"
 @attribute [Authorize(Roles = "Admin")]
+@inject AdminApiClient AdminApi
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 @inject IStringLocalizer<AppResources> L
+@using Disciplaner.Application.DTOs.Auth
+@using Disciplaner.Application.DTOs.User
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>@L["Admin.Users.Title"] — Disciplaner</PageTitle>
 
-<h1 class="h3 mb-4">@L["Admin.Users.Heading"]</h1>
+<div class="mb-6 flex items-center justify-between">
+    <h1 class="page-title">@L["Admin.Users.Title"]</h1>
+    <div class="flex gap-2">
+        <button class="btn btn-secondary" @onclick="ShowInviteModal">
+            <i class="bi bi-envelope me-1"></i> @L["Admin.Users.Invite"]
+        </button>
+        <button class="btn btn-primary" @onclick="ShowCreateModal">
+            <i class="bi bi-person-plus me-1"></i> @L["Admin.Users.Create"]
+        </button>
+    </div>
+</div>
 
-<p class="text-muted">@L["Admin.Users.Placeholder"]</p>
+@if (_error is not null)
+{
+    <div class="flex items-center gap-2 px-3 py-2 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+        <i class="bi bi-exclamation-circle shrink-0"></i>
+        <span>@_error</span>
+    </div>
+}
+
+@if (!_loaded)
+{
+    <LoadingSpinner />
+}
+else
+{
+    @* ── Users table ── *@
+    <div class="surface mb-8">
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <span class="text-sm font-semibold text-gray-800">
+                <i class="bi bi-people mr-1.5"></i>@string.Format(L["Admin.Users.HeadingCount"].Value, _users.Count)
+            </span>
+        </div>
+        @if (_users.Count == 0)
+        {
+            <div class="py-10 text-center text-gray-400 text-sm">@L["Admin.Users.Empty"]</div>
+        }
+        else
+        {
+            <div class="divide-y divide-gray-100">
+                @foreach (var user in _users)
+                {
+                    var u = user;
+                    <div class="flex items-center gap-3 px-4 py-3 @(u.IsActive ? "" : "opacity-50")">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 shrink-0">
+                            @u.DisplayName[0]
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-gray-900 truncate">@u.DisplayName</div>
+                            <div class="text-xs text-gray-500 truncate">@u.Email</div>
+                        </div>
+                        <div class="flex gap-1 shrink-0">
+                            @foreach (var role in u.Roles)
+                            {
+                                <span class="px-2 py-0.5 text-xs rounded-full @(role == "Admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600")">@role</span>
+                            }
+                        </div>
+                        <div class="text-xs text-gray-400 shrink-0 hidden sm:block">
+                            @L["Admin.Users.CreatedOn"] @u.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                        </div>
+                        <div class="flex gap-1 shrink-0">
+                            @if (u.IsActive)
+                            {
+                                <button class="icon-btn text-gray-400 hover:text-orange-600"
+                                        title="@L["Admin.Users.Deactivate"]"
+                                        @onclick="() => DeactivateAsync(u)">
+                                    <i class="bi bi-person-slash"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="icon-btn text-gray-400 hover:text-green-600"
+                                        title="Activer"
+                                        @onclick="() => ActivateAsync(u)">
+                                    <i class="bi bi-person-check"></i>
+                                </button>
+                            }
+                            @if (!u.Roles.Contains("Admin"))
+                            {
+                                <button class="icon-btn text-gray-400 hover:text-purple-600"
+                                        title="Promouvoir Admin"
+                                        @onclick="() => ChangeRoleAsync(u, RoleAdmin)">
+                                    <i class="bi bi-shield-plus"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="icon-btn text-gray-400 hover:text-gray-600"
+                                        title="@L["Admin.Users.DemoteUser"]"
+                                        @onclick="() => ChangeRoleAsync(u, RoleUser)">
+                                    <i class="bi bi-shield-minus"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @* ── Active invitations ── *@
+    <div class="surface">
+        <div class="px-4 py-3 border-b border-gray-100">
+            <span class="text-sm font-semibold text-gray-800">
+                <i class="bi bi-envelope-open mr-1.5"></i>@string.Format(L["Admin.Invitations.Heading"].Value, _invitations.Count)
+            </span>
+        </div>
+        @if (_invitations.Count == 0)
+        {
+            <div class="py-8 text-center text-gray-400 text-sm">@L["Admin.Invitations.Empty"]</div>
+        }
+        else
+        {
+            <div class="divide-y divide-gray-100">
+                @foreach (var inv in _invitations)
+                {
+                    var i = inv;
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <i class="bi bi-envelope text-gray-400 shrink-0"></i>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-gray-900">@(i.Email ?? L["Admin.Invite.OpenLink"].Value)</div>
+                            <div class="text-xs text-gray-400">@L["Admin.Invite.ExpiresOn"] @i.ExpiresAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                        <button class="icon-btn text-gray-400 hover:text-blue-600"
+                                title="@L["Admin.Invite.CopyLink"]"
+                                @onclick="() => CopyInviteLinkAsync(i.Token)">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@* ── Create user modal ── *@
+@if (_showCreateModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @onclick="CloseModals">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" @onclick:stopPropagation>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">
+                <i class="bi bi-person-plus mr-1.5"></i>@L["Admin.Users.CreateTitle"]
+            </h2>
+            @if (_modalError is not null)
+            {
+                <div class="text-sm text-red-600 mb-3">@_modalError</div>
+            }
+            <EditForm Model="_createForm" OnValidSubmit="SubmitCreateUserAsync">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">@L["Auth.Email"]</label>
+                    <InputText @bind-Value="_createForm.Email" class="form-input" type="email" />
+                    <ValidationMessage For="() => _createForm.Email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">@L["Admin.Users.DisplayName"]</label>
+                    <InputText @bind-Value="_createForm.DisplayName" class="form-input" />
+                    <ValidationMessage For="() => _createForm.DisplayName" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">@L["Auth.Password"]</label>
+                    <InputText @bind-Value="_createForm.Password" class="form-input" type="password" />
+                    <ValidationMessage For="() => _createForm.Password" />
+                </div>
+                <div class="mb-5">
+                    <label class="form-label">@L["Admin.Users.Role"]</label>
+                    <InputSelect @bind-Value="_createForm.Role" class="form-input">
+                        <option value="User">@L["Admin.Users.RoleUser"]</option>
+                        <option value="Admin">@L["Admin.Users.RoleAdmin"]</option>
+                    </InputSelect>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModals">@L["Cancel"]</button>
+                    <button type="submit" class="btn btn-primary" disabled="@_modalBusy">
+                        @(_modalBusy ? "…" : L["Create"].Value)
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@* ── Invite modal ── *@
+@if (_showInviteModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" @onclick="CloseModals">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" @onclick:stopPropagation>
+            <h2 class="text-base font-semibold text-gray-900 mb-4">
+                <i class="bi bi-envelope mr-1.5"></i>@L["Admin.Invite.Title"]
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">@L["Admin.Invite.Description"]</p>
+            @if (_inviteLink is not null)
+            {
+                <div class="flex gap-2 items-center mb-4">
+                    <input class="form-input flex-1 text-xs font-mono" readonly value="@_inviteLink" />
+                    <button class="btn btn-secondary shrink-0" @onclick="() => CopyLinkToClipboard(_inviteLink)">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <div class="flex justify-end">
+                    <button class="btn btn-secondary" @onclick="CloseModals">@L["Close"]</button>
+                </div>
+            }
+            else
+            {
+                @if (_modalError is not null)
+                {
+                    <div class="text-sm text-red-600 mb-3">@_modalError</div>
+                }
+                <div class="mb-4">
+                    <label class="form-label">@L["Admin.Invite.EmailLabel"]</label>
+                    <input class="form-input" type="email" @bind="_inviteEmail" placeholder="firstname@example.com" />
+                    <p class="text-xs text-gray-400 mt-1">@L["Admin.Invite.EmailHint"]</p>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button class="btn btn-secondary" @onclick="CloseModals">@L["Cancel"]</button>
+                    <button class="btn btn-primary" @onclick="SubmitInviteAsync" disabled="@_modalBusy">
+                        @(_modalBusy ? "…" : L["Admin.Invite.Generate"].Value)
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private const string RoleAdmin = "Admin";
+    private const string RoleUser = "User";
+
+    private List<AdminUserDto> _users = [];
+    private List<InvitationDto> _invitations = [];
+    private bool _loaded;
+    private string? _error;
+
+    // Modal state
+    private bool _showCreateModal;
+    private bool _showInviteModal;
+    private bool _modalBusy;
+    private string? _modalError;
+    private string? _inviteLink;
+    private string? _inviteEmail;
+
+    private sealed class CreateForm
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(2), System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string DisplayName { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Role { get; set; } = "User";
+    }
+
+    private readonly CreateForm _createForm = new();
+
+    protected override async Task OnInitializedAsync()
+        => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            var usersTask = AdminApi.GetUsersAsync();
+            var invitesTask = AdminApi.GetInvitationsAsync();
+            await Task.WhenAll(usersTask, invitesTask);
+            _users = usersTask.Result ?? [];
+            _invitations = invitesTask.Result ?? [];
+        }
+        catch { _error = L["Error.Load"].Value; }
+        finally { _loaded = true; }
+    }
+
+    private void ShowCreateModal() { _showCreateModal = true; _modalError = null; }
+    private void ShowInviteModal() { _showInviteModal = true; _modalError = null; _inviteLink = null; _inviteEmail = null; }
+    private void CloseModals() { _showCreateModal = false; _showInviteModal = false; _modalBusy = false; _modalError = null; _inviteLink = null; }
+
+    private async Task SubmitCreateUserAsync()
+    {
+        _modalBusy = true; _modalError = null;
+        var (dto, error) = await AdminApi.CreateUserAsync(
+            new CreateUserRequest(_createForm.Email, _createForm.DisplayName, _createForm.Password, _createForm.Role));
+        if (error is not null) { _modalError = error; _modalBusy = false; return; }
+        if (dto is not null) _users.Insert(0, dto);
+        CloseModals();
+    }
+
+    private async Task SubmitInviteAsync()
+    {
+        _modalBusy = true; _modalError = null;
+        var email = string.IsNullOrWhiteSpace(_inviteEmail) ? null : _inviteEmail.Trim();
+        var (inv, error) = await AdminApi.CreateInvitationAsync(email);
+        if (error is not null) { _modalError = error; _modalBusy = false; return; }
+        if (inv is not null)
+        {
+            _invitations.Insert(0, inv);
+            _inviteLink = $"{Nav.BaseUri}invitation/{inv.Token}";
+        }
+        _modalBusy = false;
+    }
+
+    private async Task DeactivateAsync(AdminUserDto user)
+    {
+        var ok = await AdminApi.DeactivateUserAsync(user.Id);
+        if (ok)
+        {
+            var idx = _users.FindIndex(u => u.Id == user.Id);
+            if (idx >= 0) _users[idx] = user with { IsActive = false };
+        }
+    }
+
+    private async Task ActivateAsync(AdminUserDto user)
+    {
+        var ok = await AdminApi.ActivateUserAsync(user.Id);
+        if (ok)
+        {
+            var idx = _users.FindIndex(u => u.Id == user.Id);
+            if (idx >= 0) _users[idx] = user with { IsActive = true };
+        }
+    }
+
+    private async Task ChangeRoleAsync(AdminUserDto user, string newRole)
+    {
+        var ok = await AdminApi.ChangeRoleAsync(user.Id, newRole);
+        if (ok)
+        {
+            var idx = _users.FindIndex(u => u.Id == user.Id);
+            if (idx >= 0) _users[idx] = user with { Roles = new List<string> { newRole }.AsReadOnly() };
+        }
+    }
+
+    private Task CopyInviteLinkAsync(string token)
+        => CopyLinkToClipboard($"{Nav.BaseUri}invitation/{token}");
+
+    private async Task CopyLinkToClipboard(string text)
+    {
+        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", text); }
+        catch { /* clipboard may not be available */ }
+    }
+}
+

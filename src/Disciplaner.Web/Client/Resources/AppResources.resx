@@ -60,6 +60,7 @@
   <data name="Nav.Projects" xml:space="preserve"><value>Projets</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>Mes tickets</value></data>
   <data name="Nav.Labels" xml:space="preserve"><value>Étiquettes</value></data>
+  <data name="Nav.Admin" xml:space="preserve"><value>Admin</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Se déconnecter</value></data>
 
   <!-- ── Authentification ────────────────────────────────────────────────── -->
@@ -77,8 +78,9 @@
   <data name="Board.CreateFirst" xml:space="preserve"><value>Créer mon premier tableau</value></data>
   <data name="Board.Description" xml:space="preserve"><value>Description (optionnel)</value></data>
   <data name="Board.Delete.Title" xml:space="preserve"><value>Supprimer le tableau</value></data>
-  <data name="Board.Delete.Confirm" xml:space="preserve"><value>Supprimer « {0} » ? Toutes ses colonnes et cartes seront perdues.</value></data>
-  <data name="Board.ColumnCount" xml:space="preserve"><value>{0} col.</value></data>
+  <data name="Board.Delete.Confirm" xml:space="preserve"><value>Supprimer « {0} » ? Toutes ses colonnes et cartes seront perdues.</value></data>  <data name="Board.Delete.Warning" xml:space="preserve"><value>Cette action est irréversible. Toutes les colonnes, cartes et données seront supprimées.</value></data>
+  <data name="Board.Settings" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="Board.GeneralInfo" xml:space="preserve"><value>Général</value></data>  <data name="Board.ColumnCount" xml:space="preserve"><value>{0} col.</value></data>
   <data name="Board.AddCard" xml:space="preserve"><value>Ajouter une carte</value></data>
 
   <!-- ── Projets ──────────────────────────────────────────────────────────── -->
@@ -139,6 +141,12 @@
   <data name="Sprint.CreateButton" xml:space="preserve"><value>Créer un sprint</value></data>
   <data name="Sprint.MoveToBacklog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Sprint.TicketCount" xml:space="preserve"><value>{0} tickets</value></data>
+  <data name="Sprint.MySprints" xml:space="preserve"><value>Mes sprints actifs</value></data>
+  <data name="Sprint.NoneActive" xml:space="preserve"><value>Vous ne participez à aucun sprint actif.</value></data>
+  <data name="Sprint.Label" xml:space="preserve"><value>Sprint</value></data>
+  <data name="Sprint.Loading" xml:space="preserve"><value>Chargement du sprint…</value></data>
+  <data name="Sprint.NotFound" xml:space="preserve"><value>Sprint introuvable.</value></data>
+  <data name="Sprint.Tickets" xml:space="preserve"><value>tickets</value></data>
 
   <!-- ── Cartes Kanban ────────────────────────────────────────────────────────── -->
   <data name="Card.CreateTitle" xml:space="preserve"><value>Nouvelle carte</value></data>
@@ -268,6 +276,30 @@
   <data name="Admin.Users.Title" xml:space="preserve"><value>Gestion des utilisateurs</value></data>
   <data name="Admin.Users.Heading" xml:space="preserve"><value>Utilisateurs</value></data>
   <data name="Admin.Users.Placeholder" xml:space="preserve"><value>Administration des comptes. À implémenter.</value></data>
+  <data name="Admin.Users.Invite" xml:space="preserve"><value>Inviter</value></data>
+  <data name="Admin.Users.Create" xml:space="preserve"><value>Créer un utilisateur</value></data>
+  <data name="Admin.Users.HeadingCount" xml:space="preserve"><value>Utilisateurs ({0})</value></data>
+  <data name="Admin.Users.Empty" xml:space="preserve"><value>Aucun utilisateur.</value></data>
+  <data name="Admin.Users.CreatedOn" xml:space="preserve"><value>Créé le</value></data>
+  <data name="Admin.Users.Deactivate" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="Admin.Users.Activate" xml:space="preserve"><value>Activer</value></data>
+  <data name="Admin.Users.PromoteAdmin" xml:space="preserve"><value>Promouvoir Admin</value></data>
+  <data name="Admin.Users.DemoteUser" xml:space="preserve"><value>Rétrograder en User</value></data>
+  <data name="Admin.Users.CreateTitle" xml:space="preserve"><value>Créer un utilisateur</value></data>
+  <data name="Admin.Users.DisplayName" xml:space="preserve"><value>Nom d'affichage</value></data>
+  <data name="Admin.Users.Role" xml:space="preserve"><value>Rôle</value></data>
+  <data name="Admin.Users.RoleUser" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="Admin.Users.RoleAdmin" xml:space="preserve"><value>Administrateur</value></data>
+  <data name="Admin.Invitations.Heading" xml:space="preserve"><value>Invitations actives ({0})</value></data>
+  <data name="Admin.Invitations.Empty" xml:space="preserve"><value>Aucune invitation en attente.</value></data>
+  <data name="Admin.Invite.OpenLink" xml:space="preserve"><value>Lien ouvert</value></data>
+  <data name="Admin.Invite.ExpiresOn" xml:space="preserve"><value>Expire le</value></data>
+  <data name="Admin.Invite.CopyLink" xml:space="preserve"><value>Copier le lien</value></data>
+  <data name="Admin.Invite.Title" xml:space="preserve"><value>Inviter un utilisateur</value></data>
+  <data name="Admin.Invite.Description" xml:space="preserve"><value>Un lien d'invitation sera généré. Partagez-le avec la personne à inviter. Le lien expire après 7 jours.</value></data>
+  <data name="Admin.Invite.EmailLabel" xml:space="preserve"><value>Email (optionnel)</value></data>
+  <data name="Admin.Invite.EmailHint" xml:space="preserve"><value>Si renseigné, l'invitation sera limitée à cette adresse.</value></data>
+  <data name="Admin.Invite.Generate" xml:space="preserve"><value>Générer le lien</value></data>
 
   <!-- ── Page introuvable ─────────────────────────────────────────────────────── -->
   <data name="NotFound.Title" xml:space="preserve"><value>Page introuvable</value></data>
@@ -293,4 +325,12 @@
   <data name="Label.Field" xml:space="preserve"><value>Étiquettes</value></data>
   <data name="Label.NoItems" xml:space="preserve"><value>Aucun ticket ni board avec cette étiquette pour le moment.</value></data>
   <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
+  <data name="Members.Title" xml:space="preserve"><value>Membres</value></data>
+  <data name="Members.Add" xml:space="preserve"><value>Ajouter un membre</value></data>
+  <data name="Members.None" xml:space="preserve"><value>Aucun membre pour le moment.</value></data>
+  <data name="Members.SelectUser" xml:space="preserve"><value>Sélectionner un utilisateur</value></data>
+  <data name="Members.Role" xml:space="preserve"><value>Rôle</value></data>
+  <data name="Members.ChangeRole" xml:space="preserve"><value>Changer le rôle</value></data>
+  <data name="Members.Remove" xml:space="preserve"><value>Retirer le membre</value></data>
+  <data name="Members.RemoveConfirm" xml:space="preserve"><value>Retirer {0} de cette ressource ?</value></data>
 </root>

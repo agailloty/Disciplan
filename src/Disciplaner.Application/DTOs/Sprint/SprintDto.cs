@@ -5,6 +5,8 @@ namespace Disciplaner.Application.DTOs.Sprint;
 public sealed record SprintDto(
     Guid Id,
     Guid ProjectId,
+    string? ProjectName,
+    string? ProjectKey,
     string Name,
     string? Goal,
     SprintStatus Status,

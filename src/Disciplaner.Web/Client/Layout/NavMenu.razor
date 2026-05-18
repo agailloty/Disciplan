@@ -18,6 +18,13 @@
                 <NavLink class="topnav-link" href="projects">@L["Nav.Projects"]</NavLink>
                 <NavLink class="topnav-link" href="my-tickets">@L["Nav.MyTickets"]</NavLink>
                 <NavLink class="topnav-link" href="labels">@L["Nav.Labels"]</NavLink>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <NavLink class="topnav-link" href="admin/users">
+                            <i class="bi bi-people mr-1"></i>@L["Nav.Admin"]
+                        </NavLink>
+                    </Authorized>
+                </AuthorizeView>
 
                 @* Right side — desktop *@
                 <div class="ml-auto flex items-center gap-3 shrink-0">
@@ -74,6 +81,13 @@
                 <NavLink class="mobile-nav-link" href="labels" @onclick="CloseMenu">
                     <i class="bi bi-tag mr-2"></i>@L["Nav.Labels"]
                 </NavLink>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <NavLink class="mobile-nav-link" href="admin/users" @onclick="CloseMenu">
+                            <i class="bi bi-people mr-2"></i>@L["Nav.Admin"]
+                        </NavLink>
+                    </Authorized>
+                </AuthorizeView>
 
                 <div class="border-t border-white/10 mt-2 pt-2 flex items-center justify-between">
                     <NavLink class="mobile-nav-link flex-1" href="settings" @onclick="CloseMenu">

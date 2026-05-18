@@ -1,0 +1,107 @@
+@page "/sprints/{Id:guid}"
+@inject SprintApiClient SprintApi
+@inject TicketApiClient TicketApi
+@inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
+
+<PageTitle>@(_sprint?.Name ?? L["Sprint.Loading"])</PageTitle>
+
+@if (_loading)
+{
+    <div class="flex items-center justify-center py-20">
+        <LoadingSpinner />
+    </div>
+}
+else if (_sprint is null)
+{
+    <div class="text-center py-20 text-gray-400">
+        <i class="bi bi-exclamation-circle text-3xl block mb-3"></i>
+        <p>@L["Sprint.NotFound"]</p>
+        <button class="btn btn-secondary mt-4" @onclick='() => Nav.NavigateTo("/")'>@L["Back"]</button>
+    </div>
+}
+else
+{
+    @* ── Header ───────────────────────────────────────────────────────────── *@
+    <div class="mb-6">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+            <a href="/projects/@_sprint.ProjectId" class="text-xs text-blue-600 hover:underline font-semibold">
+                @_sprint.ProjectKey
+            </a>
+            <span class="text-gray-300">/</span>
+            <span class="text-xs text-gray-500">@L["Sprint.Label"]</span>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">@_sprint.Name</h1>
+                @if (!string.IsNullOrWhiteSpace(_sprint.Goal))
+                {
+                    <p class="text-gray-500 text-sm mt-0.5">@_sprint.Goal</p>
+                }
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                @* Status badge *@
+                <span class="badge @SprintStatusClass(_sprint.Status)">@_sprint.Status</span>
+                @* Date range *@
+                @if (_sprint.StartDate.HasValue || _sprint.EndDate.HasValue)
+                {
+                    <span class="text-xs text-gray-500">
+                        @(_sprint.StartDate?.ToLocalTime().ToString("dd/MM/yyyy") ?? "–")
+                        &rarr;
+                        @(_sprint.EndDate?.ToLocalTime().ToString("dd/MM/yyyy") ?? "–")
+                    </span>
+                }
+                @* Project link *@
+                <a href="/projects/@_sprint.ProjectId" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-folder me-1"></i>@_sprint.ProjectName
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @* ── Sprint board ─────────────────────────────────────────────────────── *@
+    <div class="surface mb-4">
+        <SprintBoard Tickets="@(_tickets ?? [])"
+                     Statuses="_sprint!.Statuses"
+                     OnStatusChange="EventCallback.Factory.Create<SprintBoard.StatusChangeArgs>(this, async a => await ChangeStatusAsync(a.TicketId, a.StatusId))" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private SprintDetailDto? _sprint;
+    private List<TicketDto>? _tickets;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _sprint = null;
+        _tickets = null;
+        StateHasChanged();
+
+        _sprint = await SprintApi.GetSprintAsync(Id);
+        _loading = false;
+        StateHasChanged();
+
+        if (_sprint is not null)
+        {
+            _tickets = await TicketApi.GetBySprintAsync(Id) ?? [];
+            StateHasChanged();
+        }
+    }
+
+    private async Task ChangeStatusAsync(Guid ticketId, Guid statusId)
+    {
+        await TicketApi.ChangeStatusAsync(ticketId, new ChangeTicketStatusRequest(statusId));
+        _tickets = await TicketApi.GetBySprintAsync(Id) ?? [];
+    }
+
+    private static string SprintStatusClass(SprintStatus status) => status switch
+    {
+        SprintStatus.Active => "badge badge-success",
+        SprintStatus.Closed => "badge badge-gray",
+        _ => "badge badge-dark"
+    };
+}

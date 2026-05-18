@@ -8,6 +8,7 @@ public class Project
 {
     private readonly List<TicketStatus> _statuses = [];
     private readonly List<Sprint> _sprints = [];
+    private readonly List<ProjectMember> _members = [];
     private int _nextTicketNumber = 1;
 
     public Guid Id { get; private init; } = Guid.NewGuid();
@@ -25,8 +26,67 @@ public class Project
 
     public IReadOnlyCollection<TicketStatus> Statuses => _statuses.AsReadOnly();
     public IReadOnlyCollection<Sprint> Sprints => _sprints.AsReadOnly();
+    public IReadOnlyCollection<ProjectMember> Members => _members.AsReadOnly();
 
     protected Project() { }
+
+    // ── Membership ────────────────────────────────────────────────────────────
+
+    /// <summary>Returns the effective role of a user: Admin if owner, otherwise their membership role, null if not a member.</summary>
+    public MemberRole? GetEffectiveRole(string userId)
+    {
+        if (OwnerId == userId) return MemberRole.Admin;
+        return _members.FirstOrDefault(m => m.UserId == userId)?.Role;
+    }
+
+    public bool HasAccess(string userId) => GetEffectiveRole(userId).HasValue;
+    public bool CanWrite(string userId) => GetEffectiveRole(userId) >= MemberRole.Member;
+    public bool CanManage(string userId) => GetEffectiveRole(userId) >= MemberRole.Supervisor;
+    public bool CanAdminister(string userId) => GetEffectiveRole(userId) >= MemberRole.Admin;
+
+    public ProjectMember AddMember(string userId, MemberRole role)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        if (role == MemberRole.Admin)
+            throw MembershipDomainException.CannotAssignRoleAboveSupervisor();
+
+        if (_members.Any(m => m.UserId == userId))
+            throw MembershipDomainException.AlreadyMember(userId, Id.ToString());
+
+        var member = new ProjectMember(Id, userId, role);
+        _members.Add(member);
+        Touch();
+        return member;
+    }
+
+    public void ChangeMemberRole(string userId, MemberRole newRole)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        if (newRole == MemberRole.Admin)
+            throw MembershipDomainException.CannotAssignRoleAboveSupervisor();
+
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw MembershipDomainException.MemberNotFound(userId, Id.ToString());
+
+        member.ChangeRole(newRole);
+        Touch();
+    }
+
+    public void RemoveMember(string userId)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw MembershipDomainException.MemberNotFound(userId, Id.ToString());
+
+        _members.Remove(member);
+        Touch();
+    }
 
     public Project(string name, string? description, string key, User owner)
     {

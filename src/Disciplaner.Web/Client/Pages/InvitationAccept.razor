@@ -1,0 +1,132 @@
+@page "/invitation/{Token}"
+@layout AuthLayout
+@inject AuthApiClient Auth
+@inject NavigationManager Nav
+
+<div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
+    <div class="text-center mb-8">
+        <span style="font-size:2rem">&#9654;</span>
+        <h1 class="text-xl font-semibold text-gray-900 mt-2">Disciplaner</h1>
+        <p class="text-sm text-gray-500 mt-1">Créer votre compte</p>
+    </div>
+
+    @if (_checking)
+    {
+        <LoadingSpinner />
+    }
+    else if (!_valid)
+    {
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8 text-center">
+            <i class="bi bi-exclamation-triangle text-3xl text-orange-400 mb-3 block"></i>
+            <p class="text-sm text-gray-700 font-medium mb-1">Invitation invalide ou expirée</p>
+            <p class="text-xs text-gray-500 mb-6">Ce lien d'invitation n'est plus valide.</p>
+            <a href="/login" class="btn btn-secondary">Retour à la connexion</a>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
+            <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
+                <i class="bi bi-envelope-check shrink-0"></i>
+                <span>Invitation valide. Renseignez vos informations pour créer votre compte.</span>
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                    <i class="bi bi-exclamation-circle shrink-0"></i>
+                    <span>@_error</span>
+                </div>
+            }
+
+            <EditForm Model="_model" OnValidSubmit="HandleRegisterAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-4">
+                    <label class="form-label">Email</label>
+                    <InputText @bind-Value="_model.Email"
+                               class="form-input"
+                               style="@(_emailLocked ? "background:#f9fafb;color:#6b7280" : "")"
+                               type="email"
+                               autocomplete="email"
+                               disabled="@_emailLocked" />
+                    <ValidationMessage For="() => _model.Email" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Nom d'affichage</label>
+                    <InputText @bind-Value="_model.DisplayName" class="form-input" autocomplete="name" />
+                    <ValidationMessage For="() => _model.DisplayName" />
+                </div>
+
+                <div class="mb-6">
+                    <label class="form-label">Mot de passe</label>
+                    <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="new-password" />
+                    <ValidationMessage For="() => _model.Password" />
+                    <p class="text-xs text-gray-400 mt-1">Minimum 8 caractères, avec majuscule, minuscule et chiffre.</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" disabled="@_loading">
+                    @(_loading ? "Création en cours…" : "Créer mon compte")
+                </button>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    private sealed class RegisterForm
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    private readonly RegisterForm _model = new();
+    private bool _checking = true;
+    private bool _valid;
+    private bool _emailLocked;
+    private string? _error;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var info = await Auth.GetInvitationInfoAsync(Token);
+        _valid = info?.IsValid ?? false;
+        if (_valid && info?.Email is not null)
+        {
+            _model.Email = info.Email;
+            _emailLocked = true;
+        }
+        _checking = false;
+    }
+
+    private async Task HandleRegisterAsync()
+    {
+        _loading = true;
+        _error = null;
+        var (_, error) = await Auth.RegisterInvitedAsync(
+            new Disciplaner.Application.DTOs.Auth.InvitationRegisterRequest(
+                Token, _model.Email, _model.DisplayName, _model.Password));
+        if (error is not null)
+        {
+            _error = error;
+            _loading = false;
+        }
+        else
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+}

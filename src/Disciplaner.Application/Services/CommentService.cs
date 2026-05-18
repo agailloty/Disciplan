@@ -111,10 +111,10 @@ public sealed class CommentService : ICommentService
 
     private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
     {
-        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
+        var project = await _uow.Projects.GetByIdWithMembersAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        if (project.OwnerId != userId)
-            throw new UnauthorizedAccessException("Access denied.");
+        if (!project.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
     }
 
     private async Task<Card> EnsureCardAccessAsync(
@@ -126,11 +126,11 @@ public sealed class CommentService : ICommentService
         var column = await _uow.Columns.GetByIdAsync(card.ColumnId, cancellationToken)
             ?? throw new NotFoundException(nameof(Column), card.ColumnId);
 
-        var board = await _uow.Boards.GetByIdAsync(column.BoardId, cancellationToken)
+        var board = await _uow.Boards.GetByIdWithMembersAsync(column.BoardId, cancellationToken)
             ?? throw new NotFoundException(nameof(Board), column.BoardId);
 
-        if (board.OwnerId != userId)
-            throw new UnauthorizedAccessException("Access denied.");
+        if (!board.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to board '{board.Id}'.");
 
         return card;
     }

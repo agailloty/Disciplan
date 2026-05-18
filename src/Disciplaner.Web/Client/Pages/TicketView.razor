@@ -233,7 +233,7 @@ else if (_ticket is not null)
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
                                                     <span class="text-xs font-semibold text-gray-700">@h.ActorName</span>
-                                                    <span class="text-xs text-gray-500">@HistoryLabel(h)</span>
+                                                    <span class="text-xs text-gray-500"> @HistoryLabel(h)</span>
                                                     <span class="ml-auto text-xs text-gray-400 shrink-0">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                                 </div>
                                                 @if (HistoryDetail(h) is { } detail)

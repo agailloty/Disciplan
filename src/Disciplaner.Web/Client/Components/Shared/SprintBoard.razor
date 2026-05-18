@@ -1,0 +1,293 @@
+@inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
+
+@* ── View toggle ──────────────────────────────────────────────────────────── *@
+<div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
+    <span class="text-sm text-gray-500">@L["Sprint.TicketCount", Tickets.Count]</span>
+    <div class="flex items-center gap-2">
+        @if (OnAddTicket.HasDelegate)
+        {
+            <button class="btn btn-primary btn-sm" @onclick="OnAddTicket">
+                <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicket"]
+            </button>
+        }
+        <div class="flex border border-gray-200 rounded-md overflow-hidden">
+            <button class="@ViewCss("kanban") px-2.5 py-1 text-xs" @onclick='() => _view = "kanban"'>
+                @L["Sprint.View.Kanban"]
+            </button>
+            <button class="@ViewCss("list") px-2.5 py-1 text-xs border-l border-gray-200" @onclick='() => _view = "list"'>
+                @L["Sprint.View.List"]
+            </button>
+            <button class="@ViewCss("grid") px-2.5 py-1 text-xs border-l border-gray-200" @onclick='() => _view = "grid"'>
+                @L["Sprint.View.Grid"]
+            </button>
+        </div>
+    </div>
+</div>
+
+@* ── Content ───────────────────────────────────────────────────────────────── *@
+<div class="p-4">
+    @if (Tickets.Count == 0)
+    {
+        <div class="text-center text-gray-400 py-10">
+            <p class="text-sm mb-4">@L["Sprint.NoTickets"]</p>
+            @if (OnAddTicket.HasDelegate)
+            {
+                <button class="btn btn-primary btn-sm" @onclick="OnAddTicket">
+                    <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
+                </button>
+            }
+        </div>
+    }
+    else if (_view == "list")
+    {
+        <div class="divide-y divide-gray-50">
+            @foreach (var ticket in Tickets.OrderBy(t => t.TicketNumber))
+            {
+                <div class="py-2">
+                    @TicketRow(ticket)
+                </div>
+            }
+            @if (OnAddTicket.HasDelegate)
+            {
+                <div class="py-2">
+                    <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="OnAddTicket">
+                        <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else if (_view == "grid")
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            @foreach (var ticket in Tickets.OrderBy(t => t.TicketNumber))
+            {
+                <div>
+                    @TicketCard(ticket)
+                </div>
+            }
+            @if (OnAddTicket.HasDelegate)
+            {
+                <div class="flex items-center">
+                    <button class="surface w-full py-8 text-center text-gray-400 hover:text-gray-600 border-dashed text-sm"
+                            @onclick="OnAddTicket">
+                        <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @* ── Kanban ── *@
+        <div class="active-sprint-kanban flex gap-3 overflow-x-auto pb-2">
+            @foreach (var status in Statuses.OrderBy(s => s.Order))
+            {
+                var s = status;
+                var statusTickets = Tickets
+                    .Where(t => t.Status.Id == s.Id)
+                    .OrderBy(t => t.TicketNumber)
+                    .ToList();
+
+                <section class="sprint-column @(_dragOverStatusId == s.Id ? "sprint-drag-over" : string.Empty)"
+                         @ondragover:preventDefault
+                         @ondragenter="() => _dragOverStatusId = s.Id"
+                         @ondrop="async () => await DropAsync(s.Id)">
+                    <div class="sprint-column-header">
+                        <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@s.Color"></span>
+                        <strong class="text-sm">@s.Name</strong>
+                        <span class="badge badge-gray ml-auto">@statusTickets.Count</span>
+                    </div>
+                    <div class="sprint-column-body">
+                        @if (statusTickets.Count == 0)
+                        {
+                            <div class="text-gray-400 text-xs text-center py-3">@L["Sprint.ColumnEmpty"]</div>
+                        }
+                        else
+                        {
+                            @foreach (var ticket in statusTickets)
+                            {
+                                @TicketCard(ticket)
+                            }
+                        }
+                    </div>
+                    @if (OnAddTicket.HasDelegate)
+                    {
+                        <button class="btn-ghost text-xs w-full text-left px-2 py-1" @onclick="OnAddTicket">
+                            <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddCard"]
+                        </button>
+                    }
+                </section>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    // ── Parameters ─────────────────────────────────────────────────────────────
+
+    /// <summary>Tickets belonging to this sprint.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TicketDto> Tickets { get; set; } = [];
+
+    /// <summary>Project statuses used as kanban columns.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TicketStatusDto> Statuses { get; set; } = [];
+
+    /// <summary>Called when the user clicks on a ticket title/ref. If not set, navigates to /tickets/{ref}.</summary>
+    [Parameter]
+    public EventCallback<TicketDto> OnTicketClick { get; set; }
+
+    /// <summary>Called when the user changes a ticket's status (via select or drag-drop).</summary>
+    [Parameter]
+    public EventCallback<StatusChangeArgs> OnStatusChange { get; set; }
+
+    /// <summary>If provided, shows "add ticket" buttons throughout the board.</summary>
+    [Parameter]
+    public EventCallback OnAddTicket { get; set; }
+
+    // ── Internal state ─────────────────────────────────────────────────────────
+
+    private string _view = "kanban";
+    private Guid? _draggingTicketId;
+    private Guid? _dragOverStatusId;
+
+    // ── Event handlers ─────────────────────────────────────────────────────────
+
+    private Task HandleTicketClickAsync(TicketDto ticket)
+    {
+        if (OnTicketClick.HasDelegate)
+            return OnTicketClick.InvokeAsync(ticket);
+        Nav.NavigateTo($"/tickets/{ticket.TicketRef}");
+        return Task.CompletedTask;
+    }
+
+    private async Task HandleStatusChangeAsync(Guid ticketId, Guid statusId)
+    {
+        if (OnStatusChange.HasDelegate)
+            await OnStatusChange.InvokeAsync(new StatusChangeArgs(ticketId, statusId));
+    }
+
+    private async Task DropAsync(Guid statusId)
+    {
+        if (_draggingTicketId is null) return;
+        var ticketId = _draggingTicketId.Value;
+        _draggingTicketId = null;
+        _dragOverStatusId = null;
+        await HandleStatusChangeAsync(ticketId, statusId);
+    }
+
+    // ── Render helpers ─────────────────────────────────────────────────────────
+
+    private RenderFragment TicketRow(TicketDto ticket) => @<div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button class="text-xs font-semibold text-blue-600 hover:underline p-0"
+                    @onclick="() => HandleTicketClickAsync(ticket)">@ticket.TicketRef</button>
+            <button class="text-sm text-gray-800 hover:underline p-0"
+                    @onclick="() => HandleTicketClickAsync(ticket)">@ticket.Title</button>
+            <span class="badge badge-gray">@ticket.Type</span>
+            <span class="badge @PriorityClass(ticket.Priority)">@ticket.Priority</span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(ticket.Description))
+        {
+            <div class="text-gray-400 text-xs mt-1">@ticket.Description</div>
+        }
+        <div class="flex flex-wrap items-center gap-2 mt-2">
+            <select class="form-select text-xs py-0.5" style="width:auto;"
+                    value="@ticket.Status.Id"
+                    @onchange="e => HandleStatusChangeAsync(ticket.Id, Guid.Parse(e.Value?.ToString() ?? string.Empty))">
+                @foreach (var status in Statuses.OrderBy(s => s.Order))
+                {
+                    <option value="@status.Id">@status.Name</option>
+                }
+            </select>
+            @if (ticket.StoryPoints.HasValue)
+            {
+                <span class="text-gray-400 text-xs">@ticket.StoryPoints pts</span>
+            }
+            @if (ticket.DueDate.HasValue)
+            {
+                <span class="text-gray-400 text-xs">@ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
+            }
+        </div>
+    </div>;
+
+    private RenderFragment TicketCard(TicketDto ticket) =>
+        @<article class="ticket-card @(_draggingTicketId == ticket.Id ? "opacity-50" : string.Empty)"
+                  draggable="true"
+                  @ondragstart="() => _draggingTicketId = ticket.Id"
+                  @ondragend="() => { _draggingTicketId = null; _dragOverStatusId = null; }">
+            <div class="p-3">
+                <div class="flex justify-between items-start gap-2 cursor-pointer"
+                     @onclick="() => HandleTicketClickAsync(ticket)">
+                    <span class="text-xs font-semibold text-blue-600">@ticket.TicketRef</span>
+                    <span class="badge @PriorityClass(ticket.Priority)">@ticket.Priority</span>
+                </div>
+                <div class="font-medium text-sm text-gray-900 mt-1 cursor-pointer"
+                     @onclick="() => HandleTicketClickAsync(ticket)">@ticket.Title</div>
+                @if (!string.IsNullOrWhiteSpace(ticket.Description))
+                {
+                    <div class="ticket-card-description text-gray-400 text-xs mt-1">@ticket.Description</div>
+                }
+                <div class="flex flex-wrap items-center gap-1 mt-3">
+                    <span class="badge badge-gray">@ticket.Type</span>
+                    @if (ticket.StoryPoints.HasValue)
+                    {
+                        <span class="badge badge-gray">@ticket.StoryPoints pts</span>
+                    }
+                    @if (ticket.DueDate.HasValue)
+                    {
+                        <span class="text-gray-400 text-xs">@ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
+                    }
+                </div>
+                @if (ticket.Labels.Count > 0)
+                {
+                    <div class="flex flex-wrap gap-1 mt-2" @onclick:stopPropagation>
+                        @foreach (var lbl in ticket.Labels)
+                        {
+                            <span class="label-badge" style="background:@lbl.Color; color:@LabelTextColor(lbl.Color)">@lbl.Name</span>
+                        }
+                    </div>
+                }
+                <select class="form-select text-xs mt-3 py-1"
+                        value="@ticket.Status.Id"
+                        @onchange="e => HandleStatusChangeAsync(ticket.Id, Guid.Parse(e.Value?.ToString() ?? string.Empty))">
+                    @foreach (var status in Statuses.OrderBy(s => s.Order))
+                    {
+                        <option value="@status.Id">@status.Name</option>
+                    }
+                </select>
+            </div>
+        </article>;
+
+    private string ViewCss(string view)
+        => _view == view ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50";
+
+    private static string PriorityClass(CardPriority priority) => priority switch
+    {
+        CardPriority.Low      => "badge badge-prio-low",
+        CardPriority.Medium   => "badge badge-prio-medium",
+        CardPriority.High     => "badge badge-prio-high",
+        CardPriority.Critical => "badge badge-prio-critical",
+        _                     => "badge badge-gray"
+    };
+
+    private static string LabelTextColor(string hex)
+    {
+        try
+        {
+            hex = hex.TrimStart('#');
+            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
+            var r = Convert.ToInt32(hex[0..2], 16);
+            var g = Convert.ToInt32(hex[2..4], 16);
+            var b = Convert.ToInt32(hex[4..6], 16);
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
+        }
+        catch { return "#ffffff"; }
+    }
+
+    // ── Args record ────────────────────────────────────────────────────────────
+
+    public readonly record struct StatusChangeArgs(Guid TicketId, Guid StatusId);
+}
