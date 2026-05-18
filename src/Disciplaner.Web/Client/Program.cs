@@ -61,7 +61,7 @@ var host = builder.Build();
 // Read culture persisted in localStorage (defaults to "fr")
 var js = host.Services.GetRequiredService<IJSRuntime>();
 var savedCulture = await js.InvokeAsync<string>("blazorCulture.get");
-var culture = new CultureInfo(!string.IsNullOrWhiteSpace(savedCulture) ? savedCulture : "fr");
+var culture = new CultureInfo(!string.IsNullOrWhiteSpace(savedCulture) ? savedCulture : "en");
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 

@@ -60,6 +60,7 @@
   <data name="Nav.Projects" xml:space="preserve"><value>Projects</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>My tickets</value></data>
   <data name="Nav.Labels" xml:space="preserve"><value>Labels</value></data>
+  <data name="Nav.Admin" xml:space="preserve"><value>Admin</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Sign out</value></data>
 
   <!-- ── Authentication ──────────────────────────────────────────────────── -->
