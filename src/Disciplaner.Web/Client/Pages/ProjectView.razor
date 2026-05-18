@@ -70,113 +70,24 @@ else if (_project is not null)
                     @if (activeSprint is not null)
                     {
                         <span class="badge badge-dark ml-2">@activeSprint.Name</span>
-                        <span class="text-gray-500 text-xs ml-2">@L["Sprint.TicketCount", activeTickets.Count]</span>
                     }
                 </div>
-                <div class="flex items-center gap-2">
-                    @if (activeSprint is not null)
-                    {
-                        <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)"><i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicket"]</button>
-                    }
-                    <div class="flex border border-gray-200 rounded-md overflow-hidden">
-                        <button class="@SprintViewCss("kanban") px-2.5 py-1 text-xs" @onclick="@(() => _activeSprintView = "kanban")">@L["Sprint.View.Kanban"]</button>
-                        <button class="@SprintViewCss("list") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "list")">@L["Sprint.View.List"]</button>
-                        <button class="@SprintViewCss("grid") px-2.5 py-1 text-xs border-l border-gray-200" @onclick="@(() => _activeSprintView = "grid")">@L["Sprint.View.Grid"]</button>
-                    </div>
+            </div>
+            @if (activeSprint is null)
+            {
+                <div class="p-4 text-center text-gray-400 py-10">
+                    <div class="text-3xl font-light mb-2">@L["Sprint.NoActive"]</div>
+                    <p class="text-sm">@L["Sprint.NoActiveDesc"]</p>
                 </div>
-            </div>
-            <div class="p-4">
-                @if (activeSprint is null)
-                {
-                    <div class="text-center text-gray-400 py-10">
-                        <div class="text-3xl font-light mb-2">@L["Sprint.NoActive"]</div>
-                        <p class="text-sm">@L["Sprint.NoActiveDesc"]</p>
-                    </div>
-                }
-                else if (activeTickets.Count == 0)
-                {
-                    <div class="text-center text-gray-400 py-10">
-                        <p class="text-sm mb-4">@L["Sprint.NoTickets"]</p>
-                        <button class="btn btn-primary btn-sm" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                            <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
-                        </button>
-                    </div>
-                }
-                else if (_activeSprintView == "list")
-                {
-                    <div class="divide-y divide-gray-50">
-                        @foreach (var ticket in activeTickets.OrderBy(t => t.TicketNumber))
-                        {
-                            <div class="py-2">
-                                @TicketRow(ticket)
-                            </div>
-                        }
-                        <div class="py-2">
-                            <button class="text-xs text-gray-400 hover:text-gray-600" @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                                <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddTicketNew"]
-                            </button>
-                        </div>
-                    </div>
-                }
-                else if (_activeSprintView == "grid")
-                {
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                        @foreach (var ticket in activeTickets.OrderBy(t => t.TicketNumber))
-                        {
-                            <div>
-                                @TicketCard(ticket)
-                            </div>
-                        }
-                        <div class="flex items-center">
-                            <button class="surface w-full py-8 text-center text-gray-400 hover:text-gray-600 border-dashed text-sm"
-                                    @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                                <i class="bi bi-plus-lg mr-1"></i>Nouveau ticket
-                            </button>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="active-sprint-kanban flex gap-3 overflow-x-auto pb-2">
-                        @foreach (var status in _project.Statuses.OrderBy(s => s.Order))
-                        {
-                            var s = status;
-                            var statusTickets = activeTickets
-                                .Where(t => t.Status.Id == s.Id)
-                                .OrderBy(t => t.TicketNumber)
-                                .ToList();
-
-                            <section class="sprint-column @(_dragOverStatusId == s.Id ? "sprint-drag-over" : string.Empty)"
-                                     @ondragover:preventDefault
-                                     @ondragenter="() => _dragOverStatusId = s.Id"
-                                     @ondrop="async () => await DropToStatusAsync(s.Id)">
-                                <div class="sprint-column-header">
-                                    <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@s.Color"></span>
-                                    <strong class="text-sm">@s.Name</strong>
-                                    <span class="badge badge-gray ml-auto">@statusTickets.Count</span>
-                                </div>
-                                <div class="sprint-column-body">
-                                    @if (statusTickets.Count == 0)
-                                    {
-                                        <div class="text-gray-400 text-xs text-center py-3">@L["Sprint.ColumnEmpty"]</div>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var ticket in statusTickets)
-                                        {
-                                            @TicketCard(ticket)
-                                        }
-                                    }
-                                </div>
-                                <button class="btn-ghost text-xs w-full text-left px-2 py-1"
-                                        @onclick="() => ShowCreateTicketForSprint(activeSprint.Id)">
-                                    <i class="bi bi-plus-lg mr-1"></i>@L["Sprint.AddCard"]
-                                </button>
-                            </section>
-                        }
-                    </div>
-                }
-            </div>
+            }
+            else
+            {
+                <SprintBoard Tickets="activeTickets"
+                             Statuses="_project!.Statuses"
+                             OnTicketClick="EventCallback.Factory.Create<TicketDto>(this, t => OpenTicketDetail(t))"
+                             OnStatusChange="EventCallback.Factory.Create<SprintBoard.StatusChangeArgs>(this, async a => await ChangeStatusAsync(a.TicketId, a.StatusId))"
+                             OnAddTicket="EventCallback.Factory.Create(this, async () => await Task.Run(() => ShowCreateTicketForSprint(activeSprint.Id)))" />
+            }
         </div>
     }
     else if (_tab == "planning")
@@ -582,13 +493,10 @@ else if (_project is not null)
     private bool _showDeleteProject;
     private bool _showTicketDetail;
     private string _tab = "active";
-    private string _activeSprintView = "kanban";
     private string? _error;
     private string? _modalError;
     private TicketStatusDto? _editingStatus;
     private TicketDto? _detailTicket;
-    private Guid? _draggingTicketId;
-    private Guid? _dragOverStatusId;
 
     private TicketForm _ticketForm = new();
     private SprintForm _sprintForm = new();
@@ -716,66 +624,12 @@ else if (_project is not null)
         </div>
     </div>;
 
-    private RenderFragment TicketCard(TicketDto ticket) => @<article class="ticket-card @(_draggingTicketId == ticket.Id ? "opacity-50" : string.Empty)" draggable="true" @ondragstart="() => _draggingTicketId = ticket.Id" @ondragend="() => { _draggingTicketId = null; _dragOverStatusId = null; }">
-        <div class="p-3">
-            <div class="flex justify-between items-start gap-2 cursor-pointer" @onclick="() => OpenTicketDetail(ticket)">
-                <span class="text-xs font-semibold text-blue-600">@ticket.TicketRef</span>
-                <span class="badge @PriorityClass(ticket.Priority)">@ticket.Priority</span>
-            </div>
-            <div class="font-medium text-sm text-gray-900 mt-1 cursor-pointer" @onclick="() => OpenTicketDetail(ticket)">@ticket.Title</div>
-            @if (!string.IsNullOrWhiteSpace(ticket.Description))
-            {
-                <div class="ticket-card-description text-gray-400 text-xs mt-1">@ticket.Description</div>
-            }
-            <div class="flex flex-wrap items-center gap-1 mt-3">
-                <span class="badge badge-gray">@ticket.Type</span>
-                @if (ticket.StoryPoints.HasValue)
-                {
-                    <span class="badge badge-gray">@ticket.StoryPoints pts</span>
-                }
-                @if (ticket.DueDate.HasValue)
-                {
-                    <span class="text-gray-400 text-xs">@ticket.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
-                }
-            </div>
-            @if (ticket.Labels.Count > 0)
-            {
-                <div class="flex flex-wrap gap-1 mt-2" @onclick:stopPropagation>
-                    @foreach (var lbl in ticket.Labels)
-                    {
-                        var lblUrl = $"/labels/{lbl.Id}";
-                        <a href="@lblUrl" class="label-badge"
-                           style="background:@lbl.Color; color:@TicketLabelTextColor(lbl.Color)">@lbl.Name</a>
-                    }
-                </div>
-            }
-            <select class="form-select text-xs mt-3 py-1"
-                    value="@ticket.Status.Id"
-                    @onchange="e => ChangeStatusAsync(ticket.Id, Guid.Parse(e.Value?.ToString() ?? string.Empty))">
-                @foreach (var status in (_project?.Statuses ?? Array.Empty<TicketStatusDto>()).OrderBy(s => s.Order))
-                {
-                    <option value="@status.Id">@status.Name</option>
-                }
-            </select>
-            @if (ActiveSprint is not null && ticket.SprintId is null)
-            {
-                <button class="btn btn-outline btn-sm w-full mt-2"
-                        @onclick:stopPropagation @onclick="() => AddTicketToActiveSprintAsync(ticket.Id)">
-                    <i class="bi bi-lightning mr-1"></i>Ajouter au sprint
-                </button>
-            }
-        </div>
-    </article>;
-
     private RenderFragment ModalError() => @<div>
         @if (_modalError is not null)
         {
             <ErrorAlert Message="@_modalError" />
         }
     </div>;
-
-    private string SprintViewCss(string view)
-        => _activeSprintView == view ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50";
 
     private static string PriorityClass(CardPriority priority) => priority switch
     {
@@ -785,20 +639,6 @@ else if (_project is not null)
         CardPriority.Critical => "badge badge-prio-critical",
         _ => "badge badge-gray"
     };
-
-    private static string TicketLabelTextColor(string hex)
-    {
-        try
-        {
-            hex = hex.TrimStart('#');
-            if (hex.Length == 3) hex = string.Concat(hex.Select(c => $"{c}{c}"));
-            var r = Convert.ToInt32(hex[0..2], 16);
-            var g = Convert.ToInt32(hex[2..4], 16);
-            var b = Convert.ToInt32(hex[4..6], 16);
-            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#1f2328" : "#ffffff";
-        }
-        catch { return "#ffffff"; }
-    }
 
     private void ToggleTicketSelection(Guid ticketId, ChangeEventArgs args)
     {
@@ -907,7 +747,6 @@ else if (_project is not null)
             var start = DateTime.Today;
             await Sprints.StartAsync(sprintId, new StartSprintRequest(start, start.AddDays(14)));
             _tab = "active";
-            _activeSprintView = "kanban";
             await LoadAsync();
         }
         catch { _error = L["Sprint.AlreadyActive"]; }
@@ -1022,15 +861,6 @@ else if (_project is not null)
             _detailTicket = updated;
             if (_detailTicket is null) _showTicketDetail = false;
         }
-    }
-
-    private async Task DropToStatusAsync(Guid statusId)
-    {
-        if (_draggingTicketId is null) return;
-        var ticketId     = _draggingTicketId.Value;
-        _draggingTicketId = null;
-        _dragOverStatusId = null;
-        await ChangeStatusAsync(ticketId, statusId);
     }
 
     // ── Project member management ─────────────────────────────────────────────
