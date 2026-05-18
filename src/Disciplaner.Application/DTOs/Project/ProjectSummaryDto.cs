@@ -1,3 +1,5 @@
+using Disciplaner.Domain.Enums;
+
 namespace Disciplaner.Application.DTOs.Project;
 
 public sealed record ProjectSummaryDto(
@@ -7,5 +9,7 @@ public sealed record ProjectSummaryDto(
     string Key,
     int TicketCount,
     int SprintCount,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    MemberRole RequestingUserRole,
+    bool IsOwner
 );

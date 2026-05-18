@@ -1,8 +1,10 @@
 @page "/projects/{Id:guid}"
 @attribute [Authorize]
 @inject ProjectApiClient Projects
+@inject ProjectMemberApiClient ProjectMembers
 @inject SprintApiClient Sprints
 @inject TicketApiClient Tickets
+@inject UserApiClient Users
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 @inject AuthenticationStateProvider AuthStateProvider
@@ -50,6 +52,7 @@ else if (_project is not null)
     <div class="flex gap-1 mb-5 border-b border-gray-200">
         <button class="tab-link @(_tab == "active" ? "active-tab" : "")" @onclick="@(() => _tab = "active")">@L["Sprint.Active"]</button>
         <button class="tab-link @(_tab == "planning" ? "active-tab" : "")" @onclick="@(() => _tab = "planning")">@L["Sprint.Planning"]</button>
+        <button class="tab-link @(_tab == "members" ? "active-tab" : "")" @onclick="@(() => _tab = "members")">@L["Members.Title"]</button>
         <button class="tab-link @(_tab == "settings" ? "active-tab" : "")" @onclick="@(() => { _tab = "settings"; _settingsEditMode = false; })">@L["Project.Settings"]</button>
     </div>
 
@@ -289,6 +292,20 @@ else if (_project is not null)
     else
     {
         @* ── Settings tab ── *@
+        @if (_tab == "members")
+        {
+            <div class="max-w-2xl">
+                <MembersPanel Members="_project.Members"
+                              AvailableUsers="_allUsers.Where(u => u.Id != _project.OwnerId && !_project.Members.Any(m => m.UserId == u.Id)).ToList()"
+                              CanAdminister="_project.RequestingUserRole >= Disciplaner.Domain.Enums.MemberRole.Admin"
+                              OnAdd="AddProjectMemberAsync"
+                              OnUpdateRole="UpdateProjectRoleAsync"
+                              OnRemove="RemoveProjectMemberAsync" />
+            </div>
+        }
+        else
+        {
+        @* ── Settings tab (original) ── *@
         <div class="flex flex-col gap-6">
 
             @* Edit project *@
@@ -414,6 +431,7 @@ else if (_project is not null)
                 </div>
             </div>
         </div>
+        }
     }
 }
 
@@ -545,6 +563,7 @@ else if (_project is not null)
     [Parameter] public Guid Id { get; set; }
 
     private ProjectDetailDto? _project;
+    private List<UserSummaryDto> _allUsers = [];
     private readonly List<TicketDto> _backlog = [];
     private readonly List<SprintDto> _sprints = [];
     private readonly Dictionary<Guid, List<TicketDto>> _ticketsBySprint = [];
@@ -625,6 +644,7 @@ else if (_project is not null)
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? authState.User.FindFirst("sub")?.Value;
+        _allUsers = await Users.GetAllAsync() ?? [];
         await LoadAsync();
     }
 
@@ -1011,5 +1031,25 @@ else if (_project is not null)
         _draggingTicketId = null;
         _dragOverStatusId = null;
         await ChangeStatusAsync(ticketId, statusId);
+    }
+
+    // ── Project member management ─────────────────────────────────────────────
+
+    private async Task AddProjectMemberAsync(AddMemberRequest req)
+    {
+        await ProjectMembers.AddMemberAsync(Id, req);
+        await LoadAsync();
+    }
+
+    private async Task UpdateProjectRoleAsync(string userId, UpdateMemberRoleRequest req)
+    {
+        await ProjectMembers.UpdateRoleAsync(Id, userId, req);
+        await LoadAsync();
+    }
+
+    private async Task RemoveProjectMemberAsync(string userId)
+    {
+        await ProjectMembers.RemoveMemberAsync(Id, userId);
+        await LoadAsync();
     }
 }

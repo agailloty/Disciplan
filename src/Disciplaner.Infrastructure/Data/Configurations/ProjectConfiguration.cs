@@ -43,5 +43,14 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasDefaultValue(1)
             .IsRequired()
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // Project → Members : cascade delete
+        builder.HasMany(p => p.Members)
+            .WithOne()
+            .HasForeignKey(m => m.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(p => p.Members)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

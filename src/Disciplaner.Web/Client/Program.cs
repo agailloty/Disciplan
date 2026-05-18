@@ -39,10 +39,12 @@ builder.Services.AddHttpClient("Api", c => c.BaseAddress = new Uri(apiBase))
 builder.Services.AddScoped<AuthApiClient>();
 builder.Services.AddScoped<AdminApiClient>();
 builder.Services.AddScoped<BoardApiClient>();
+builder.Services.AddScoped<BoardMemberApiClient>();
 builder.Services.AddScoped<ColumnApiClient>();
 builder.Services.AddScoped<CardApiClient>();
 builder.Services.AddScoped<CommentApiClient>();
 builder.Services.AddScoped<ProjectApiClient>();
+builder.Services.AddScoped<ProjectMemberApiClient>();
 builder.Services.AddScoped<SprintApiClient>();
 builder.Services.AddScoped<TicketApiClient>();
 builder.Services.AddScoped<UserApiClient>();

@@ -18,12 +18,27 @@ internal sealed class ProjectRepository : IProjectRepository
         => await _context.Projects
             .Include(p => p.Statuses.OrderBy(s => s.Order))
             .Include(p => p.Sprints.OrderBy(s => s.CreatedAt))
+            .Include(p => p.Members)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+    public async Task<Project?> GetByIdWithMembersAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _context.Projects
+            .Include(p => p.Members)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Project>> GetByOwnerIdAsync(string ownerId, CancellationToken cancellationToken = default)
         => await _context.Projects
             .Include(p => p.Sprints)
+            .Include(p => p.Members)
             .Where(p => p.OwnerId == ownerId)
+            .OrderBy(p => p.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Project>> GetAccessibleByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+        => await _context.Projects
+            .Include(p => p.Sprints)
+            .Include(p => p.Members)
+            .Where(p => p.OwnerId == userId || p.Members.Any(m => m.UserId == userId))
             .OrderBy(p => p.CreatedAt)
             .ToListAsync(cancellationToken);
 

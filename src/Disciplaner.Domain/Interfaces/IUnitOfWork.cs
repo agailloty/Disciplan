@@ -13,6 +13,8 @@ public interface IUnitOfWork
     ILabelRepository Labels { get; }
     ISavedViewRepository SavedViews { get; }
     ITicketHistoryRepository TicketHistory { get; }
+    IBoardMemberRepository BoardMembers { get; }
+    IProjectMemberRepository ProjectMembers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

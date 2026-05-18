@@ -294,4 +294,12 @@
   <data name="Label.Field" xml:space="preserve"><value>Étiquettes</value></data>
   <data name="Label.NoItems" xml:space="preserve"><value>Aucun ticket ni board avec cette étiquette pour le moment.</value></data>
   <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
+  <data name="Members.Title" xml:space="preserve"><value>Membres</value></data>
+  <data name="Members.Add" xml:space="preserve"><value>Ajouter un membre</value></data>
+  <data name="Members.None" xml:space="preserve"><value>Aucun membre pour le moment.</value></data>
+  <data name="Members.SelectUser" xml:space="preserve"><value>Sélectionner un utilisateur</value></data>
+  <data name="Members.Role" xml:space="preserve"><value>Rôle</value></data>
+  <data name="Members.ChangeRole" xml:space="preserve"><value>Changer le rôle</value></data>
+  <data name="Members.Remove" xml:space="preserve"><value>Retirer le membre</value></data>
+  <data name="Members.RemoveConfirm" xml:space="preserve"><value>Retirer {0} de cette ressource ?</value></data>
 </root>

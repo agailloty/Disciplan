@@ -17,15 +17,31 @@ internal sealed class BoardRepository : IBoardRepository
     public async Task<Board?> GetByIdWithColumnsAsync(Guid id, CancellationToken cancellationToken = default)
         => await _context.Boards
             .Include(b => b.Labels)
+            .Include(b => b.Members)
             .Include(b => b.Columns.OrderBy(c => c.Order))
                 .ThenInclude(c => c.Cards.OrderBy(card => card.Order))
+            .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+
+    public async Task<Board?> GetByIdWithMembersAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _context.Boards
+            .Include(b => b.Members)
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Board>> GetByOwnerIdAsync(string ownerId, CancellationToken cancellationToken = default)
         => await _context.Boards
             .Include(b => b.Columns)
             .Include(b => b.Labels)
+            .Include(b => b.Members)
             .Where(b => b.OwnerId == ownerId)
+            .OrderBy(b => b.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Board>> GetAccessibleByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+        => await _context.Boards
+            .Include(b => b.Columns)
+            .Include(b => b.Labels)
+            .Include(b => b.Members)
+            .Where(b => b.OwnerId == userId || b.Members.Any(m => m.UserId == userId))
             .OrderBy(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
 

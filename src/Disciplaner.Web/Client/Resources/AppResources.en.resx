@@ -297,5 +297,13 @@
   <data name="Label.Field" xml:space="preserve"><value>Labels</value></data>
   <data name="Label.NoItems" xml:space="preserve"><value>No tickets or boards with this label yet.</value></data>
   <data name="Label.ItemCount" xml:space="preserve"><value>{0} ticket(s) · {1} board(s)</value></data>
+  <data name="Members.Title" xml:space="preserve"><value>Members</value></data>
+  <data name="Members.Add" xml:space="preserve"><value>Add member</value></data>
+  <data name="Members.None" xml:space="preserve"><value>No members yet.</value></data>
+  <data name="Members.SelectUser" xml:space="preserve"><value>Select a user</value></data>
+  <data name="Members.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Members.ChangeRole" xml:space="preserve"><value>Change role</value></data>
+  <data name="Members.Remove" xml:space="preserve"><value>Remove member</value></data>
+  <data name="Members.RemoveConfirm" xml:space="preserve"><value>Remove {0} from this resource?</value></data>
 
 </root>

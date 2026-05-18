@@ -1,5 +1,7 @@
 using Disciplaner.Application.DTOs.Column;
 using Disciplaner.Application.DTOs.Label;
+using Disciplaner.Application.DTOs.Member;
+using Disciplaner.Domain.Enums;
 
 namespace Disciplaner.Application.DTOs.Board;
 
@@ -11,5 +13,7 @@ public sealed record BoardDetailDto(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<ColumnDto> Columns,
-    IReadOnlyList<LabelDto> Labels
+    IReadOnlyList<LabelDto> Labels,
+    IReadOnlyList<MemberDto> Members,
+    MemberRole RequestingUserRole
 );

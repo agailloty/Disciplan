@@ -63,7 +63,7 @@ public sealed class TicketService : ITicketService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureWrite(project, requestingUserId);
 
         var defaultStatus = project.GetDefaultStatus();
         var ticketNumber = project.ConsumeNextTicketNumber();
@@ -113,7 +113,7 @@ public sealed class TicketService : ITicketService
     {
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
-        await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+        await EnsureProjectWriteAsync(ticket.ProjectId, requestingUserId, cancellationToken);
 
         var actorName = await GetActorNameAsync(requestingUserId, cancellationToken);
         var history   = new List<TicketHistory>();
@@ -163,7 +163,7 @@ public sealed class TicketService : ITicketService
 
         var project = await _uow.Projects.GetByIdWithDetailsAsync(ticket.ProjectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), ticket.ProjectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureWrite(project, requestingUserId);
 
         var status = project.Statuses.FirstOrDefault(s => s.Id == request.StatusId)
             ?? throw new NotFoundException(nameof(TicketStatus), request.StatusId);
@@ -188,7 +188,7 @@ public sealed class TicketService : ITicketService
     {
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
-        await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+        await EnsureProjectWriteAsync(ticket.ProjectId, requestingUserId, cancellationToken);
 
         ticket.MoveToSprint(request.SprintId);
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
@@ -202,7 +202,7 @@ public sealed class TicketService : ITicketService
     {
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
-        await EnsureProjectAccessAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+        await EnsureProjectWriteAsync(ticket.ProjectId, requestingUserId, cancellationToken);
 
         await _uow.Tickets.DeleteAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
@@ -239,16 +239,32 @@ public sealed class TicketService : ITicketService
         return ToDto(t, reporter?.DisplayName ?? t.ReporterId, assignee?.DisplayName);
     }
 
-    private static void EnsureOwner(Project project, string userId)
+    private static void EnsureAccess(Project project, string userId)
     {
-        if (project.OwnerId != userId) throw new UnauthorizedAccessException("Access denied.");
+        if (!project.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
     }
 
-    private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
+    private static void EnsureWrite(Project project, string userId)
     {
-        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
+        if (!project.CanWrite(userId))
+            throw new ForbiddenException($"User '{userId}' requires Member role on project '{project.Id}'.");
+    }
+
+    private async Task<Project> EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
+    {
+        var project = await _uow.Projects.GetByIdWithMembersAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, userId);
+        EnsureAccess(project, userId);
+        return project;
+    }
+
+    private async Task<Project> EnsureProjectWriteAsync(Guid projectId, string userId, CancellationToken ct)
+    {
+        var project = await _uow.Projects.GetByIdWithMembersAsync(projectId, ct)
+            ?? throw new NotFoundException(nameof(Project), projectId);
+        EnsureWrite(project, userId);
+        return project;
     }
 
     private async Task<string> GetActorNameAsync(string userId, CancellationToken ct)

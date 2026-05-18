@@ -1,6 +1,8 @@
 @page "/boards/{Id:guid}"
 @attribute [Authorize]
 @inject BoardApiClient Boards
+@inject BoardMemberApiClient BoardMembers
+@inject UserApiClient Users
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 
@@ -22,11 +24,26 @@ else if (_board is not null)
         {
             <span class="text-gray-400 text-sm">@_board.Description</span>
         }
-        <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">&#9998; @L["Edit"]</button>
-        <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">&times; @L["Delete"]</button>
+        @if (_board.RequestingUserRole >= Disciplaner.Domain.Enums.MemberRole.Admin)
+        {
+            <button class="btn btn-outline btn-sm" @onclick="ShowEditModal">&#9998; @L["Edit"]</button>
+            <button class="btn btn-danger btn-sm" @onclick="() => _showDelete = true">&times; @L["Delete"]</button>
+        }
     </div>
 
-    <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
+    <div class="flex gap-6 items-start">
+        <div class="flex-1 min-w-0">
+            <BoardComponent Board="_board" OnBoardChanged="ReloadBoardAsync" />
+        </div>
+        <div class="w-72 flex-shrink-0">
+            <MembersPanel Members="_board.Members"
+                          AvailableUsers="_allUsers.Where(u => u.Id != _board.OwnerId && !_board.Members.Any(m => m.UserId == u.Id)).ToList()"
+                          CanAdminister="_board.RequestingUserRole >= Disciplaner.Domain.Enums.MemberRole.Admin"
+                          OnAdd="AddMemberAsync"
+                          OnUpdateRole="UpdateRoleAsync"
+                          OnRemove="RemoveMemberAsync" />
+        </div>
+    </div>
 }
 
 @* ── Edit board modal ── *@
@@ -64,6 +81,7 @@ else if (_board is not null)
     [Parameter] public Guid Id { get; set; }
 
     private BoardDetailDto? _board;
+    private List<UserSummaryDto> _allUsers = [];
     private bool _loading = true;
     private string? _error;
 
@@ -82,7 +100,10 @@ else if (_board is not null)
     }
 
     protected override async Task OnParametersSetAsync()
-        => await ReloadBoardAsync();
+    {
+        _allUsers = await Users.GetAllAsync() ?? [];
+        await ReloadBoardAsync();
+    }
 
     private async Task ReloadBoardAsync()
     {
@@ -121,5 +142,25 @@ else if (_board is not null)
         }
         catch { _error = L["Error.Delete"]; }
         finally { _showDelete = false; }
+    }
+
+    // ── Member management ─────────────────────────────────────────────────────
+
+    private async Task AddMemberAsync(AddMemberRequest req)
+    {
+        await BoardMembers.AddMemberAsync(Id, req);
+        await ReloadBoardAsync();
+    }
+
+    private async Task UpdateRoleAsync(string userId, UpdateMemberRoleRequest req)
+    {
+        await BoardMembers.UpdateRoleAsync(Id, userId, req);
+        await ReloadBoardAsync();
+    }
+
+    private async Task RemoveMemberAsync(string userId)
+    {
+        await BoardMembers.RemoveMemberAsync(Id, userId);
+        await ReloadBoardAsync();
     }
 }

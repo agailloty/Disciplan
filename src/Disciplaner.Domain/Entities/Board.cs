@@ -1,4 +1,5 @@
 using Disciplaner.Domain.Common;
+using Disciplaner.Domain.Enums;
 using Disciplaner.Domain.Exceptions;
 
 namespace Disciplaner.Domain.Entities;
@@ -6,6 +7,7 @@ namespace Disciplaner.Domain.Entities;
 public class Board
 {
     private readonly List<Column> _columns = [];
+    private readonly List<BoardMember> _members = [];
 
     public Guid Id { get; private init; } = Guid.NewGuid();
     public string Name { get; private set; } = string.Empty;
@@ -17,6 +19,7 @@ public class Board
     public User Owner { get; private init; } = null!;
 
     public IReadOnlyCollection<Column> Columns => _columns.AsReadOnly();
+    public IReadOnlyCollection<BoardMember> Members => _members.AsReadOnly();
 
     // ── Labels (M-N) ─────────────────────────────────────────────────────────
     private readonly List<Label> _labels = [];
@@ -30,6 +33,64 @@ public class Board
         SetDescription(description);
         OwnerId = owner.Id;
         Owner = owner;
+    }
+
+    // ── Membership ────────────────────────────────────────────────────────────
+
+    /// <summary>Returns the effective role of a user: Admin if owner, otherwise their membership role, null if not a member.</summary>
+    public MemberRole? GetEffectiveRole(string userId)
+    {
+        if (OwnerId == userId) return MemberRole.Admin;
+        return _members.FirstOrDefault(m => m.UserId == userId)?.Role;
+    }
+
+    public bool HasAccess(string userId) => GetEffectiveRole(userId).HasValue;
+    public bool CanWrite(string userId) => GetEffectiveRole(userId) >= MemberRole.Member;
+    public bool CanManage(string userId) => GetEffectiveRole(userId) >= MemberRole.Supervisor;
+    public bool CanAdminister(string userId) => GetEffectiveRole(userId) >= MemberRole.Admin;
+
+    public BoardMember AddMember(string userId, MemberRole role)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        if (role == MemberRole.Admin)
+            throw MembershipDomainException.CannotAssignRoleAboveSupervisor();
+
+        if (_members.Any(m => m.UserId == userId))
+            throw MembershipDomainException.AlreadyMember(userId, Id.ToString());
+
+        var member = new BoardMember(Id, userId, role);
+        _members.Add(member);
+        UpdatedAt = DateTime.UtcNow;
+        return member;
+    }
+
+    public void ChangeMemberRole(string userId, MemberRole newRole)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        if (newRole == MemberRole.Admin)
+            throw MembershipDomainException.CannotAssignRoleAboveSupervisor();
+
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw MembershipDomainException.MemberNotFound(userId, Id.ToString());
+
+        member.ChangeRole(newRole);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveMember(string userId)
+    {
+        if (OwnerId == userId)
+            throw MembershipDomainException.CannotModifyOwner(userId);
+
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw MembershipDomainException.MemberNotFound(userId, Id.ToString());
+
+        _members.Remove(member);
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Rename(string name)

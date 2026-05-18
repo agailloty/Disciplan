@@ -33,7 +33,7 @@ public sealed class SprintService : ISprintService
     {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
         var sprint = project.AddSprint(request.Name, request.Goal);
         await _uow.Sprints.AddAsync(sprint, cancellationToken);
@@ -67,7 +67,7 @@ public sealed class SprintService : ISprintService
 
         var project = await _uow.Projects.GetByIdWithDetailsAsync(sprint.ProjectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), sprint.ProjectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
         project.StartSprint(sprintId, request.StartDate, request.EndDate);
         await _uow.Projects.UpdateAsync(project, cancellationToken);
@@ -86,7 +86,7 @@ public sealed class SprintService : ISprintService
 
         var project = await _uow.Projects.GetByIdWithDetailsAsync(sprint.ProjectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), sprint.ProjectId);
-        EnsureOwner(project, requestingUserId);
+        EnsureSupervisor(project, requestingUserId);
 
         project.CloseSprint(sprintId);
         await _uow.Projects.UpdateAsync(project, cancellationToken);
@@ -118,13 +118,15 @@ public sealed class SprintService : ISprintService
 
     private async Task EnsureProjectAccessAsync(Guid projectId, string userId, CancellationToken ct)
     {
-        var project = await _uow.Projects.GetByIdAsync(projectId, ct)
+        var project = await _uow.Projects.GetByIdWithMembersAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
-        EnsureOwner(project, userId);
+        if (!project.HasAccess(userId))
+            throw new ForbiddenException($"User '{userId}' does not have access to project '{project.Id}'.");
     }
 
-    private static void EnsureOwner(Project project, string userId)
+    private static void EnsureSupervisor(Project project, string userId)
     {
-        if (project.OwnerId != userId) throw new UnauthorizedAccessException("Access denied.");
+        if (!project.CanManage(userId))
+            throw new ForbiddenException($"User '{userId}' requires Supervisor role on project '{project.Id}'.");
     }
 }

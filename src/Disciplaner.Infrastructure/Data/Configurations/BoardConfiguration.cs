@@ -45,5 +45,14 @@ internal sealed class BoardConfiguration : IEntityTypeConfiguration<Board>
 
         builder.Navigation(b => b.Columns)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // Board → Members : cascade delete
+        builder.HasMany(b => b.Members)
+            .WithOne()
+            .HasForeignKey(m => m.BoardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(b => b.Members)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

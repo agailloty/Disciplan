@@ -49,7 +49,9 @@ public sealed class LabelService : ILabelService
             b.Description,
             b.Columns.Count,
             b.CreatedAt,
-            b.Labels.Select(l => l.ToDto()).ToList().AsReadOnly()
+            b.Labels.Select(l => l.ToDto()).ToList().AsReadOnly(),
+            Domain.Enums.MemberRole.Guest,
+            false
         )).ToList().AsReadOnly();
 
         return new LabelItemsDto(label.ToDto(), tickets, boards);
