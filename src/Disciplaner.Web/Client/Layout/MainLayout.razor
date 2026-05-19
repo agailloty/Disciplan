@@ -2,6 +2,7 @@
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
 @inject ThemeService Theme
+@inject IStringLocalizer<AppResources> L
 @implements IDisposable
 @using System.Security.Claims
 
@@ -10,11 +11,11 @@
     <main class="app-main">
         <header class="app-topbar">
             <div class="app-topbar-right">
-                <a href="/settings" class="topbar-theme-btn" title="Paramètres">
+                <a href="/settings" class="topbar-theme-btn" title="@L["Nav.Settings"]">
                     <i class="bi bi-gear-fill"></i>
                 </a>
                 <button class="topbar-theme-btn" @onclick="ToggleDark"
-                        title="@(Theme.IsDark ? "Passer en mode clair" : "Passer en mode sombre")">
+                        title="@(Theme.IsDark ? L["Settings.Theme.ToLight"].Value : L["Settings.Theme.ToDark"].Value)">
                     <i class="bi @(Theme.IsDark ? "bi-sun-fill" : "bi-moon-fill")"></i>
                 </button>
             </div>

@@ -287,13 +287,13 @@ else if (_ticket is not null)
                 @if (_sprints.Count > 0)
                 {
                     <div class="tdm-prop">
-                        <span class="tdm-sidebar-label">Sprint</span>
+                        <span class="tdm-sidebar-label">@L["Sprint.Label"]</span>
                         <div class="tdm-select-wrap">
                             <select class="tdm-select"
                                     value="@(_ticket.SprintId?.ToString() ?? string.Empty)"
                                     @onchange="OnSprintChangeAsync"
                                     disabled="@_busy">
-                                <option value="">— Backlog —</option>
+                                <option value="">@L["Ticket.BacklogOption"]</option>
                                 @foreach (var s in _sprints)
                                 {
                                     <option value="@s.Id">@s.Name</option>
@@ -340,7 +340,7 @@ else if (_ticket is not null)
                     {
                         <div class="tdm-meta-row">
                             <i class="bi bi-diagram-3 tdm-meta-icon"></i>
-                            <span class="tdm-meta-label">Parent</span>
+                            <span class="tdm-meta-label">@L["Ticket.ParentLabel"]</span>
                             <span class="tdm-meta-value font-mono">@_ticket.ParentTicketRef</span>
                         </div>
                     }

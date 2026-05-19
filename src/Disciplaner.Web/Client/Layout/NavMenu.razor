@@ -6,7 +6,7 @@
 
 @* ── Mobile top bar ──────────────────────────────────────────────────────── *@
 <div class="sidebar-mobile-bar">
-    <button class="sidebar-mobile-toggle" @onclick="ToggleMobileMenu" aria-label="Menu">
+    <button class="sidebar-mobile-toggle" @onclick="ToggleMobileMenu" aria-label="@L["Nav.Menu"]">
         <i class="bi @(_mobileOpen ? "bi-x-lg" : "bi-list")"></i>
     </button>
     <a href="/" class="sidebar-brand-mini">
@@ -64,7 +64,7 @@
                 @if (!_collapsed)
                 {
                     <div class="sidebar-user">
-                        <a href="/settings" class="sidebar-user-avatar" @onclick="CloseMobileMenu" title="Paramètres"
+                        <a href="/settings" class="sidebar-user-avatar" @onclick="CloseMobileMenu" title="@L["Nav.Settings"]"
                            style="text-decoration:none;cursor:pointer">
                             @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
                         </a>
@@ -77,7 +77,7 @@
                 else
                 {
                     <div class="flex flex-col items-center gap-1 py-1">
-                        <a href="/settings" class="sidebar-icon-btn" @onclick="CloseMobileMenu" title="Paramètres">
+                        <a href="/settings" class="sidebar-icon-btn" @onclick="CloseMobileMenu" title="@L["Nav.Settings"]">
                             <div class="sidebar-user-avatar sidebar-user-avatar-sm">
                                 @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
                             </div>

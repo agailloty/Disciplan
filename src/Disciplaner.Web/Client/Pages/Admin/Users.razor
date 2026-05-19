@@ -82,7 +82,7 @@ else
                             else
                             {
                                 <button class="icon-btn text-gray-400 hover:text-green-600"
-                                        title="Activer"
+                                        title="@L["Admin.Activate"]"
                                         @onclick="() => ActivateAsync(u)">
                                     <i class="bi bi-person-check"></i>
                                 </button>
@@ -90,7 +90,7 @@ else
                             @if (!u.Roles.Contains("Admin"))
                             {
                                 <button class="icon-btn text-gray-400 hover:text-purple-600"
-                                        title="Promouvoir Admin"
+                                        title="@L["Admin.PromoteAdmin"]"
                                         @onclick="() => ChangeRoleAsync(u, RoleAdmin)">
                                     <i class="bi bi-shield-plus"></i>
                                 </button>

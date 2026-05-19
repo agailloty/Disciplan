@@ -19,8 +19,8 @@
     <div class="flex items-start justify-between gap-1">
         <span class="text-sm font-medium text-gray-900 leading-snug flex-1">@Card.Title</span>
         <div class="card-actions flex gap-1 shrink-0" @onclick:stopPropagation>
-            <button class="btn-icon" title="Modifier" @onclick="ShowEditModal"><i class="bi bi-pencil text-xs"></i></button>
-            <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="ShowDeleteConfirm"><i class="bi bi-x text-xs"></i></button>
+            <button class="btn-icon" title="@L["Edit"]" @onclick="ShowEditModal"><i class="bi bi-pencil text-xs"></i></button>
+            <button class="btn-icon btn-icon-danger" title="@L["Delete"]" @onclick="ShowDeleteConfirm"><i class="bi bi-x text-xs"></i></button>
         </div>
     </div>
     @if (!string.IsNullOrWhiteSpace(Card.Description))
@@ -55,7 +55,7 @@
         {
             var overdue = Card.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
             <span class="badge @(overdue ? "badge-prio-critical" : "badge-gray")">
-                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")@(overdue ? " — en retard" : "")
+                &#128197; @Card.DueDate.Value.ToLocalTime().ToString("dd/MM/yyyy")@(overdue ? " " + L["Card.Overdue"].Value : "")
             </span>
         }
     </div>
@@ -69,35 +69,35 @@
     }
     else
     {
-        <p class="text-gray-400 text-sm italic mb-4">Aucune description.</p>
+        <p class="text-gray-400 text-sm italic mb-4">@L["Card.NoDescription"]</p>
     }
 
     <div class="flex flex-wrap gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3 mb-1">
-        <span>Créée le @Card.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+        <span>@L["Card.CreatedOn"] @Card.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
         @if (Card.UpdatedAt.HasValue)
         {
-            <span>Modifiée le @Card.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+            <span>@L["Card.UpdatedOn"] @Card.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
         }
     </div>
     <div class="flex flex-wrap gap-4 text-xs text-gray-500 mb-4">
-        <span><i class="bi bi-person mr-1"></i><strong>Créé par&nbsp;:</strong> @(Card.CreatedByName ?? Card.CreatedById)</span>
+        <span><i class="bi bi-person mr-1"></i><strong>@L["Card.CreatedBy"]</strong> @(Card.CreatedByName ?? Card.CreatedById)</span>
         @if (Card.AssignedToId is not null)
         {
-            <span><i class="bi bi-person-check mr-1"></i><strong>Assigné à&nbsp;:</strong> @(Card.AssigneeName ?? Card.AssignedToId)</span>
+            <span><i class="bi bi-person-check mr-1"></i><strong>@L["Card.AssignedTo"]</strong> @(Card.AssigneeName ?? Card.AssignedToId)</span>
         }
     </div>
 
     @* ── Comments ── *@
     <div class="mt-4">
-        <p class="section-label mb-3">Commentaires</p>
+        <p class="section-label mb-3">@L["Ticket.Comments"]</p>
 
         @if (_commentsLoading)
         {
-            <p class="text-sm text-gray-400">Chargement…</p>
+            <p class="text-sm text-gray-400">@L["Loading"]</p>
         }
         else if (_comments.Count == 0)
         {
-            <p class="text-sm text-gray-400 italic">Aucun commentaire pour l'instant.</p>
+            <p class="text-sm text-gray-400 italic">@L["Card.NoComments"]</p>
         }
         else
         {
@@ -112,14 +112,14 @@
                                 <span class="text-xs text-gray-400 ml-2">@comment.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                 @if (comment.UpdatedAt.HasValue)
                                 {
-                                    <span class="text-xs text-gray-400 ml-1">(modifié)</span>
+                                    <span class="text-xs text-gray-400 ml-1">@L["Card.Edited"]</span>
                                 }
                             </div>
                             @if (comment.AuthorId == _currentUserId)
                             {
                                 <div class="flex gap-1">
-                                    <button class="btn-icon" title="Modifier" @onclick="() => StartEditComment(comment)"><i class="bi bi-pencil text-xs"></i></button>
-                                    <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => DeleteCommentAsync(comment.Id)"><i class="bi bi-x text-xs"></i></button>
+                                    <button class="btn-icon" title="@L["Edit"]" @onclick="() => StartEditComment(comment)"><i class="bi bi-pencil text-xs"></i></button>
+                                    <button class="btn-icon btn-icon-danger" title="@L["Delete"]" @onclick="() => DeleteCommentAsync(comment.Id)"><i class="bi bi-x text-xs"></i></button>
                                 </div>
                             }
                         </div>
@@ -144,13 +144,13 @@
 
         <div class="flex gap-2 items-end">
             <textarea class="form-textarea flex-1" rows="2"
-                      placeholder="Ajouter un commentaire…"
+                      placeholder="@L["Card.Comment.Placeholder"]"
                       @bind="_newCommentContent"
                       disabled="@_commentBusy"></textarea>
             <button class="btn btn-primary btn-sm shrink-0 self-end"
                     @onclick="AddCommentAsync"
                     disabled="@(string.IsNullOrWhiteSpace(_newCommentContent) || _commentBusy)">
-                Envoyer
+                @L["Card.Comment.Send"]
             </button>
         </div>
         @if (_commentError is not null)
@@ -170,7 +170,7 @@
 </Modal>
 
 @* ── Edit modal ── *@
-<Modal Title="Modifier la carte" Visible="_showEdit" OnClose="() => _showEdit = false">
+<Modal Title="@L["Card.EditTitle"]" Visible="_showEdit" OnClose="() => _showEdit = false">
     <EditForm Model="_form" OnValidSubmit="UpdateCardAsync">
         <DataAnnotationsValidator />
         <div class="mb-4">
@@ -212,15 +212,15 @@
             <div class="mb-4"><ErrorAlert Message="@_editError" /></div>
         }
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">Annuler</button>
-            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : "Enregistrer")</button>
+            <button type="button" class="btn btn-outline" @onclick="() => _showEdit = false">@L["Cancel"]</button>
+            <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
         </div>
     </EditForm>
 </Modal>
 
 @* ── Delete confirmation ── *@
-<ConfirmModal Title="Supprimer la carte"
-              Message="@($"Supprimer \"{Card.Title}\" ?")"
+<ConfirmModal Title="@L["Card.DeleteTitle"]"
+              Message="@(string.Format(L["Card.DeleteConfirm"], Card.Title))"
               Visible="_showDelete"
               OnCancel="() => _showDelete = false"
               OnConfirm="DeleteCardAsync" />

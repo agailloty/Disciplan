@@ -2,12 +2,13 @@
 @layout AuthLayout
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
 
 <div class="w-full max-w-sm mx-auto" style="margin-top:6rem">
     <div class="text-center mb-8">
         <span style="font-size:2rem">&#9654;</span>
         <h1 class="text-xl font-semibold text-gray-900 mt-2">Disciplaner</h1>
-        <p class="text-sm text-gray-500 mt-1">Créer votre compte</p>
+        <p class="text-sm text-gray-500 mt-1">@L["Invitation.Subtitle"]</p>
     </div>
 
     @if (_checking)
@@ -18,9 +19,9 @@
     {
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8 text-center">
             <i class="bi bi-exclamation-triangle text-3xl text-orange-400 mb-3 block"></i>
-            <p class="text-sm text-gray-700 font-medium mb-1">Invitation invalide ou expirée</p>
-            <p class="text-xs text-gray-500 mb-6">Ce lien d'invitation n'est plus valide.</p>
-            <a href="/login" class="btn btn-secondary">Retour à la connexion</a>
+            <p class="text-sm text-gray-700 font-medium mb-1">@L["Invitation.Invalid"]</p>
+            <p class="text-xs text-gray-500 mb-6">@L["Invitation.InvalidDesc"]</p>
+            <a href="/login" class="btn btn-secondary">@L["Invitation.BackToLogin"]</a>
         </div>
     }
     else
@@ -28,7 +29,7 @@
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
             <div class="flex items-center gap-2 px-3 py-2 mb-5 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
                 <i class="bi bi-envelope-check shrink-0"></i>
-                <span>Invitation valide. Renseignez vos informations pour créer votre compte.</span>
+                <span>@L["Invitation.Valid"]</span>
             </div>
 
             @if (_error is not null)
@@ -43,7 +44,7 @@
                 <DataAnnotationsValidator />
 
                 <div class="mb-4">
-                    <label class="form-label">Email</label>
+                    <label class="form-label">@L["Auth.Email"]</label>
                     <InputText @bind-Value="_model.Email"
                                class="form-input"
                                style="@(_emailLocked ? "background:#f9fafb;color:#6b7280" : "")"
@@ -54,20 +55,20 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Nom d'affichage</label>
+                    <label class="form-label">@L["Settings.DisplayName"]</label>
                     <InputText @bind-Value="_model.DisplayName" class="form-input" autocomplete="name" />
                     <ValidationMessage For="() => _model.DisplayName" />
                 </div>
 
                 <div class="mb-6">
-                    <label class="form-label">Mot de passe</label>
+                    <label class="form-label">@L["Auth.Password"]</label>
                     <InputText @bind-Value="_model.Password" class="form-input" type="password" autocomplete="new-password" />
                     <ValidationMessage For="() => _model.Password" />
-                    <p class="text-xs text-gray-400 mt-1">Minimum 8 caractères, avec majuscule, minuscule et chiffre.</p>
+                    <p class="text-xs text-gray-400 mt-1">@L["Setup.PasswordHint"]</p>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full" disabled="@_loading">
-                    @(_loading ? "Création en cours…" : "Créer mon compte")
+                    @(_loading ? L["Setup.Creating"].Value : L["Invitation.CreateAccount"].Value)
                 </button>
             </EditForm>
         </div>

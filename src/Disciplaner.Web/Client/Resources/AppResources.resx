@@ -173,6 +173,7 @@
   <data name="Ticket.CreatedOn" xml:space="preserve"><value>le {0}</value></data>
   <data name="Ticket.UpdatedOn" xml:space="preserve"><value>Modifié le {0}</value></data>
   <data name="Ticket.Parent" xml:space="preserve"><value>Parent : {0}</value></data>
+  <data name="Ticket.ParentLabel" xml:space="preserve"><value>Parent</value></data>
 
   <!-- ── Statuts de ticket ────────────────────────────────────────────────── -->
   <data name="Status.Category" xml:space="preserve"><value>Catégorie</value></data>
@@ -185,8 +186,7 @@
   <data name="Status.EditTitle" xml:space="preserve"><value>Modifier le statut</value></data>
 
   <!-- ── Navigation (suite) ───────────────────────────────────────────────── -->
-  <data name="Nav.Settings" xml:space="preserve"><value>Paramètres</value></data>
-
+  <data name="Nav.Settings" xml:space="preserve"><value>Paramètres</value></data>  <data name="Nav.Menu" xml:space="preserve"><value>Menu</value></data>
   <!-- ── Paramètres ─────────────────────────────────────────────────────────── -->
   <data name="Settings.Title" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Settings.Language" xml:space="preserve"><value>Langue de l'application</value></data>
@@ -336,4 +336,59 @@
   <data name="Home.ActiveSprints" xml:space="preserve"><value>Sprints actifs</value></data>
   <data name="Home.Overdue" xml:space="preserve"><value>En retard</value></data>
   <data name="Home.InProgress" xml:space="preserve"><value>En cours</value></data>
+
+  <!-- ── Setup ─────────────────────────────────────────────────────────── -->
+  <data name="Setup.Subtitle" xml:space="preserve"><value>Configuration initiale</value></data>
+  <data name="Setup.NoAccount" xml:space="preserve"><value>Aucun compte n'existe encore. Créez le premier compte administrateur.</value></data>
+  <data name="Setup.PasswordHint" xml:space="preserve"><value>Minimum 8 caractères, avec majuscule, minuscule et chiffre.</value></data>
+  <data name="Setup.Creating" xml:space="preserve"><value>Création en cours…</value></data>
+  <data name="Setup.CreateAdmin" xml:space="preserve"><value>Créer le compte administrateur</value></data>
+
+  <!-- ── Invitation ──────────────────────────────────────────────────────────── -->
+  <data name="Invitation.Subtitle" xml:space="preserve"><value>Créer votre compte</value></data>
+  <data name="Invitation.Invalid" xml:space="preserve"><value>Invitation invalide ou expirée</value></data>
+  <data name="Invitation.InvalidDesc" xml:space="preserve"><value>Ce lien d'invitation n'est plus valide.</value></data>
+  <data name="Invitation.BackToLogin" xml:space="preserve"><value>Retour à la connexion</value></data>
+  <data name="Invitation.Valid" xml:space="preserve"><value>Invitation valide. Renseignez vos informations pour créer votre compte.</value></data>
+  <data name="Invitation.CreateAccount" xml:space="preserve"><value>Créer mon compte</value></data>
+
+  <!-- ── Settings tabs / theme ──────────────────────────────────────────────────────────── -->
+  <data name="Settings.Tab.Appearance" xml:space="preserve"><value>Apparence</value></data>
+  <data name="Settings.Theme.Label" xml:space="preserve"><value>Thème</value></data>
+  <data name="Settings.Theme.Custom" xml:space="preserve"><value>Thème personnalisé</value></data>
+  <data name="Settings.Theme.Active" xml:space="preserve"><value>Actif</value></data>
+  <data name="Settings.Theme.Activate" xml:space="preserve"><value>Activer</value></data>
+  <data name="Settings.Stats.Show" xml:space="preserve"><value>Afficher les statistiques rapides</value></data>
+  <data name="Settings.Stats.Description" xml:space="preserve"><value>Tickets assignés, sprints actifs, retards et tickets en cours.</value></data>
+  <data name="Settings.Theme.Dark" xml:space="preserve"><value>Sombre</value></data>
+  <data name="Settings.Theme.Light" xml:space="preserve"><value>Clair</value></data>
+  <data name="Settings.Theme.ToDark" xml:space="preserve"><value>Passer en mode sombre</value></data>
+  <data name="Settings.Theme.ToLight" xml:space="preserve"><value>Passer en mode clair</value></data>
+
+  <!-- ── Card (Kanban) ──────────────────────────────────────────────────────────── -->
+  <data name="Card.CreatedOn" xml:space="preserve"><value>Créée le</value></data>
+  <data name="Card.UpdatedOn" xml:space="preserve"><value>Modifiée le</value></data>
+  <data name="Card.CreatedBy" xml:space="preserve"><value>Créé par :</value></data>
+  <data name="Card.AssignedTo" xml:space="preserve"><value>Assigné à :</value></data>
+  <data name="Card.NoComments" xml:space="preserve"><value>Aucun commentaire pour l'instant.</value></data>
+  <data name="Card.Edited" xml:space="preserve"><value>(modifié)</value></data>
+  <data name="Card.Comment.Send" xml:space="preserve"><value>Envoyer</value></data>
+  <data name="Card.EditTitle" xml:space="preserve"><value>Modifier la carte</value></data>
+  <data name="Card.DeleteTitle" xml:space="preserve"><value>Supprimer la carte</value></data>
+  <data name="Card.DeleteConfirm" xml:space="preserve"><value>Supprimer "{0}" ?</value></data>
+  <data name="Card.Comment.Placeholder" xml:space="preserve"><value>Ajouter un commentaire…</value></data>
+  <data name="Card.NoDescription" xml:space="preserve"><value>Aucune description.</value></data>
+  <data name="Card.Overdue" xml:space="preserve"><value>— en retard</value></data>
+
+  <!-- ── LabelPicker ──────────────────────────────────────────────────────────── -->
+  <data name="LabelPicker.Remove" xml:space="preserve"><value>Retirer</value></data>
+  <data name="LabelPicker.Filter" xml:space="preserve"><value>Filtrer…</value></data>
+  <data name="LabelPicker.Empty" xml:space="preserve"><value>Aucune étiquette trouvée.</value></data>
+
+  <!-- ── Label detail ──────────────────────────────────────────────────────────── -->
+  <data name="Label.Tickets" xml:space="preserve"><value>Tickets</value></data>
+
+  <!-- ── Admin actions ─────────────────────────────────────────────────────────── -->
+  <data name="Admin.Activate" xml:space="preserve"><value>Activer</value></data>
+  <data name="Admin.PromoteAdmin" xml:space="preserve"><value>Promouvoir Admin</value></data>
 </root>

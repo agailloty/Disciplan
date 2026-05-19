@@ -51,8 +51,8 @@ else if (_labels is not null)
                         @l.Name
                     </button>
                     <span class="text-xs text-gray-400">@l.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
-                    <button class="btn-icon" title="Modifier" @onclick="() => ShowEdit(l)"><i class="bi bi-pencil text-xs"></i></button>
-                    <button class="btn-icon btn-icon-danger" title="Supprimer" @onclick="() => ShowDelete(l)"><i class="bi bi-trash text-xs"></i></button>
+                    <button class="btn-icon" title="@L["Edit"]" @onclick="() => ShowEdit(l)"><i class="bi bi-pencil text-xs"></i></button>
+                    <button class="btn-icon btn-icon-danger" title="@L["Delete"]" @onclick="() => ShowDelete(l)"><i class="bi bi-trash text-xs"></i></button>
                 </div>
             }
         </div>
