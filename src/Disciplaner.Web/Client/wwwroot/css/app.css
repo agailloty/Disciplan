@@ -157,6 +157,15 @@ body {
 .sidebar-collapse-btn:hover { background: rgba(255,255,255,.14); color: #fff; }
 .sidebar-collapsed .sidebar-collapse-btn { margin: 0 auto; }
 
+/* Collapsed brand: stack logo + arrow vertically */
+.sidebar-collapsed .sidebar-brand {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: .625rem;
+    padding: .875rem .5rem .625rem;
+}
+
 /* Nav links */
 .sidebar-nav {
     flex: 1;
@@ -227,8 +236,9 @@ body {
     display: flex;
     align-items: center;
     gap: .625rem;
-    padding: .375rem .5rem .5rem;
+    padding: .375rem .5rem;
     overflow: hidden;
+    border-radius: .5rem;
 }
 
 .sidebar-user-link {
@@ -404,6 +414,26 @@ body {
 }
 
 /* ── Surface / card ─────────────────────────────────────────────────────────── */
+
+/* Override Tailwind's hardcoded text-gray-900 on page titles */
+.page-title { color: var(--text-base) !important; }
+.section-label { color: var(--text-muted) !important; }
+
+/* Thin custom scrollbar for activity feed */
+.activity-scroll {
+    overflow-y: auto;
+    max-height: 480px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+.activity-scroll::-webkit-scrollbar { width: 4px; }
+.activity-scroll::-webkit-scrollbar-track { background: transparent; }
+.activity-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+.activity-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
 .surface {
     background: var(--surface);
     border: 1px solid var(--border);

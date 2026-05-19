@@ -10,6 +10,9 @@
     <main class="app-main">
         <header class="app-topbar">
             <div class="app-topbar-right">
+                <a href="/settings" class="topbar-theme-btn" title="Paramètres">
+                    <i class="bi bi-gear-fill"></i>
+                </a>
                 <button class="topbar-theme-btn" @onclick="ToggleDark"
                         title="@(Theme.IsDark ? "Passer en mode clair" : "Passer en mode sombre")">
                     <i class="bi @(Theme.IsDark ? "bi-sun-fill" : "bi-moon-fill")"></i>

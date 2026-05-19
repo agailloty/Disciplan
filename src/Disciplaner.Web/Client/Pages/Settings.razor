@@ -22,19 +22,19 @@
 </div>
 
 @* ── Tab bar ──────────────────────────────────────────────────────────────────── *@
-<div class="flex gap-1 mb-6 border-b border-gray-200">
-    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                   @(_tab == "profile" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+<div class="flex gap-1 mb-6 border-b" style="border-color:var(--border)">
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "profile" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
             @onclick='() => _tab = "profile"'>
         <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.Tab.Profile"]
     </button>
-    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                   @(_tab == "appearance" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "appearance" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
             @onclick='() => _tab = "appearance"'>
         <i class="bi bi-palette-fill mr-1.5"></i>Apparence
     </button>
-    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                   @(_tab == "dashboard" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "dashboard" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
             @onclick='() => _tab = "dashboard"'>
         <i class="bi bi-layout-wtf mr-1.5"></i>@L["Settings.Tab.Dashboard"]
     </button>
@@ -45,13 +45,13 @@
 {
     @* ── Display name ────────────────────────────────────────────────────────── *@
     <div class="surface max-w-md mb-6">
-        <div class="px-4 py-3 border-b border-gray-100">
-            <span class="text-sm font-semibold text-gray-800">
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+            <span class="text-sm font-semibold" style="color:var(--text-base)">
                 <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.DisplayName"]
             </span>
         </div>
         <div class="p-4">
-            <p class="text-xs text-gray-400 mb-3">@L["Settings.DisplayName.Hint"]</p>
+            <p class="text-xs mb-3" style="color:var(--text-muted)">@L["Settings.DisplayName.Hint"]</p>
             <div class="flex gap-2 items-start">
                 <div class="flex-1">
                     <input type="text"
@@ -80,8 +80,8 @@
 
     @* ── Language ─────────────────────────────────────────────────────────────── *@
     <div class="surface max-w-md">
-        <div class="px-4 py-3 border-b border-gray-100">
-            <span class="text-sm font-semibold text-gray-800">
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+            <span class="text-sm font-semibold" style="color:var(--text-base)">
                 <i class="bi bi-translate mr-1.5"></i>@L["Settings.Language"]
             </span>
         </div>
@@ -89,19 +89,19 @@
             @foreach (var (code, flag, label) in _langs)
             {
                 var c = code;
-                <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full
-                               @(_current == c ? "border-gray-900 bg-gray-50 shadow-sm" : "border-gray-200 hover:bg-gray-50")"
+                <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full"
+                        style="@(_current == c ? "border-color:var(--accent);background:var(--bg-accent)" : "border-color:var(--border);")"
                         @onclick="() => SetCultureAsync(c)">
                     <span class="text-xl">@flag</span>
-                    <span class="text-sm font-medium text-gray-800 flex-1">@label</span>
+                    <span class="text-sm font-medium flex-1" style="color:var(--text-base)">@label</span>
                     @if (_current == c)
                     {
-                        <i class="bi bi-check2 text-gray-900 font-bold text-base"></i>
+                        <i class="bi bi-check2 font-bold text-base" style="color:var(--accent)"></i>
                     }
                 </button>
             }
         </div>
-        <p class="px-4 pb-4 text-xs text-gray-400">
+        <p class="px-4 pb-4 text-xs" style="color:var(--text-muted)">
             <i class="bi bi-info-circle mr-1"></i>@L["Settings.Language.Hint"]
         </p>
     </div>
@@ -237,7 +237,7 @@
 {
     <div class="max-w-2xl">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-xs text-gray-500">@L["Settings.Dashboard.Hint"]</p>
+            <p class="text-xs" style="color:var(--text-muted)">@L["Settings.Dashboard.Hint"]</p>
             <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
                 <i class="bi bi-plus me-1"></i> @L["SavedView.CreateTitle"]
             </button>
@@ -249,14 +249,14 @@
         }
         else if (_widgets.Count == 0)
         {
-            <div class="surface py-10 text-center text-gray-400 text-sm">
+            <div class="surface py-10 text-center text-sm" style="color:var(--text-muted)">
                 <i class="bi bi-layout-wtf text-2xl block mb-2"></i>
                 @L["Settings.Dashboard.Empty"]
             </div>
         }
         else
         {
-            <div class="surface divide-y divide-gray-100">
+            <div class="surface divide-y" style="border-color:var(--border)">
                 @for (int i = 0; i < _widgets.Count; i++)
                 {
                     var idx = i;
@@ -264,21 +264,21 @@
                     <div class="flex items-center gap-3 px-4 py-3 @(w.Visible ? "" : "opacity-50")">
 
                         @* Kind icon *@
-                        <span class="text-gray-400 shrink-0">
+                        <span class="shrink-0" style="color:var(--text-muted)">
                             <i class="bi @DashWidgetIcon(w)"></i>
                         </span>
 
                         @* Label *@
-                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@DashWidgetLabel(w)</span>
+                        <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@DashWidgetLabel(w)</span>
 
                         @* Move up / down *@
                         <div class="flex gap-0.5 shrink-0">
-                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     disabled="@(idx == 0)"
                                     @onclick="() => MoveWidget(idx, -1)">
                                 <i class="bi bi-chevron-up text-xs"></i>
                             </button>
-                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     disabled="@(idx == _widgets.Count - 1)"
                                     @onclick="() => MoveWidget(idx, 1)">
                                 <i class="bi bi-chevron-down text-xs"></i>
@@ -286,7 +286,8 @@
                         </div>
 
                         @* Visibility toggle *@
-                        <button class="icon-btn shrink-0 @(w.Visible ? "text-blue-600" : "text-gray-300")"
+                        <button class="icon-btn shrink-0"
+                                style="color:@(w.Visible ? "var(--accent)" : "var(--border)")"
                                 title="@(w.Visible ? L["Settings.Dashboard.Hide"].Value : L["Settings.Dashboard.Show"].Value)"
                                 @onclick="() => ToggleVisible(idx)">
                             <i class="bi bi-eye"></i>
@@ -296,7 +297,7 @@
                         @if (w.Kind == "saved_view" && w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var sv))
                         {
                             var svRef = sv;
-                            <button class="icon-btn text-gray-400 hover:text-gray-700 shrink-0"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     title="@L["Edit"]"
                                     @onclick="() => ShowEditView(svRef)">
                                 <i class="bi bi-pencil"></i>

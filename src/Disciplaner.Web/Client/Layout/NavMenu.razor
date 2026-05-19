@@ -57,33 +57,36 @@
         </AuthorizeView>
     </nav>
 
-    @* Bottom: user info + settings + logout *@
+    @* Bottom: user info + logout *@
     <div class="sidebar-footer">
         <AuthorizeView>
             <Authorized>
                 @if (!_collapsed)
                 {
-                    <a href="/settings" class="sidebar-user sidebar-user-link" @onclick="CloseMobileMenu" title="Paramètres">
-                        <div class="sidebar-user-avatar">
+                    <div class="sidebar-user">
+                        <a href="/settings" class="sidebar-user-avatar" @onclick="CloseMobileMenu" title="Paramètres"
+                           style="text-decoration:none;cursor:pointer">
                             @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
-                        </div>
-                        <span class="sidebar-user-name truncate">@context.User.FindFirst("displayName")?.Value</span>
-                        <i class="bi bi-chevron-right sidebar-user-chevron"></i>
-                    </a>
+                        </a>
+                        <span class="sidebar-user-name truncate flex-1">@context.User.FindFirst("displayName")?.Value</span>
+                        <button class="sidebar-icon-btn sidebar-logout-btn" @onclick="HandleLogout" title="@L["Nav.Logout"]">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </div>
                 }
                 else
                 {
-                    <a href="/settings" class="sidebar-icon-btn" @onclick="CloseMobileMenu" title="Paramètres">
-                        <div class="sidebar-user-avatar sidebar-user-avatar-sm">
-                            @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
-                        </div>
-                    </a>
+                    <div class="flex flex-col items-center gap-1 py-1">
+                        <a href="/settings" class="sidebar-icon-btn" @onclick="CloseMobileMenu" title="Paramètres">
+                            <div class="sidebar-user-avatar sidebar-user-avatar-sm">
+                                @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                            </div>
+                        </a>
+                        <button class="sidebar-icon-btn sidebar-logout-btn" @onclick="HandleLogout" title="@L["Nav.Logout"]">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </div>
                 }
-                <div class="sidebar-footer-actions">
-                    <button class="sidebar-icon-btn sidebar-logout-btn" @onclick="HandleLogout" title="@L["Nav.Logout"]">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </button>
-                </div>
             </Authorized>
         </AuthorizeView>
     </div>
