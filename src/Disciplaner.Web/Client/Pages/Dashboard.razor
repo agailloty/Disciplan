@@ -6,15 +6,15 @@
 
 <PageTitle>@L["Nav.Boards"]</PageTitle>
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-8">
     <div>
         <h1 class="page-title">@L["Nav.Boards"]</h1>
         @if (_boards is not null && _boards.Count > 0)
         {
-            <p class="text-sm text-gray-400 mt-0.5">@_boards.Count @(_boards.Count > 1 ? "boards" : "board")</p>
+            <p class="text-sm mt-1" style="color:var(--text-muted)">@_boards.Count @(_boards.Count > 1 ? "boards" : "board")</p>
         }
     </div>
-    <button class="btn btn-primary" @onclick="ShowCreateModal">
+    <button class="btn btn-primary btn-sm" @onclick="ShowCreateModal">
         <i class="bi bi-plus"></i> @L["Board.CreateTitle"]
     </button>
 </div>
@@ -39,7 +39,7 @@ else if (_boards is not null)
     }
     else
     {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @{int idx = 0;}
             @foreach (var board in _boards)
             {
@@ -47,11 +47,11 @@ else if (_boards is not null)
                 var accent = _accents[idx % _accents.Length];
                 idx++;
                 <div class="surface surface-hover" style="border-top: 3px solid @accent">
-                    <div class="p-4 cursor-pointer" @onclick="() => NavigateToBoard(b.Id)">
-                        <h2 class="font-semibold text-gray-900 text-base">@b.Name</h2>
+                    <div class="p-5 cursor-pointer" @onclick="() => NavigateToBoard(b.Id)">
+                        <h2 class="font-semibold text-base" style="color:var(--text-base)">@b.Name</h2>
                         @if (b.Description is not null)
                         {
-                            <p class="text-gray-500 text-sm mt-1 line-clamp-2">@b.Description</p>
+                            <p class="text-sm mt-1.5 line-clamp-2" style="color:var(--text-muted)">@b.Description</p>
                         }
                         @if (b.Labels.Count > 0)
                         {
@@ -64,8 +64,8 @@ else if (_boards is not null)
                             </div>
                         }
                     </div>
-                    <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">
+                    <div class="flex items-center justify-between px-5 py-3 border-t" style="border-color:var(--border)">
+                        <span class="text-xs" style="color:var(--text-muted)">
                             <span class="badge badge-gray mr-1">@b.ColumnCount col.</span>
                             @b.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
                         </span>

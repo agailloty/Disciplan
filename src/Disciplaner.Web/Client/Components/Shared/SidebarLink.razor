@@ -1,0 +1,26 @@
+@inject NavigationManager Nav
+
+<NavLink class="@LinkClass"
+         href="@Href"
+         Match="@Match"
+         @onclick="OnClick"
+         title="@(Collapsed ? Label : null)">
+    <i class="bi @Icon sidebar-nav-icon"></i>
+    @if (!Collapsed)
+    {
+        <span class="sidebar-nav-label">@Label</span>
+    }
+</NavLink>
+
+@code {
+    [Parameter, EditorRequired] public string Href  { get; set; } = "";
+    [Parameter, EditorRequired] public string Icon  { get; set; } = "";
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public bool Collapsed { get; set; }
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private string LinkClass => Collapsed
+        ? "sidebar-nav-link sidebar-nav-link-icon-only"
+        : "sidebar-nav-link";
+}

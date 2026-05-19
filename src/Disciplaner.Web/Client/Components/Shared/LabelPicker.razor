@@ -1,5 +1,6 @@
 @using Disciplaner.Application.DTOs.Label
 @inject LabelApiClient LabelApi
+@inject IStringLocalizer<AppResources> L
 
 @* ── Badges des étiquettes affichées ── *@
 <div class="flex flex-wrap gap-1.5 items-center">
@@ -9,7 +10,7 @@
             <a href="/labels/@label.Id" style="color:inherit;text-decoration:none">@label.Name</a>
             @if (Editable)
             {
-                <button type="button" class="label-badge-remove" @onclick="() => RemoveLabelAsync(label)" aria-label="Retirer">&#x2715;</button>
+                <button type="button" class="label-badge-remove" @onclick="() => RemoveLabelAsync(label)" aria-label="@L["LabelPicker.Remove"]">&#x2715;</button>
             }
         </span>
     }
@@ -20,7 +21,7 @@
             <button type="button"
                     class="label-add-btn"
                     @onclick="TogglePickerAsync">
-                <i class="bi bi-tag mr-1"></i>Étiquettes
+                <i class="bi bi-tag mr-1"></i>@L["Label.Field"]
             </button>
 
             @if (_open)
@@ -29,13 +30,13 @@
                     @* Search *@
                     <input class="label-picker-search"
                            type="text"
-                           placeholder="Filtrer…"
+                           placeholder="@L["LabelPicker.Filter"]"
                            @bind="_search"
                            @bind:event="oninput" />
 
                     @if (_allLabels is null)
                     {
-                        <p class="px-3 py-2 text-xs text-gray-400">Chargement…</p>
+                        <p class="px-3 py-2 text-xs text-gray-400">@L["Loading"]</p>
                     }
                     else
                     {
@@ -45,7 +46,7 @@
 
                         @if (filtered.Count == 0)
                         {
-                            <p class="px-3 py-2 text-xs text-gray-400">Aucune étiquette trouvée.</p>
+                            <p class="px-3 py-2 text-xs text-gray-400">@L["LabelPicker.Empty"]</p>
                         }
 
                         @foreach (var label in filtered)

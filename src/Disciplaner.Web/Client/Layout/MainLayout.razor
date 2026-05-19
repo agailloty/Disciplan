@@ -1,16 +1,46 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
+@inject ThemeService Theme
+@inject IStringLocalizer<AppResources> L
+@implements IDisposable
 @using System.Security.Claims
 
-<div class="min-h-screen flex flex-col">
+<div class="app-shell">
     <NavMenu OnLogout="LogoutAsync" />
-    <main class="flex-1 w-full max-w-screen-xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8" style="padding-bottom: calc(1.25rem + env(safe-area-inset-bottom))">
-        @Body
+    <main class="app-main">
+        <header class="app-topbar">
+            <div class="app-topbar-right">
+                <a href="/settings" class="topbar-theme-btn" title="@L["Nav.Settings"]">
+                    <i class="bi bi-gear-fill"></i>
+                </a>
+                <button class="topbar-theme-btn" @onclick="ToggleDark"
+                        title="@(Theme.IsDark ? L["Settings.Theme.ToLight"].Value : L["Settings.Theme.ToDark"].Value)">
+                    <i class="bi @(Theme.IsDark ? "bi-sun-fill" : "bi-moon-fill")"></i>
+                </button>
+            </div>
+        </header>
+        <div class="app-content">
+            @Body
+        </div>
     </main>
 </div>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Theme.LoadAsync();
+        Theme.OnChange += StateHasChanged;
+    }
+
+    public void Dispose() => Theme.OnChange -= StateHasChanged;
+
+    private async Task ToggleDark()
+    {
+        await Theme.ToggleDarkAsync();
+        StateHasChanged();
+    }
+
     private async Task LogoutAsync()
     {
         await Auth.LogoutAsync();

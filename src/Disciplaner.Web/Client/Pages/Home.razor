@@ -6,6 +6,7 @@
 @inject SavedViewApiClient SavedViewApi
 @inject SprintApiClient SprintApi
 @inject DashboardConfigService DashConfig
+@inject ThemeService Theme
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserProfileService UserProfile
 @inject NavigationManager Nav
@@ -21,15 +22,64 @@
 
 <PageTitle>@L["Nav.Home"] — Disciplaner</PageTitle>
 
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-semibold text-gray-900">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
-        <p class="text-sm text-gray-500 mt-0.5">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
+@* ── Welcome banner ───────────────────────────────────────────────────────── *@
+<div class="dashboard-banner">
+    <div class="dashboard-banner-content">
+        <div>
+            <h1 class="dashboard-welcome">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
+            <p class="dashboard-date">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
+        </div>
     </div>
-    <a href="/settings?tab=dashboard" class="text-xs text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1">
-        <i class="bi bi-sliders"></i> @L["Home.Configure"]
-    </a>
 </div>
+
+@* ── Quick stats (optional) ───────────────────────────────────────────────── *@
+@if (!_dashboardLoading && !_ticketsLoading && Theme.ShowStats)
+{
+    <div class="dashboard-stats-row">
+        <div class="dashboard-stat-card">
+            <div class="dashboard-stat-icon" style="background:var(--accent-light);color:var(--accent)">
+                <i class="bi bi-ticket-perforated-fill"></i>
+            </div>
+            <div>
+                <div class="dashboard-stat-value">@(_tickets?.Count ?? 0)</div>
+                <div class="dashboard-stat-label">@L["Home.MyTickets"]</div>
+            </div>
+        </div>
+        <div class="dashboard-stat-card">
+            <div class="dashboard-stat-icon" style="background:#dcfce7;color:#16a34a">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <div>
+                <div class="dashboard-stat-value">@(_activeSprints?.Count ?? 0)</div>
+                <div class="dashboard-stat-label">@L["Home.ActiveSprints"]</div>
+            </div>
+        </div>
+        @{
+            var overdueCount = _tickets?.Count(t => t.DueDate.HasValue && t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow) ?? 0;
+        }
+        <div class="dashboard-stat-card">
+            <div class="dashboard-stat-icon" style="background:#fee2e2;color:#dc2626">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+                <div class="dashboard-stat-value @(overdueCount > 0 ? "text-red-600" : "")">@overdueCount</div>
+                <div class="dashboard-stat-label">@L["Home.Overdue"]</div>
+            </div>
+        </div>
+        @{
+            var inProgressCount = _tickets?.Count(t => t.Status?.Category == Disciplaner.Domain.Enums.StatusCategory.InProgress) ?? 0;
+        }
+        <div class="dashboard-stat-card">
+            <div class="dashboard-stat-icon" style="background:#fef3c7;color:#d97706">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <div class="dashboard-stat-value">@inProgressCount</div>
+                <div class="dashboard-stat-label">@L["Home.InProgress"]</div>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_dashboardLoading)
 {
@@ -44,7 +94,7 @@ else if (!_widgets.Any(w => w.Visible))
 }
 else
 {
-    <div class="space-y-4">
+    <div class="space-y-8">
         @foreach (var widget in _widgets.Where(w => w.Visible))
         {
             var w = widget;
@@ -52,12 +102,12 @@ else
 
             <div class="surface">
                 @* ── En-tête ── *@
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-5 py-4 border-b" style="border-color:var(--border)">
                     <button class="flex-1 flex items-center gap-2 text-left"
                             @onclick="() => ToggleWidget(wKey)">
-                        <i class="bi @(_expanded.Contains(wKey) ? "bi-chevron-down" : "bi-chevron-right") text-gray-400 text-xs shrink-0"></i>
-                        <i class="bi @WidgetIcon(w) text-gray-500 text-sm shrink-0"></i>
-                        <span class="text-sm font-semibold text-gray-800">@WidgetLabel(w)</span>
+                        <i class="bi @(_expanded.Contains(wKey) ? "bi-chevron-down" : "bi-chevron-right") text-xs shrink-0" style="color:var(--text-muted)"></i>
+                        <i class="bi @WidgetIcon(w) text-sm shrink-0" style="color:var(--text-muted)"></i>
+                        <span class="text-sm font-semibold" style="color:var(--text-base)">@WidgetLabel(w)</span>
                         @if (w.Kind == "my_tickets" && _tickets is not null)
                         {
                             <span class="badge badge-gray shrink-0">@_tickets.Count</span>
@@ -100,26 +150,24 @@ else
                         }
                         else
                         {
-                            <div class="divide-y divide-gray-50">
+                            <div class="divide-y" style="border-color:var(--border)">
                                 @foreach (var ticket in _tickets.Take(7))
                                 {
                                     var t = ticket;
                                     var ticketUrl = "/tickets/" + t.TicketRef;
-                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                    <div class="flex items-center gap-2 px-5 py-3 cursor-pointer transition-colors"
                                          @onclick="() => Nav.NavigateTo(ticketUrl)">
-                                        <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
-                                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
-                                        <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
-                                        <span class="flex items-center gap-1 shrink-0 w-24">
+                                        <span class="flex items-center gap-1 shrink-0" style="max-width:5.5rem">
                                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
-                                            <span class="text-xs text-gray-500 hidden sm:block truncate">@t.Status.Name</span>
+                                            <span class="text-xs truncate" style="color:var(--text-muted)">@t.Status.Name</span>
                                         </span>
+                                        <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                                        <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@t.Title</span>
+                                        <span class="badge @PriorityBadge(t.Priority) shrink-0 hidden sm:flex">@t.Priority</span>
                                         @if (t.DueDate.HasValue)
                                         {
                                             var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                            <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
-                                                @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
-                                            </span>
+                                            <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "")" style="@(overdue ? "" : "color:var(--text-muted)")">@t.DueDate.Value.ToLocalTime().ToString("dd/MM")</span>
                                         }
                                     </div>
                                 }
@@ -141,29 +189,27 @@ else
                         }
                         else
                         {
-                            <div class="divide-y divide-gray-50">
+                        <div class="divide-y" style="border-color:var(--border)">
                                 @foreach (var sprint in _activeSprints)
                                 {
                                     var sp = sprint;
                                     var sprintUrl = $"/sprints/{sp.Id}";
-                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                    <div class="flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors"
                                          @onclick="() => Nav.NavigateTo(sprintUrl)">
                                         @if (sp.ProjectKey is not null)
                                         {
                                             <span class="badge badge-dark font-mono shrink-0">@sp.ProjectKey</span>
                                         }
-                                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@sp.Name</span>
+                                        <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@sp.Name</span>
                                         @if (sp.ProjectName is not null)
                                         {
-                                            <span class="text-xs text-gray-400 truncate hidden sm:block">@sp.ProjectName</span>
+                                            <span class="text-xs truncate hidden sm:block" style="color:var(--text-muted)">@sp.ProjectName</span>
                                         }
                                         <span class="badge badge-gray shrink-0">@sp.TicketCount @L["Sprint.Tickets"]</span>
                                         @if (sp.EndDate.HasValue)
                                         {
                                             var daysLeft = (int)(sp.EndDate.Value.ToUniversalTime() - DateTime.UtcNow).TotalDays;
-                                            <span class="text-xs shrink-0 @(daysLeft < 3 ? "text-red-600 font-semibold" : "text-gray-400")">
-                                                @sp.EndDate.Value.ToLocalTime().ToString("dd/MM")
-                                            </span>
+                                            <span class="text-xs shrink-0 @(daysLeft < 3 ? "text-red-600 font-semibold" : "")" style="@(daysLeft < 3 ? "" : "color:var(--text-muted)")">@sp.EndDate.Value.ToLocalTime().ToString("dd/MM")</span>
                                         }
                                     </div>
                                 }
@@ -172,7 +218,7 @@ else
                     }
                     else if (w.Kind == "recent_activity")
                     {
-                        <div class="overflow-y-auto" style="max-height:480px">
+                        <div class="activity-scroll">
                             @if (_activityLoading)
                             {
                                 <div class="p-4"><LoadingSpinner /></div>
@@ -190,19 +236,19 @@ else
                             }
                             else
                             {
-                                <div class="divide-y divide-gray-100">
+                        <div class="divide-y" style="border-color:var(--border)">
                                     @foreach (var group in _activityGroups)
                                     {
                                         var g = group;
-                                        <div class="px-4 py-3">
+                                        <div class="px-5 py-4">
                                             @* Ticket header *@
-                                            <div class="flex items-center gap-2 mb-2">
+                                            <div class="flex items-center gap-2 mb-3">
                                                 <a href="/tickets/@g.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">@g.TicketRef</a>
-                                                <span class="text-xs font-semibold text-gray-700 truncate">@g.TicketTitle</span>
-                                                <span class="ml-auto text-gray-400 shrink-0" style="font-size:.68rem">@RelativeTime(g.LastOccurredAt)</span>
+                                                <span class="text-xs font-semibold truncate" style="color:var(--text-base)">@g.TicketTitle</span>
+                                                <span class="ml-auto shrink-0" style="font-size:.68rem;color:var(--text-muted)">@RelativeTime(g.LastOccurredAt)</span>
                                             </div>
                                             @* Event list *@
-                                            <div class="flex flex-col gap-1 pl-2 border-l-2 border-gray-100">
+                                            <div class="flex flex-col gap-1.5 pl-2 border-l-2" style="border-color:var(--border)">
                                                 @foreach (var ev in g.Events)
                                                 {
                                                     var e = ev;
@@ -210,7 +256,7 @@ else
                                                         <span class="shrink-0 w-3.5 text-center @ActivityIconColor(e.Kind)">
                                                             <i class="bi @ActivityIcon(e.Kind) text-xs"></i>
                                                         </span>
-                                                        <span class="text-xs text-gray-500 truncate">@e.Summary</span>
+                                                        <span class="text-xs truncate" style="color:var(--text-muted)">@e.Summary</span>
                                                     </div>
                                                 }
                                             </div>
@@ -238,24 +284,24 @@ else
                             }
                             else
                             {
-                                <div class="divide-y divide-gray-50">
+                                <div class="divide-y" style="border-color:var(--border)">
                                     @foreach (var ticket in svTickets)
                                     {
                                         var t = ticket;
                                         var svTicketUrl = "/tickets/" + t.TicketRef;
-                                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                        <div class="flex items-center gap-2 px-5 py-3 cursor-pointer transition-colors"
                                              @onclick="() => Nav.NavigateTo(svTicketUrl)">
-                                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
-                                            <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
-                                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
-                                            <span class="flex items-center gap-1 shrink-0 w-24">
+                                            <span class="flex items-center gap-1 shrink-0" style="max-width:5.5rem">
                                                 <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
-                                                <span class="text-xs text-gray-500 hidden sm:block truncate">@t.Status.Name</span>
+                                                <span class="text-xs truncate" style="color:var(--text-muted)">@t.Status.Name</span>
                                             </span>
+                                            <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
+                                            <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@t.Title</span>
+                                            <span class="badge @PriorityBadge(t.Priority) shrink-0 hidden sm:flex">@t.Priority</span>
                                             @if (t.DueDate.HasValue)
                                             {
                                                 var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
-                                                <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "text-gray-400")">
+                                                <span class="text-xs shrink-0 @(overdue ? "text-red-600 font-semibold" : "")" style="@(overdue ? "" : "color:var(--text-muted)")">
                                                     @t.DueDate.Value.ToLocalTime().ToString("dd/MM")
                                                 </span>
                                             }

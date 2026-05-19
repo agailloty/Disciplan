@@ -7,6 +7,7 @@
 @inject SavedViewApiClient SavedViewApi
 @inject ProjectApiClient ProjectApi
 @inject DashboardConfigService DashConfig
+@inject ThemeService Theme
 @inject IStringLocalizer<AppResources> L
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
@@ -21,14 +22,19 @@
 </div>
 
 @* ── Tab bar ──────────────────────────────────────────────────────────────────── *@
-<div class="flex gap-1 mb-6 border-b border-gray-200">
-    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                   @(_tab == "profile" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+<div class="flex gap-1 mb-6 border-b" style="border-color:var(--border)">
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "profile" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
             @onclick='() => _tab = "profile"'>
         <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.Tab.Profile"]
     </button>
-    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
-                   @(_tab == "dashboard" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "appearance" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
+            @onclick='() => _tab = "appearance"'>
+        <i class="bi bi-palette-fill mr-1.5"></i>@L["Settings.Tab.Appearance"]
+    </button>
+    <button class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style="@(_tab == "dashboard" ? "border-color:var(--accent);color:var(--text-base)" : "border-color:transparent;color:var(--text-muted)")"
             @onclick='() => _tab = "dashboard"'>
         <i class="bi bi-layout-wtf mr-1.5"></i>@L["Settings.Tab.Dashboard"]
     </button>
@@ -39,13 +45,13 @@
 {
     @* ── Display name ────────────────────────────────────────────────────────── *@
     <div class="surface max-w-md mb-6">
-        <div class="px-4 py-3 border-b border-gray-100">
-            <span class="text-sm font-semibold text-gray-800">
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+            <span class="text-sm font-semibold" style="color:var(--text-base)">
                 <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.DisplayName"]
             </span>
         </div>
         <div class="p-4">
-            <p class="text-xs text-gray-400 mb-3">@L["Settings.DisplayName.Hint"]</p>
+            <p class="text-xs mb-3" style="color:var(--text-muted)">@L["Settings.DisplayName.Hint"]</p>
             <div class="flex gap-2 items-start">
                 <div class="flex-1">
                     <input type="text"
@@ -74,8 +80,8 @@
 
     @* ── Language ─────────────────────────────────────────────────────────────── *@
     <div class="surface max-w-md">
-        <div class="px-4 py-3 border-b border-gray-100">
-            <span class="text-sm font-semibold text-gray-800">
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+            <span class="text-sm font-semibold" style="color:var(--text-base)">
                 <i class="bi bi-translate mr-1.5"></i>@L["Settings.Language"]
             </span>
         </div>
@@ -83,21 +89,146 @@
             @foreach (var (code, flag, label) in _langs)
             {
                 var c = code;
-                <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full
-                               @(_current == c ? "border-gray-900 bg-gray-50 shadow-sm" : "border-gray-200 hover:bg-gray-50")"
+                <button class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left w-full"
+                        style="@(_current == c ? "border-color:var(--accent);background:var(--bg-accent)" : "border-color:var(--border);")"
                         @onclick="() => SetCultureAsync(c)">
                     <span class="text-xl">@flag</span>
-                    <span class="text-sm font-medium text-gray-800 flex-1">@label</span>
+                    <span class="text-sm font-medium flex-1" style="color:var(--text-base)">@label</span>
                     @if (_current == c)
                     {
-                        <i class="bi bi-check2 text-gray-900 font-bold text-base"></i>
+                        <i class="bi bi-check2 font-bold text-base" style="color:var(--accent)"></i>
                     }
                 </button>
             }
         </div>
-        <p class="px-4 pb-4 text-xs text-gray-400">
+        <p class="px-4 pb-4 text-xs" style="color:var(--text-muted)">
             <i class="bi bi-info-circle mr-1"></i>@L["Settings.Language.Hint"]
         </p>
+    </div>
+}
+
+@* ── Appearance tab ───────────────────────────────────────────────────────────── *@
+@if (_tab == "appearance")
+{
+    <div class="max-w-2xl space-y-6">
+
+        @* ── Theme cards grid ─────────────────────────────────────────────────── *@
+        <div class="surface overflow-hidden">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold" style="color:var(--text-base)">
+                        <i class="bi bi-palette-fill mr-1.5" style="color:var(--accent)"></i>@L["Settings.Theme.Label"]
+                    </span>
+                    @* Dark/Light global toggle *@
+                    <button class="theme-mode-toggle @(Theme.IsDark ? "theme-mode-dark" : "theme-mode-light")"
+                            @onclick="ToggleDarkAsync"
+                            title="@(Theme.IsDark ? L["Settings.Theme.ToLight"].Value : L["Settings.Theme.ToDark"].Value)">
+                        <i class="bi @(Theme.IsDark ? "bi-moon-stars-fill" : "bi-sun-fill")"></i>
+                        <span>@(Theme.IsDark ? L["Settings.Theme.Dark"].Value : L["Settings.Theme.Light"].Value)</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="theme-grid">
+                    @foreach (var theme in ThemeService.Presets)
+                    {
+                        var t = theme;
+                        var variant   = Theme.IsDark ? t.Dark : t.Light;
+                        var isActive  = Theme.CurrentThemeName == t.Name;
+                        <button class="theme-card @(isActive ? "theme-card-active" : "")"
+                                @onclick="() => SelectThemeAsync(t.Name)"
+                                title="@t.Label">
+                            @* Mini preview *@
+                            <div class="theme-card-preview" style="background:@variant.Bg">
+                                <div class="theme-card-sidebar" style="background:@variant.SidebarBg">
+                                    <div class="theme-card-dot" style="background:@variant.Primary"></div>
+                                    <div class="theme-card-dot" style="background:@variant.Primary; opacity:.5"></div>
+                                    <div class="theme-card-dot" style="background:@variant.Primary; opacity:.25"></div>
+                                </div>
+                                <div class="theme-card-content">
+                                    <div class="theme-card-bar" style="background:@variant.Primary; width:60%"></div>
+                                    <div class="theme-card-bar" style="background:@variant.Muted; width:80%; margin-top:3px"></div>
+                                    <div class="theme-card-bar" style="background:@variant.Muted; width:50%; margin-top:3px"></div>
+                                </div>
+                            </div>
+                            <div class="theme-card-label">
+                                @if (isActive)
+                                {
+                                    <i class="bi bi-check-circle-fill" style="color:var(--accent)"></i>
+                                }
+                                <span>@t.Label</span>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ── Custom theme ──────────────────────────────────────────────────────── *@
+        <div class="surface overflow-hidden">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold" style="color:var(--text-base)">
+                        <i class="bi bi-sliders mr-1.5" style="color:var(--accent)"></i>@L["Settings.Theme.Custom"]
+                    </span>
+                    @if (Theme.IsCustomTheme)
+                    {
+                        <span class="custom-theme-active-badge">
+                            <i class="bi bi-check-circle-fill"></i> @L["Settings.Theme.Active"]
+                        </span>
+                    }
+                    else
+                    {
+                        <button class="custom-theme-activate" @onclick="ActivateCustomTheme">
+                            <i class="bi bi-circle"></i> @L["Settings.Theme.Activate"]
+                        </button>
+                    }
+                </div>
+            </div>
+            @if (Theme.IsCustomTheme)
+            {
+                <div class="p-5">
+                    <div class="custom-theme-grid">
+                        @foreach (var (key, label, value, icon) in _customColorRows)
+                        {
+                            var k = key; var v = value;
+                            <div class="custom-color-row">
+                                <label class="custom-color-label">
+                                    <i class="bi @icon" style="color:var(--text-muted)"></i>
+                                    @label
+                                </label>
+                                <div class="custom-color-input">
+                                    <input type="color" value="@v" class="theme-color-picker"
+                                           @onchange="e => SetCustomAsync(k, e.Value?.ToString() ?? v)" />
+                                    <span class="font-mono text-xs" style="color:var(--text-muted)">@v</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* ── Stats visibility ─────────────────────────────────────────────────── *@
+        <div class="surface">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <span class="text-sm font-semibold" style="color:var(--text-base)">
+                    <i class="bi bi-bar-chart-fill mr-1.5" style="color:var(--accent)"></i>@L["Settings.Tab.Dashboard"]
+                </span>
+            </div>
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium" style="color:var(--text-base)">@L["Settings.Stats.Show"]</p>
+                    <p class="text-xs mt-0.5" style="color:var(--text-muted)">@L["Settings.Stats.Description"]</p>
+                </div>
+                <button class="theme-toggle-switch @(Theme.ShowStats ? "theme-toggle-on" : "")"
+                        @onclick="ToggleStatsAsync"
+                        role="switch" aria-checked="@Theme.ShowStats">
+                    <span class="theme-toggle-knob"></span>
+                </button>
+            </div>
+        </div>
+
     </div>
 }
 
@@ -106,7 +237,7 @@
 {
     <div class="max-w-2xl">
         <div class="flex items-center justify-between mb-4">
-            <p class="text-xs text-gray-500">@L["Settings.Dashboard.Hint"]</p>
+            <p class="text-xs" style="color:var(--text-muted)">@L["Settings.Dashboard.Hint"]</p>
             <button class="btn btn-secondary text-xs" @onclick="ShowCreateView">
                 <i class="bi bi-plus me-1"></i> @L["SavedView.CreateTitle"]
             </button>
@@ -118,14 +249,14 @@
         }
         else if (_widgets.Count == 0)
         {
-            <div class="surface py-10 text-center text-gray-400 text-sm">
+            <div class="surface py-10 text-center text-sm" style="color:var(--text-muted)">
                 <i class="bi bi-layout-wtf text-2xl block mb-2"></i>
                 @L["Settings.Dashboard.Empty"]
             </div>
         }
         else
         {
-            <div class="surface divide-y divide-gray-100">
+            <div class="surface divide-y" style="border-color:var(--border)">
                 @for (int i = 0; i < _widgets.Count; i++)
                 {
                     var idx = i;
@@ -133,21 +264,21 @@
                     <div class="flex items-center gap-3 px-4 py-3 @(w.Visible ? "" : "opacity-50")">
 
                         @* Kind icon *@
-                        <span class="text-gray-400 shrink-0">
+                        <span class="shrink-0" style="color:var(--text-muted)">
                             <i class="bi @DashWidgetIcon(w)"></i>
                         </span>
 
                         @* Label *@
-                        <span class="text-sm font-medium text-gray-800 flex-1 truncate">@DashWidgetLabel(w)</span>
+                        <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@DashWidgetLabel(w)</span>
 
                         @* Move up / down *@
                         <div class="flex gap-0.5 shrink-0">
-                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     disabled="@(idx == 0)"
                                     @onclick="() => MoveWidget(idx, -1)">
                                 <i class="bi bi-chevron-up text-xs"></i>
                             </button>
-                            <button class="icon-btn text-gray-400 hover:text-gray-700"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     disabled="@(idx == _widgets.Count - 1)"
                                     @onclick="() => MoveWidget(idx, 1)">
                                 <i class="bi bi-chevron-down text-xs"></i>
@@ -155,7 +286,8 @@
                         </div>
 
                         @* Visibility toggle *@
-                        <button class="icon-btn shrink-0 @(w.Visible ? "text-blue-600" : "text-gray-300")"
+                        <button class="icon-btn shrink-0"
+                                style="color:@(w.Visible ? "var(--accent)" : "var(--border)")"
                                 title="@(w.Visible ? L["Settings.Dashboard.Hide"].Value : L["Settings.Dashboard.Show"].Value)"
                                 @onclick="() => ToggleVisible(idx)">
                             <i class="bi bi-eye"></i>
@@ -165,7 +297,7 @@
                         @if (w.Kind == "saved_view" && w.ViewId.HasValue && _savedViewsById.TryGetValue(w.ViewId.Value, out var sv))
                         {
                             var svRef = sv;
-                            <button class="icon-btn text-gray-400 hover:text-gray-700 shrink-0"
+                            <button class="icon-btn shrink-0" style="color:var(--text-muted)"
                                     title="@L["Edit"]"
                                     @onclick="() => ShowEditView(svRef)">
                                 <i class="bi bi-pencil"></i>
@@ -198,6 +330,33 @@
 
     private string _tab = "profile";
     private string _current = "fr";
+
+    // ── Theme / Appearance ────────────────────────────────────────────────────
+    private static readonly string[] _accentPresets = ["#4f46e5","#0ea5e9","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#0891b2","#16a34a"];
+    private static readonly string[] _sidebarPresets = ["#1e1e2e","#0f172a","#1a1a2e","#0d1117","#18181b","#1c1917","#14532d","#1e3a5f"];
+    private static readonly string[] _pageBgPresets  = ["#f3f4f6","#f8fafc","#f9fafb","#fff7ed","#fdf4ff","#f0fdf4","#eff6ff","#ffffff"];
+
+    private async Task SelectThemeAsync(string name) => await Theme.SetThemeAsync(name, Theme.IsDark);
+    private async Task ActivateCustomTheme()          => await Theme.SetThemeAsync("custom", Theme.IsDark);
+    private async Task ToggleDarkAsync()             => await Theme.ToggleDarkAsync();
+    private async Task ToggleStatsAsync()            => await Theme.SetShowStatsAsync(!Theme.ShowStats);
+    private async Task SetCustomAsync(string key, string value) => await Theme.SetCustomColorAsync(key, value);
+
+    private IEnumerable<(string key, string label, string value, string icon)> _customColorRows =>
+    [
+        ("bg",      "Fond de page",      Theme.CustomBg,      "bi-app"),
+        ("panel",   "Surfaces / cartes", Theme.CustomPanel,   "bi-square"),
+        ("text",    "Texte principal",   Theme.CustomText,    "bi-fonts"),
+        ("muted",   "Texte secondaire",  Theme.CustomMuted,   "bi-type"),
+        ("primary", "Couleur primaire",  Theme.CustomPrimary, "bi-circle-fill"),
+        ("sidebar", "Barre latérale",    Theme.CustomSidebar, "bi-layout-sidebar"),
+    ];
+
+    // kept for compat (no longer used in Appearance UI but may be referenced elsewhere)
+    private async Task SetAccentAsync(string hex)    { /* noop – use full presets */ await Task.CompletedTask; }
+    private async Task SetSidebarAsync(string hex)   { await Task.CompletedTask; }
+    private async Task SetPageBgAsync(string hex)    { await Task.CompletedTask; }
+    private async Task ResetThemeAsync()             => await Theme.SetThemeAsync("navy", false);
 
     // ── Display name ──────────────────────────────────────────────────────────
     private string _displayName = string.Empty;

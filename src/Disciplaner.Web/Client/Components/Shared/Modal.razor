@@ -1,3 +1,4 @@
+@inject IStringLocalizer<AppResources> L
 @if (Visible)
 {
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
@@ -12,7 +13,7 @@
                 @* Compact header — close button + optional extra actions *@
                 <div class="modal-close-only">
                     @ExtraHeaderContent
-                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="Fermer">
+                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="@L["Close"]">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -22,7 +23,7 @@
                 @* Standard header with title *@
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h2 class="font-semibold text-sm text-gray-900">@Title</h2>
-                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="Fermer">
+                    <button class="modal-close-btn" @onclick="CloseAsync" type="button" aria-label="@L["Close"]">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>

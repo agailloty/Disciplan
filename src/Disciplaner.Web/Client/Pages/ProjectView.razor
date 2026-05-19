@@ -31,22 +31,33 @@ else if (_project is not null)
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="surface p-4">
-            <div class="section-label mb-1">@L["Project.Stats.Backlog"]</div>
-            <div class="text-4xl font-light text-gray-800">@_backlog.Count</div>
-            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.BacklogSub"]</div>
+    <div class="mb-5">
+        <button class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-2 hover:opacity-80 transition-opacity"
+                style="color:var(--text-muted)"
+                @onclick="() => _statsExpanded = !_statsExpanded">
+            <i class="bi @(_statsExpanded ? "bi-chevron-down" : "bi-chevron-right") text-xs"></i>
+            @L["Project.Stats.Title"]
+        </button>
+        @if (_statsExpanded)
+        {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="surface p-4">
+                <div class="section-label mb-1">@L["Project.Stats.Backlog"]</div>
+                <div class="text-4xl font-light text-gray-800">@_backlog.Count</div>
+                <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.BacklogSub"]</div>
+            </div>
+            <div class="surface p-4">
+                <div class="section-label mb-1">@L["Project.Stats.Sprints"]</div>
+                <div class="text-4xl font-light text-gray-800">@_sprints.Count</div>
+                <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.SprintsSub"]</div>
+            </div>
+            <div class="surface p-4">
+                <div class="section-label mb-1">@L["Project.Stats.Workflow"]</div>
+                <div class="text-4xl font-light text-gray-800">@_project.Statuses.Count</div>
+                <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.WorkflowSub"]</div>
+            </div>
         </div>
-        <div class="surface p-4">
-            <div class="section-label mb-1">@L["Project.Stats.Sprints"]</div>
-            <div class="text-4xl font-light text-gray-800">@_sprints.Count</div>
-            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.SprintsSub"]</div>
-        </div>
-        <div class="surface p-4">
-            <div class="section-label mb-1">@L["Project.Stats.Workflow"]</div>
-            <div class="text-4xl font-light text-gray-800">@_project.Statuses.Count</div>
-            <div class="text-xs text-gray-400 mt-1">@L["Project.Stats.WorkflowSub"]</div>
-        </div>
+        }
     </div>
 
     <div class="flex gap-1 mb-5 border-b border-gray-200">
@@ -493,6 +504,7 @@ else if (_project is not null)
     private bool _showDeleteProject;
     private bool _showTicketDetail;
     private string _tab = "active";
+    private bool _statsExpanded = false;
     private string? _error;
     private string? _modalError;
     private TicketStatusDto? _editingStatus;
