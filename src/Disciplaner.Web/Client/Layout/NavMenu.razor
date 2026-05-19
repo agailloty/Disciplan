@@ -1,129 +1,130 @@
 ﻿@using System.Security.Claims
 @inject IStringLocalizer<AppResources> L
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 @implements IDisposable
 
-<header class="sticky top-0 z-50" style="background:#24292f">
-    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav class="flex items-center h-14">
-            @* Brand *@
-            <a href="/" class="font-semibold text-white text-sm mr-4 flex items-center gap-1.5 shrink-0 hover:text-gray-200 transition-colors">
-                <span style="font-size:1rem">&#9654;</span> Disciplaner
-            </a>
+@* ── Mobile top bar ──────────────────────────────────────────────────────── *@
+<div class="sidebar-mobile-bar">
+    <button class="sidebar-mobile-toggle" @onclick="ToggleMobileMenu" aria-label="Menu">
+        <i class="bi @(_mobileOpen ? "bi-x-lg" : "bi-list")"></i>
+    </button>
+    <a href="/" class="sidebar-brand-mini">
+        <span class="sidebar-brand-icon">&#9654;</span>
+        <span>Disciplaner</span>
+    </a>
+    <AuthorizeView>
+        <Authorized>
+            <span class="sidebar-mobile-username">@context.User.FindFirst("displayName")?.Value</span>
+        </Authorized>
+    </AuthorizeView>
+</div>
 
-            @* Desktop primary links — hidden on mobile *@
-            <div class="hidden sm:flex items-center gap-1 flex-1 min-w-0">
-                <NavLink class="topnav-link" href="" Match="NavLinkMatch.All">@L["Nav.Home"]</NavLink>
-                <NavLink class="topnav-link" href="boards">@L["Nav.Boards"]</NavLink>
-                <NavLink class="topnav-link" href="projects">@L["Nav.Projects"]</NavLink>
-                <NavLink class="topnav-link" href="my-tickets">@L["Nav.MyTickets"]</NavLink>
-                <NavLink class="topnav-link" href="labels">@L["Nav.Labels"]</NavLink>
-                <AuthorizeView Roles="Admin">
-                    <Authorized>
-                        <NavLink class="topnav-link" href="admin/users">
-                            <i class="bi bi-people mr-1"></i>@L["Nav.Admin"]
-                        </NavLink>
-                    </Authorized>
-                </AuthorizeView>
+@* ── Mobile overlay ───────────────────────────────────────────────────────── *@
+@if (_mobileOpen)
+{
+    <div class="sidebar-overlay" @onclick="CloseMobileMenu"></div>
+}
 
-                @* Right side — desktop *@
-                <div class="ml-auto flex items-center gap-3 shrink-0">
-                    <AuthorizeView>
-                        <Authorized>
-                            <span class="text-gray-400 text-sm hidden md:block truncate max-w-[140px]">
-                                @context.User.FindFirst("displayName")?.Value
-                            </span>
-                            <NavLink class="topnav-link" href="settings" title="Settings">
-                                <i class="bi bi-gear"></i>
-                            </NavLink>
-                            <button class="topnav-link" @onclick="OnLogout">@L["Nav.Logout"]</button>
-                        </Authorized>
-                    </AuthorizeView>
-                </div>
-            </div>
+@* ── Sidebar ──────────────────────────────────────────────────────────────── *@
+<aside class="sidebar @(_collapsed ? "sidebar-collapsed" : "") @(_mobileOpen ? "sidebar-mobile-open" : "")">
 
-            @* Mobile right: user name + hamburger *@
-            <div class="ml-auto sm:hidden flex items-center gap-2">
-                <AuthorizeView>
-                    <Authorized>
-                        <span class="text-gray-400 text-xs truncate max-w-[100px]">
-                            @context.User.FindFirst("displayName")?.Value
-                        </span>
-                        <button class="topnav-link px-2 py-1.5 text-lg leading-none"
-                                @onclick="ToggleMenu"
-                                aria-label="Menu"
-                                aria-expanded="@_menuOpen">
-                            <i class="bi @(_menuOpen ? "bi-x-lg" : "bi-list")"></i>
-                        </button>
-                    </Authorized>
-                </AuthorizeView>
-            </div>
-        </nav>
+    @* Brand *@
+    <div class="sidebar-brand">
+        <a href="/" class="sidebar-brand-link" title="Disciplaner">
+            <span class="sidebar-brand-icon">&#9654;</span>
+            @if (!_collapsed)
+            {
+                <span class="sidebar-brand-text">Disciplaner</span>
+            }
+        </a>
+        <button class="sidebar-collapse-btn" @onclick="ToggleCollapse" title="@(_collapsed ? "Agrandir" : "Reduire")">
+            <i class="bi @(_collapsed ? "bi-chevron-right" : "bi-chevron-left")"></i>
+        </button>
     </div>
 
-    @* Mobile dropdown *@
-    @if (_menuOpen)
-    {
-        <div class="sm:hidden" style="background:#2d333b; border-top:1px solid rgba(255,255,255,.08)">
-            <div class="px-4 py-3 flex flex-col gap-1">
-                <NavLink class="mobile-nav-link" href="" Match="NavLinkMatch.All" @onclick="CloseMenu">
-                    <i class="bi bi-house mr-2"></i>@L["Nav.Home"]
-                </NavLink>
-                <NavLink class="mobile-nav-link" href="boards" @onclick="CloseMenu">
-                    <i class="bi bi-kanban mr-2"></i>@L["Nav.Boards"]
-                </NavLink>
-                <NavLink class="mobile-nav-link" href="projects" @onclick="CloseMenu">
-                    <i class="bi bi-folder mr-2"></i>@L["Nav.Projects"]
-                </NavLink>
-                <NavLink class="mobile-nav-link" href="my-tickets" @onclick="CloseMenu">
-                    <i class="bi bi-ticket-perforated mr-2"></i>@L["Nav.MyTickets"]
-                </NavLink>
-                <NavLink class="mobile-nav-link" href="labels" @onclick="CloseMenu">
-                    <i class="bi bi-tag mr-2"></i>@L["Nav.Labels"]
-                </NavLink>
-                <AuthorizeView Roles="Admin">
-                    <Authorized>
-                        <NavLink class="mobile-nav-link" href="admin/users" @onclick="CloseMenu">
-                            <i class="bi bi-people mr-2"></i>@L["Nav.Admin"]
-                        </NavLink>
-                    </Authorized>
-                </AuthorizeView>
+    @* Nav section *@
+    <nav class="sidebar-nav">
+        <SidebarLink Href="" Match="NavLinkMatch.All" Icon="bi-house-door-fill" Label="@L["Nav.Home"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="boards" Icon="bi-kanban-fill" Label="@L["Nav.Boards"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="projects" Icon="bi-folder-fill" Label="@L["Nav.Projects"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="my-tickets" Icon="bi-ticket-perforated-fill" Label="@L["Nav.MyTickets"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="labels" Icon="bi-tags-fill" Label="@L["Nav.Labels"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <SidebarLink Href="admin/users" Icon="bi-people-fill" Label="@L["Nav.Admin"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+            </Authorized>
+        </AuthorizeView>
+    </nav>
 
-                <div class="border-t border-white/10 mt-2 pt-2 flex items-center justify-between">
-                    <NavLink class="mobile-nav-link flex-1" href="settings" @onclick="CloseMenu">
-                        <i class="bi bi-gear mr-2"></i>Settings
-                    </NavLink>
-                    <button class="text-gray-300 text-sm px-3 py-2 rounded-md hover:bg-white/10 transition-colors"
-                            @onclick="HandleLogout">
-                        <i class="bi bi-box-arrow-right mr-1"></i>@L["Nav.Logout"]
+    @* Bottom: user info + settings + logout *@
+    <div class="sidebar-footer">
+        <AuthorizeView>
+            <Authorized>
+                @if (!_collapsed)
+                {
+                    <a href="/settings" class="sidebar-user sidebar-user-link" @onclick="CloseMobileMenu" title="Paramètres">
+                        <div class="sidebar-user-avatar">
+                            @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                        </div>
+                        <span class="sidebar-user-name truncate">@context.User.FindFirst("displayName")?.Value</span>
+                        <i class="bi bi-chevron-right sidebar-user-chevron"></i>
+                    </a>
+                }
+                else
+                {
+                    <a href="/settings" class="sidebar-icon-btn" @onclick="CloseMobileMenu" title="Paramètres">
+                        <div class="sidebar-user-avatar sidebar-user-avatar-sm">
+                            @(context.User.FindFirst("displayName")?.Value?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                        </div>
+                    </a>
+                }
+                <div class="sidebar-footer-actions">
+                    <button class="sidebar-icon-btn sidebar-logout-btn" @onclick="HandleLogout" title="@L["Nav.Logout"]">
+                        <i class="bi bi-box-arrow-right"></i>
                     </button>
                 </div>
-            </div>
-        </div>
-    }
-</header>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</aside>
 
 @code {
     [Parameter] public EventCallback OnLogout { get; set; }
 
-    private bool _menuOpen;
+    private bool _collapsed;
+    private bool _mobileOpen;
 
-    protected override void OnInitialized()
-        => Nav.LocationChanged += OnLocationChanged;
+    protected override async Task OnInitializedAsync()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        try
+        {
+            var stored = await JS.InvokeAsync<string?>("localStorage.getItem", "sidebar:collapsed");
+            _collapsed = stored == "true";
+        }
+        catch { /* SSR / prerender */ }
+    }
 
-    private void ToggleMenu() => _menuOpen = !_menuOpen;
+    private async Task ToggleCollapse()
+    {
+        _collapsed = !_collapsed;
+        try { await JS.InvokeVoidAsync("localStorage.setItem", "sidebar:collapsed", _collapsed.ToString().ToLower()); }
+        catch { }
+    }
 
-    private void CloseMenu() => _menuOpen = false;
+    private void ToggleMobileMenu() => _mobileOpen = !_mobileOpen;
+    private void CloseMobileMenu() => _mobileOpen = false;
 
     private async Task HandleLogout()
     {
-        _menuOpen = false;
+        _mobileOpen = false;
         await OnLogout.InvokeAsync();
     }
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        _menuOpen = false;
+        _mobileOpen = false;
         InvokeAsync(StateHasChanged);
     }
 

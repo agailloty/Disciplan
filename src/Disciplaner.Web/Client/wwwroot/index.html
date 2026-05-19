@@ -39,6 +39,74 @@
             get: () => localStorage.getItem('blazor-culture') || 'fr',
             set: (value) => localStorage.setItem('blazor-culture', value)
         };
+
+        // ── Theme system ────────────────────────────────────────────────────
+        window.disciplaner = {
+            // Full theme application: maps main.css vars → Disciplaner CSS vars
+            applyFull: function (bg, bgAccent, panel, text, muted, primary, primaryStrong, line, sidebarBg, dark) {
+                const r = document.documentElement.style;
+                r.setProperty('--page-bg',       bg);
+                r.setProperty('--surface',        panel);
+                r.setProperty('--border',         line);
+                r.setProperty('--text-base',      text);
+                r.setProperty('--text-muted',     muted);
+                r.setProperty('--accent',         primary);
+                r.setProperty('--accent-hover',   primaryStrong);
+                r.setProperty('--accent-light',   primary + '22');
+                r.setProperty('--sidebar-bg',     sidebarBg);
+                r.setProperty('--bg-accent',      bgAccent);
+                r.setProperty('--hero-bg',        bg);
+                document.documentElement.setAttribute('data-dark', dark ? '1' : '0');
+            },
+            // Legacy single-value override (kept for compatibility)
+            applyTheme: function (accent, sidebarBg, pageBg) {
+                const r = document.documentElement.style;
+                r.setProperty('--accent',     accent);
+                r.setProperty('--accent-hover', accent);
+                r.setProperty('--accent-light', accent + '20');
+                r.setProperty('--sidebar-bg', sidebarBg);
+                r.setProperty('--page-bg',    pageBg);
+            }
+        };
+
+        // Apply stored theme immediately (no flash)
+        (function () {
+            // Navy light defaults
+            const themes = {
+                teal:     { light: ['#f4f1ea','#fffaf2','#202124','#6f6659','#0f766e','#0a5d57','#d5ccbf','#1e1e2e'],
+                            dark:  ['#1a1a1a','#252525','#e8e6e3','#a0998c','#2dd4bf','#5eead4','#3d3d3d','#141414'] },
+                ocean:    { light: ['#f0f5fa','#ffffff','#1e293b','#64748b','#0369a1','#075985','#cbd5e1','#0f172a'],
+                            dark:  ['#0f172a','#1e293b','#e2e8f0','#94a3b8','#38bdf8','#7dd3fc','#334155','#090f1c'] },
+                forest:   { light: ['#f5f7f4','#fcfdfb','#1c2518','#5c6a52','#3d7c3f','#2d5e2f','#c5d4be','#1a2a1e'],
+                            dark:  ['#14201a','#1e2d23','#e2efe8','#9cb89e','#4ade80','#86efac','#2d4a35','#0e1812'] },
+                sunset:   { light: ['#fdf6f3','#fffbfa','#292524','#78716c','#ea580c','#c2410c','#e7d6cf','#1c1412'],
+                            dark:  ['#1c1412','#2d201c','#fef3e8','#c4a898','#fb923c','#fdba74','#4a3530','#130e0c'] },
+                lavender: { light: ['#f8f6fc','#fefcff','#1f1b2e','#6b6185','#7c3aed','#6d28d9','#ddd6ea','#18141f'],
+                            dark:  ['#18141f','#251e30','#f3eefa','#a89cc4','#a78bfa','#c4b5fd','#3d3452','#100d16'] },
+                slate:    { light: ['#f8fafc','#ffffff','#0f172a','#64748b','#475569','#334155','#cbd5e1','#0f172a'],
+                            dark:  ['#0f172a','#1e293b','#f1f5f9','#94a3b8','#94a3b8','#cbd5e1','#334155','#090f1c'] },
+                rose:     { light: ['#fdf4f6','#fffbfc','#1f1215','#9f7481','#e11d48','#be123c','#f4d4dc','#1a0f12'],
+                            dark:  ['#1a0f12','#2d181d','#fff1f3','#c9a3ad','#fb7185','#fda4af','#4c282f','#110a0d'] },
+                navy:     { light: ['#ffffff','#f8f9fb','#0f2347','#57606a','#326cca','#0f2347','#d0d7de','#1e2226'],
+                            dark:  ['#1e2226','#1b1c1f','#e6edf3','#8b949e','#4d7cc7','#79a1e0','#30363d','#0d1117'] },
+            };
+            const name  = localStorage.getItem('theme:name') || 'navy';
+            const dark  = localStorage.getItem('theme:dark') === 'true';
+            if (name === 'custom') {
+                const bg      = localStorage.getItem('theme:custom:bg')      || '#ffffff';
+                const panel   = localStorage.getItem('theme:custom:panel')   || '#f8f9fb';
+                const text    = localStorage.getItem('theme:custom:text')    || '#1a1a1a';
+                const muted   = localStorage.getItem('theme:custom:muted')   || '#6b7280';
+                const primary = localStorage.getItem('theme:custom:primary') || '#326cca';
+                const sidebar = localStorage.getItem('theme:custom:sidebar') || '#1e2226';
+                window.disciplaner.applyFull(bg, panel, panel, text, muted, primary, primary, '#d0d7de', sidebar, dark);
+            } else {
+                const t = themes[name] || themes.navy;
+                const v = dark ? t.dark : t.light;
+                // v: [bg, panel, text, muted, primary, primaryStrong, line, sidebarBg]
+                window.disciplaner.applyFull(v[0], v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], dark);
+            }
+        })();
     </script>
 </body>
 

@@ -339,4 +339,7 @@
   <data name="Members.Remove" xml:space="preserve"><value>Remove member</value></data>
   <data name="Members.RemoveConfirm" xml:space="preserve"><value>Remove {0} from this resource?</value></data>
 
+  <data name="Home.ActiveSprints" xml:space="preserve"><value>Active sprints</value></data>
+  <data name="Home.Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Home.InProgress" xml:space="preserve"><value>In progress</value></data>
 </root>

@@ -333,4 +333,7 @@
   <data name="Members.ChangeRole" xml:space="preserve"><value>Changer le rôle</value></data>
   <data name="Members.Remove" xml:space="preserve"><value>Retirer le membre</value></data>
   <data name="Members.RemoveConfirm" xml:space="preserve"><value>Retirer {0} de cette ressource ?</value></data>
+  <data name="Home.ActiveSprints" xml:space="preserve"><value>Sprints actifs</value></data>
+  <data name="Home.Overdue" xml:space="preserve"><value>En retard</value></data>
+  <data name="Home.InProgress" xml:space="preserve"><value>En cours</value></data>
 </root>

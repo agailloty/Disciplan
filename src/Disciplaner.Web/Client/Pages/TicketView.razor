@@ -26,7 +26,8 @@ else if (_error is not null)
 }
 else if (_ticket is not null)
 {
-    <nav aria-label="breadcrumb" class="mb-3">
+    <div class="ticket-page">
+    <nav aria-label="breadcrumb" class="mb-4">
         <ol class="flex items-center gap-1 text-sm text-gray-500">
             <li><a href="/projects" class="hover:text-gray-700">@L["Nav.Projects"]</a></li>
             <li class="text-gray-300">/</li>
@@ -36,7 +37,7 @@ else if (_ticket is not null)
         </ol>
     </nav>
 
-    <div class="surface mx-auto" style="max-width:960px">
+    <div class="ticket-page-body">
 
         <EditForm Model="_form" OnValidSubmit="SaveAsync">
         <DataAnnotationsValidator />
@@ -405,6 +406,7 @@ else if (_ticket is not null)
             </div>
         }
         </EditForm>
+    </div>
     </div>
 }
 

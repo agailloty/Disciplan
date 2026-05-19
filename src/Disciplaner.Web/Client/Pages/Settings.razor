@@ -7,6 +7,7 @@
 @inject SavedViewApiClient SavedViewApi
 @inject ProjectApiClient ProjectApi
 @inject DashboardConfigService DashConfig
+@inject ThemeService Theme
 @inject IStringLocalizer<AppResources> L
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
@@ -26,6 +27,11 @@
                    @(_tab == "profile" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
             @onclick='() => _tab = "profile"'>
         <i class="bi bi-person-circle mr-1.5"></i>@L["Settings.Tab.Profile"]
+    </button>
+    <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
+                   @(_tab == "appearance" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
+            @onclick='() => _tab = "appearance"'>
+        <i class="bi bi-palette-fill mr-1.5"></i>Apparence
     </button>
     <button class="px-4 py-2 text-sm font-medium border-b-2 transition-colors
                    @(_tab == "dashboard" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700")"
@@ -98,6 +104,131 @@
         <p class="px-4 pb-4 text-xs text-gray-400">
             <i class="bi bi-info-circle mr-1"></i>@L["Settings.Language.Hint"]
         </p>
+    </div>
+}
+
+@* ── Appearance tab ───────────────────────────────────────────────────────────── *@
+@if (_tab == "appearance")
+{
+    <div class="max-w-2xl space-y-6">
+
+        @* ── Theme cards grid ─────────────────────────────────────────────────── *@
+        <div class="surface overflow-hidden">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold" style="color:var(--text-base)">
+                        <i class="bi bi-palette-fill mr-1.5" style="color:var(--accent)"></i>Thème
+                    </span>
+                    @* Dark/Light global toggle *@
+                    <button class="theme-mode-toggle @(Theme.IsDark ? "theme-mode-dark" : "theme-mode-light")"
+                            @onclick="ToggleDarkAsync"
+                            title="@(Theme.IsDark ? "Passer en mode clair" : "Passer en mode sombre")">
+                        <i class="bi @(Theme.IsDark ? "bi-moon-stars-fill" : "bi-sun-fill")"></i>
+                        <span>@(Theme.IsDark ? "Sombre" : "Clair")</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="theme-grid">
+                    @foreach (var theme in ThemeService.Presets)
+                    {
+                        var t = theme;
+                        var variant   = Theme.IsDark ? t.Dark : t.Light;
+                        var isActive  = Theme.CurrentThemeName == t.Name;
+                        <button class="theme-card @(isActive ? "theme-card-active" : "")"
+                                @onclick="() => SelectThemeAsync(t.Name)"
+                                title="@t.Label">
+                            @* Mini preview *@
+                            <div class="theme-card-preview" style="background:@variant.Bg">
+                                <div class="theme-card-sidebar" style="background:@variant.SidebarBg">
+                                    <div class="theme-card-dot" style="background:@variant.Primary"></div>
+                                    <div class="theme-card-dot" style="background:@variant.Primary; opacity:.5"></div>
+                                    <div class="theme-card-dot" style="background:@variant.Primary; opacity:.25"></div>
+                                </div>
+                                <div class="theme-card-content">
+                                    <div class="theme-card-bar" style="background:@variant.Primary; width:60%"></div>
+                                    <div class="theme-card-bar" style="background:@variant.Muted; width:80%; margin-top:3px"></div>
+                                    <div class="theme-card-bar" style="background:@variant.Muted; width:50%; margin-top:3px"></div>
+                                </div>
+                            </div>
+                            <div class="theme-card-label">
+                                @if (isActive)
+                                {
+                                    <i class="bi bi-check-circle-fill" style="color:var(--accent)"></i>
+                                }
+                                <span>@t.Label</span>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ── Custom theme ──────────────────────────────────────────────────────── *@
+        <div class="surface overflow-hidden">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold" style="color:var(--text-base)">
+                        <i class="bi bi-sliders mr-1.5" style="color:var(--accent)"></i>Thème personnalisé
+                    </span>
+                    @if (Theme.IsCustomTheme)
+                    {
+                        <span class="custom-theme-active-badge">
+                            <i class="bi bi-check-circle-fill"></i> Actif
+                        </span>
+                    }
+                    else
+                    {
+                        <button class="custom-theme-activate" @onclick="ActivateCustomTheme">
+                            <i class="bi bi-circle"></i> Activer
+                        </button>
+                    }
+                </div>
+            </div>
+            @if (Theme.IsCustomTheme)
+            {
+                <div class="p-5">
+                    <div class="custom-theme-grid">
+                        @foreach (var (key, label, value, icon) in _customColorRows)
+                        {
+                            var k = key; var v = value;
+                            <div class="custom-color-row">
+                                <label class="custom-color-label">
+                                    <i class="bi @icon" style="color:var(--text-muted)"></i>
+                                    @label
+                                </label>
+                                <div class="custom-color-input">
+                                    <input type="color" value="@v" class="theme-color-picker"
+                                           @onchange="e => SetCustomAsync(k, e.Value?.ToString() ?? v)" />
+                                    <span class="font-mono text-xs" style="color:var(--text-muted)">@v</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* ── Stats visibility ─────────────────────────────────────────────────── *@
+        <div class="surface">
+            <div class="px-5 py-4 border-b" style="border-color:var(--border)">
+                <span class="text-sm font-semibold" style="color:var(--text-base)">
+                    <i class="bi bi-bar-chart-fill mr-1.5" style="color:var(--accent)"></i>Tableau de bord
+                </span>
+            </div>
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium" style="color:var(--text-base)">Afficher les statistiques rapides</p>
+                    <p class="text-xs mt-0.5" style="color:var(--text-muted)">Tickets assignés, sprints actifs, retards et tickets en cours.</p>
+                </div>
+                <button class="theme-toggle-switch @(Theme.ShowStats ? "theme-toggle-on" : "")"
+                        @onclick="ToggleStatsAsync"
+                        role="switch" aria-checked="@Theme.ShowStats">
+                    <span class="theme-toggle-knob"></span>
+                </button>
+            </div>
+        </div>
+
     </div>
 }
 
@@ -198,6 +329,33 @@
 
     private string _tab = "profile";
     private string _current = "fr";
+
+    // ── Theme / Appearance ────────────────────────────────────────────────────
+    private static readonly string[] _accentPresets = ["#4f46e5","#0ea5e9","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#0891b2","#16a34a"];
+    private static readonly string[] _sidebarPresets = ["#1e1e2e","#0f172a","#1a1a2e","#0d1117","#18181b","#1c1917","#14532d","#1e3a5f"];
+    private static readonly string[] _pageBgPresets  = ["#f3f4f6","#f8fafc","#f9fafb","#fff7ed","#fdf4ff","#f0fdf4","#eff6ff","#ffffff"];
+
+    private async Task SelectThemeAsync(string name) => await Theme.SetThemeAsync(name, Theme.IsDark);
+    private async Task ActivateCustomTheme()          => await Theme.SetThemeAsync("custom", Theme.IsDark);
+    private async Task ToggleDarkAsync()             => await Theme.ToggleDarkAsync();
+    private async Task ToggleStatsAsync()            => await Theme.SetShowStatsAsync(!Theme.ShowStats);
+    private async Task SetCustomAsync(string key, string value) => await Theme.SetCustomColorAsync(key, value);
+
+    private IEnumerable<(string key, string label, string value, string icon)> _customColorRows =>
+    [
+        ("bg",      "Fond de page",      Theme.CustomBg,      "bi-app"),
+        ("panel",   "Surfaces / cartes", Theme.CustomPanel,   "bi-square"),
+        ("text",    "Texte principal",   Theme.CustomText,    "bi-fonts"),
+        ("muted",   "Texte secondaire",  Theme.CustomMuted,   "bi-type"),
+        ("primary", "Couleur primaire",  Theme.CustomPrimary, "bi-circle-fill"),
+        ("sidebar", "Barre latérale",    Theme.CustomSidebar, "bi-layout-sidebar"),
+    ];
+
+    // kept for compat (no longer used in Appearance UI but may be referenced elsewhere)
+    private async Task SetAccentAsync(string hex)    { /* noop – use full presets */ await Task.CompletedTask; }
+    private async Task SetSidebarAsync(string hex)   { await Task.CompletedTask; }
+    private async Task SetPageBgAsync(string hex)    { await Task.CompletedTask; }
+    private async Task ResetThemeAsync()             => await Theme.SetThemeAsync("navy", false);
 
     // ── Display name ──────────────────────────────────────────────────────────
     private string _displayName = string.Empty;
