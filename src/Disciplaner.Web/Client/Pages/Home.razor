@@ -94,7 +94,7 @@ else if (!_widgets.Any(w => w.Visible))
 }
 else
 {
-    <div class="space-y-4">
+    <div class="space-y-6">
         @foreach (var widget in _widgets.Where(w => w.Visible))
         {
             var w = widget;
@@ -102,7 +102,7 @@ else
 
             <div class="surface">
                 @* ── En-tête ── *@
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
                     <button class="flex-1 flex items-center gap-2 text-left"
                             @onclick="() => ToggleWidget(wKey)">
                         <i class="bi @(_expanded.Contains(wKey) ? "bi-chevron-down" : "bi-chevron-right") text-gray-400 text-xs shrink-0"></i>
@@ -155,7 +155,7 @@ else
                                 {
                                     var t = ticket;
                                     var ticketUrl = "/tickets/" + t.TicketRef;
-                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                    <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors"
                                          @onclick="() => Nav.NavigateTo(ticketUrl)">
                                         <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                         <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>
@@ -196,7 +196,7 @@ else
                                 {
                                     var sp = sprint;
                                     var sprintUrl = $"/sprints/{sp.Id}";
-                                    <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                    <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors"
                                          @onclick="() => Nav.NavigateTo(sprintUrl)">
                                         @if (sp.ProjectKey is not null)
                                         {
@@ -244,7 +244,7 @@ else
                                     @foreach (var group in _activityGroups)
                                     {
                                         var g = group;
-                                        <div class="px-4 py-3">
+                                        <div class="px-5 py-4">
                                             @* Ticket header *@
                                             <div class="flex items-center gap-2 mb-2">
                                                 <a href="/tickets/@g.TicketRef" class="badge badge-dark font-mono text-xs hover:opacity-80">@g.TicketRef</a>
@@ -293,7 +293,7 @@ else
                                     {
                                         var t = ticket;
                                         var svTicketUrl = "/tickets/" + t.TicketRef;
-                                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                                        <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors"
                                              @onclick="() => Nav.NavigateTo(svTicketUrl)">
                                             <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                             <span class="text-sm font-medium text-gray-800 flex-1 truncate">@t.Title</span>

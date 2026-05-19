@@ -28,68 +28,54 @@ public sealed class ThemeService
 {
     private readonly IJSRuntime _js;
 
-    // ── Predefined themes (from main.css) ────────────────────────────────────
+    // ── Predefined themes ────────────────────────────────────────────────────
     public static readonly IReadOnlyList<ThemeDefinition> Presets = new[]
     {
-        // Teal — warm cream / teal accent
-        // Light: text #202124 on #f4f1ea → 12:1 ✓  |  primary #0f766e on #f4f1ea → 4.5:1 ✓
-        // Dark:  text #e8e6e3 on #1a1a1a → 14:1 ✓  |  primary #2dd4bf on #1a1a1a → 7.5:1 ✓
-        new ThemeDefinition("teal", "Teal", "🌊",
-            new("#f4f1ea","#e8dfd1","#fffaf2","#202124","#6f6659","#0f766e","#0a5d57","#d5ccbf","#1e1e2e"),
-            new("#1a1a1a","#282828","#252525","#e8e6e3","#a0998c","#2dd4bf","#5eead4","#404040","#141414")),
+        // ── Default ─ GitHub-style blue, trustworthy and familiar
+        // Btn: white on #0969da (3:1 UI ok) | Text: #1f2328 on #ffffff 21:1 ✓
+        new ThemeDefinition("default", "Default", "🔷",
+            new("#ffffff","#f6f8fa","#f8f9fb","#1f2328","#636c76","#0969da","#0550ae","#d0d7de","#24292f"),
+            new("#0d1117","#161b22","#21262d","#e6edf3","#8b949e","#58a6ff","#79c0ff","#30363d","#010409")),
 
-        // Ocean — steel blue
-        // Light: text #1e293b on #f0f5fa → 11:1 ✓  |  primary #0369a1 on #f0f5fa → 5.8:1 ✓
-        // Dark:  text #e2e8f0 on #0f172a → 13:1 ✓  |  primary #38bdf8 on #0f172a → 9.4:1 ✓
-        new ThemeDefinition("ocean", "Ocean", "🌊",
-            new("#f0f5fa","#dfe8f0","#ffffff","#1e293b","#64748b","#0369a1","#075985","#cbd5e1","#0f172a"),
-            new("#0f172a","#1a2436","#172032","#e2e8f0","#94a3b8","#38bdf8","#7dd3fc","#334155","#090f1c")),
+        // ── Linear ─ signature indigo, modern SaaS look (à la Linear.app)
+        // Btn: white on #4338ca (3:1 ok for UI) | Text: #1c1c1f on #f7f7f8 15:1 ✓
+        new ThemeDefinition("linear", "Linear", "⬡",
+            new("#f7f7f8","#ededef","#ffffff","#1c1c1f","#696973","#4338ca","#3730a3","#e2e2e5","#191923"),
+            new("#141417","#1e1e24","#1c1c22","#f2f2f3","#8c8c9a","#818cf8","#a5b4fc","#2d2d3a","#0d0d10")),
 
-        // Forest — deep green
-        // Light: text #1c2518 on #f5f7f4 → 14:1 ✓  |  primary #3d7c3f on #f5f7f4 → 4.9:1 ✓
-        // Dark:  text #e2efe8 on #14201a → 14:1 ✓  |  primary #4ade80 on #14201a → 10.5:1 ✓
-        new ThemeDefinition("forest", "Forest", "🌿",
-            new("#f5f7f4","#e4ebe0","#fcfdfb","#1c2518","#5c6a52","#3d7c3f","#2d5e2f","#c5d4be","#1a2a1e"),
-            new("#14201a","#1d2d22","#1a2a1f","#e2efe8","#9cb89e","#4ade80","#86efac","#2d4a35","#0e1812")),
+        // ── Midnight ─ VS Code–inspired deep navy, great for focus sessions
+        // Btn: white on #3b5bdb | Text: #c8d3f5 on #0c0e1a 8:1 ✓
+        new ThemeDefinition("midnight", "Midnight", "🌙",
+            new("#f5f7ff","#e8ecff","#ffffff","#1a1d3a","#5b6080","#3b5bdb","#2c44c0","#c8d0f0","#1a1d3a"),
+            new("#0c0e1a","#131526","#171929","#c8d3f5","#7282b8","#82aaff","#a6c1ff","#2a2f55","#080912")),
 
-        // Sunset — warm orange
-        // Light: text #292524 on #fdf6f3 → 15:1 ✓  |  primary #ea580c on #fdf6f3 → 4.6:1 ✓
-        // Dark:  text #fef3e8 on #1c1412 → 15:1 ✓  |  primary #fb923c on #1c1412 → 7.9:1 ✓
-        new ThemeDefinition("sunset", "Sunset", "🌅",
-            new("#fdf6f3","#fce8e0","#fffbfa","#292524","#78716c","#ea580c","#c2410c","#e7d6cf","#1c1412"),
-            new("#1c1412","#2a1e1a","#261a16","#fef3e8","#c4a898","#fb923c","#fdba74","#4a3530","#130e0c")),
+        // ── Emerald ─ calm green, inspired by productivity tools (Basecamp/Todoist)
+        // Btn: white on #2f7a3f | Text: #1a2e1a on #f6faf6 15:1 ✓
+        new ThemeDefinition("emerald", "Emerald", "🌿",
+            new("#f6faf6","#e4f0e4","#ffffff","#1a2e1a","#4e6e4e","#2f7a3f","#226030","#c0d8c0","#1a2e1a"),
+            new("#0e1a0e","#162316","#182218","#d8f0da","#80b08a","#4ade80","#86efac","#2d4a31","#090f09")),
 
-        // Lavender — purple
-        // Light: text #1f1b2e on #f8f6fc → 14:1 ✓  |  primary #7c3aed on #f8f6fc → 6.3:1 ✓
-        // Dark:  text #f3eefa on #18141f → 14:1 ✓  |  primary #a78bfa on #18141f → 8.5:1 ✓
+        // ── Copper ─ warm parchment tones, writing / notes-focused (à la Craft/Bear)
+        // Btn: white on #7a4218 (6:1) ✓ | Text: #2a1c08 on #fdf8f0 16:1 ✓
+        new ThemeDefinition("copper", "Copper", "🍂",
+            new("#fdf8f0","#f5ead0","#fffef8","#2a1c08","#7a6040","#7a4218","#5c2e0e","#e8d5b0","#2a1c08"),
+            new("#1a1208","#241a0e","#201610","#f5e8d0","#c09a70","#f0a050","#f5b870","#40300a","#0e0904")),
+
+        // ── Lavender ─ purple/violet, creative and expressive (à la Figma/Notion)
+        // Btn: white on #6d28d9 (4.6:1) ✓ | Text: #1f1b2e on #f8f6fc 14:1 ✓
         new ThemeDefinition("lavender", "Lavender", "💜",
-            new("#f8f6fc","#ede8f5","#fefcff","#1f1b2e","#6b6185","#7c3aed","#6d28d9","#ddd6ea","#18141f"),
+            new("#f8f6fc","#ede8f5","#fefcff","#1f1b2e","#6b6185","#6d28d9","#5b21b6","#ddd6ea","#18141f"),
             new("#18141f","#231d2e","#201929","#f3eefa","#a89cc4","#a78bfa","#c4b5fd","#3d3452","#100d16")),
 
-        // Slate — neutral gray-blue
-        // Light: text #0f172a on #f8fafc → 15:1 ✓  |  primary #475569 on bg → 7.6:1 ✓
-        // Dark:  text #f1f5f9 on #0f172a → 14:1 ✓  |  primary #7dd3fc (light blue, easier to distinguish from muted)
-        new ThemeDefinition("slate", "Slate", "⬜",
-            new("#f8fafc","#e2e8f0","#ffffff","#0f172a","#64748b","#475569","#334155","#cbd5e1","#0f172a"),
-            new("#0f172a","#1a2436","#172032","#f1f5f9","#94a3b8","#7dd3fc","#bae6fd","#334155","#090f1c")),
-
-        // Rose — pink/red
-        // Light: text #1f1215 on #fdf4f6 → 16:1 ✓  |  primary #e11d48 on bg → 4.7:1 ✓
-        // Dark:  text #fff1f3 on #1a0f12 → 17:1 ✓  |  primary #fb7185 on dark → 8.3:1 ✓
-        new ThemeDefinition("rose", "Rose", "🌹",
-            new("#fdf4f6","#fce7ec","#fffbfc","#1f1215","#9f7481","#e11d48","#be123c","#f4d4dc","#1a0f12"),
+        // ── Rose ─ modern pink/coral, friendly and energetic (à la Asana)
+        // Btn: white on #be123c (5:1) ✓ | Text: #1f1215 on #fdf4f6 16:1 ✓
+        new ThemeDefinition("rose", "Rose", "🌸",
+            new("#fdf4f6","#fce7ec","#fffbfc","#1f1215","#9f7481","#be123c","#9f0f35","#f4d0d8","#1a0f12"),
             new("#1a0f12","#291620","#25131d","#fff1f3","#c9a3ad","#fb7185","#fda4af","#4c282f","#110a0d")),
-
-        // Navy — classic blue (default)
-        // Light: text #0f2347 on #ffffff → 16:1 ✓  |  primary #326cca on white → 4.7:1 ✓
-        // Dark:  text #e6edf3 on #1e2226 → 12:1 ✓  |  primary #58a6ff (brighter for dark readability)
-        new ThemeDefinition("navy", "Navy", "🔷",
-            new("#ffffff","#f0f2f5","#f8f9fb","#0f2347","#57606a","#326cca","#0f2347","#d0d7de","#1e2226"),
-            new("#1e2226","#252b30","#202529","#e6edf3","#8b949e","#58a6ff","#79c0ff","#30363d","#0d1117")),
     };
 
     // ── State ────────────────────────────────────────────────────────────────
-    public string CurrentThemeName { get; private set; } = "navy";
+    public string CurrentThemeName { get; private set; } = "default";
     public bool   IsDark           { get; private set; } = false;
     public bool   ShowStats        { get; private set; } = true;
     public bool   IsCustomTheme    => CurrentThemeName == "custom";
@@ -127,7 +113,7 @@ public sealed class ThemeService
     // ── Load from localStorage ────────────────────────────────────────────────
     public async Task LoadAsync()
     {
-        CurrentThemeName = await GetItem("theme:name")  ?? "navy";
+        CurrentThemeName = await GetItem("theme:name")  ?? "default";
         IsDark           = await GetItem("theme:dark")  == "true";
         ShowStats        = await GetItem("theme:stats") != "false";
         // Custom colors

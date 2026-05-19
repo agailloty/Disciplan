@@ -5,18 +5,18 @@
 
 /* ── CSS Custom Properties (theme) ─────────────────────────────────────────── */
 :root {
-    --accent:        #326cca;
-    --accent-hover:  #0f2347;
-    --accent-light:  rgba(50,108,202,.12);
-    --sidebar-bg:    #1e2226;
+    --accent:        #0969da;
+    --accent-hover:  #0550ae;
+    --accent-light:  rgba(9,105,218,.12);
+    --sidebar-bg:    #24292f;
     --sidebar-w:     220px;
     --sidebar-w-col: 60px;
     --page-bg:       #ffffff;
     --surface:       #f8f9fb;
-    --bg-accent:     #f0f2f5;
+    --bg-accent:     #f6f8fa;
     --border:        #d0d7de;
-    --text-base:     #0f2347;
-    --text-muted:    #57606a;
+    --text-base:     #1f2328;
+    --text-muted:    #636c76;
     --topbar-h:      48px;
 }
 
@@ -688,8 +688,8 @@ body {
 .dashboard-banner {
     border-radius: .75rem;
     background: linear-gradient(135deg, var(--sidebar-bg) 0%, color-mix(in srgb, var(--accent) 40%, var(--sidebar-bg)) 100%);
-    padding: 1.5rem 1.75rem;
-    margin-bottom: 1.5rem;
+    padding: 2rem 2rem;
+    margin-bottom: 2rem;
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -748,43 +748,43 @@ body {
 .dashboard-stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: .75rem;
-    margin-bottom: 1.5rem;
+    gap: 1.125rem;
+    margin-bottom: 2rem;
 }
 
 .dashboard-stat-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: .625rem;
-    padding: 1rem 1.125rem;
+    border-radius: .75rem;
+    padding: 1.25rem 1.375rem;
     display: flex;
     align-items: center;
-    gap: .875rem;
+    gap: 1rem;
     box-shadow: 0 1px 3px rgba(0,0,0,.05);
 }
 
 .dashboard-stat-icon {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: .625rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 .dashboard-stat-value {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--text-base);
     line-height: 1;
 }
 
 .dashboard-stat-label {
-    font-size: .75rem;
+    font-size: .8rem;
     color: var(--text-muted);
-    margin-top: .2rem;
+    margin-top: .3rem;
 }
 
 /* ── Dark mode global overrides ────────────────────────────────────────────── */
