@@ -1,6 +1,6 @@
 # Disciplaner
 
-Disciplaner is a self-hostable, Jira-like project management application built with **Blazor WebAssembly** (client) and **ASP.NET Core 10** (API + host). Data is persisted in a **SQLite** database.
+Disciplaner is a self-hostable project management application inspired by Jira and Linear, built with **Blazor WebAssembly** (client) and **ASP.NET Core 10** (API + host). Data is persisted in a **SQLite** database. The UI is styled with **Tailwind CSS** and **Bootstrap Icons** and is available in **French** (default) and **English**.
 
 ## Table of Contents
 
@@ -17,26 +17,51 @@ Disciplaner is a self-hostable, Jira-like project management application built w
 ## Architecture
 
 ```
-Disciplaner.Domain          ← Entities, business rules, interfaces
-Disciplaner.Application     ← Services, DTOs, mappings
-Disciplaner.Infrastructure  ← EF Core, SQLite, Identity, repositories
+Disciplaner.Domain          ← Entities, business rules, value objects, domain exceptions
+Disciplaner.Application     ← Services, DTOs, mappings (MediatR-free CQRS-lite)
+Disciplaner.Infrastructure  ← EF Core + SQLite, ASP.NET Core Identity, repositories
 Disciplaner.Web/
-  Client/                   ← Blazor WebAssembly (SPA)
-  Server/                   ← ASP.NET Core (REST API + WASM host)
+  Client/                   ← Blazor WebAssembly SPA (Tailwind CSS, Bootstrap Icons)
+  Server/                   ← ASP.NET Core (REST API + static WASM host)
 ```
 
-The application is a **hosted Blazor WASM** project: the server serves both the REST API and the static files for the client. On first startup, EF Core migrations are applied automatically and an administrator account is seeded.
+The application is a **hosted Blazor WASM** project: the server serves both the REST API and the compiled client-side SPA. On first startup EF Core migrations are applied automatically. If no admin seed credentials are supplied, the application enters **setup mode** and exposes a `/setup` wizard to create the first administrator account.
 
 ---
 
 ## Features
 
-- **Projects** — create with a short key (e.g. `DISC`), customisable statuses, automatic ticket numbering
-- **Tickets** — types (Bug, Feature…), priorities, assignment, comments
-- **Boards** — drag-and-drop columns, Kanban view
-- **Sprints** — planning and tracking
-- **JWT authentication** — registration / login, Admin / User roles
+### Projects & Tickets
+- **Projects** — created with a short unique key (e.g. `DISC`), optional description, automatic sequential ticket numbering, configurable default ticket type and default-assignee policy
+- **Custom workflows** — each project defines its own ticket statuses with a status category (To Do / In Progress / Done)
+- **Tickets** — five types: **Story**, **Bug**, **Task**, **Epic**, **Subtask**; four priorities; story points; due date; rich-text description; parent ticket (subtask hierarchy)
+- **Assignment & comments** — tickets can be assigned to project members; threaded comments per ticket
+- **Labels** — color-coded labels created per board, attachable to tickets
+- **Ticket history** — every field change (title, description, status, type, priority, assignee, sprint, story points, due date) and comment event is recorded in a per-ticket audit trail
+
+### Boards & Sprints
+- **Boards** — personal Kanban boards with drag-and-drop columns and cards; independent of projects; own member list and labels
+- **Sprints** — Planned / Active / Closed lifecycle; tickets can be assigned to a sprint or left in the backlog; dedicated sprint view with a ticket board
+
+### Personal Views
+- **My Tickets** — personal inbox showing all tickets assigned to or reported by the current user, grouped by status category
+- **Saved Views** — user-defined filtered views (filter by project, sprint, status, type, priority, status category, assigned-to-me, reported-by-me); pinnable to the home dashboard
+
+### Settings
+- **Profile** — update display name
+- **Appearance** — light / dark / custom theme with CSS variable overrides
+- **Dashboard** — choose which saved views appear on the home page and in which order
+
+### Access Control & Administration
+- **Role system** — four roles per board and per project: **Guest** (read-only), **Member**, **Supervisor**, **Admin**; the resource owner always has Admin rights
+- **User invitations** — admins generate single-use invitation links (valid 7 days); recipients register via the link without an open registration endpoint
+- **Admin panel** — activate / deactivate user accounts, promote users to application Admin role
+
+### Developer & Operations
+- **JWT authentication** — stateless Bearer tokens; configurable issuer, audience, expiry
 - **Swagger UI** — available in development mode at `/swagger`
+- **Docker** — multi-stage Dockerfile, single container, SQLite database persisted to a named volume
+- **Internationalisation** — resource files for French (default) and English (`AppResources.resx` / `AppResources.en.resx`)
 
 ---
 
@@ -157,15 +182,20 @@ labels:
 ```bash
 cd src/Disciplaner.Web/Server
 
-# Set development secrets
+# Required: set a JWT secret (min. 32 characters, no placeholder)
 dotnet user-secrets set "Jwt:SecretKey" "dev_secret_key_min_32_chars_xxxxxx"
+
+# Optional: seed an admin account on first startup
+# If omitted, a setup wizard is available at /setup on first run
 dotnet user-secrets set "AdminSeed:Email" "admin@local.dev"
 dotnet user-secrets set "AdminSeed:Password" "Admin1234!"
 
 dotnet run
 ```
 
-The API and the Blazor client are available at `https://localhost:7xxx` (the exact port is printed on startup).
+The API and the Blazor client are available at `https://localhost:<port>` (the exact port is printed on startup).
+
+> **First run without seed credentials:** navigate to `/setup` and complete the wizard to create the first administrator account. The endpoint is disabled once an admin user exists.
 
 ### EF Core migrations
 
