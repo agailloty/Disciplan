@@ -215,9 +215,9 @@ else if (_ticket is not null)
                                         <div class="flex items-start gap-3">
                                             <span class="mt-1 w-2.5 h-2.5 rounded-full @HistoryDotColor(h.Kind) shrink-0"></span>
                                             <div class="flex-1 min-w-0">
-                                                <div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                                                    <span class="text-xs font-semibold" style="color:var(--text-base)">@h.ActorName</span>
-                                                    <span class="text-xs" style="color:var(--text-muted)"> @HistoryLabel(h)</span>
+                                                <div class="flex flex-wrap items-baseline gap-y-0.5">
+                                                    <span class="text-xs font-semibold" style="color:var(--text-base);margin-right:0.3rem">@h.ActorName</span>
+                                                    <span class="text-xs" style="color:var(--text-muted)">@HistoryLabel(h)</span>
                                                     <span class="ml-auto text-xs shrink-0" style="color:var(--text-muted)">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                                 </div>
                                                 @if (HistoryDetail(h) is { } detail)
