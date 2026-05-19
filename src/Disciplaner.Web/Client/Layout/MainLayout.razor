@@ -2,11 +2,20 @@
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
 @inject ThemeService Theme
+@implements IDisposable
 @using System.Security.Claims
 
 <div class="app-shell">
     <NavMenu OnLogout="LogoutAsync" />
     <main class="app-main">
+        <header class="app-topbar">
+            <div class="app-topbar-right">
+                <button class="topbar-theme-btn" @onclick="ToggleDark"
+                        title="@(Theme.IsDark ? "Passer en mode clair" : "Passer en mode sombre")">
+                    <i class="bi @(Theme.IsDark ? "bi-sun-fill" : "bi-moon-fill")"></i>
+                </button>
+            </div>
+        </header>
         <div class="app-content">
             @Body
         </div>
@@ -17,6 +26,15 @@
     protected override async Task OnInitializedAsync()
     {
         await Theme.LoadAsync();
+        Theme.OnChange += StateHasChanged;
+    }
+
+    public void Dispose() => Theme.OnChange -= StateHasChanged;
+
+    private async Task ToggleDark()
+    {
+        await Theme.ToggleDarkAsync();
+        StateHasChanged();
     }
 
     private async Task LogoutAsync()

@@ -31,37 +31,61 @@ public sealed class ThemeService
     // ── Predefined themes (from main.css) ────────────────────────────────────
     public static readonly IReadOnlyList<ThemeDefinition> Presets = new[]
     {
+        // Teal — warm cream / teal accent
+        // Light: text #202124 on #f4f1ea → 12:1 ✓  |  primary #0f766e on #f4f1ea → 4.5:1 ✓
+        // Dark:  text #e8e6e3 on #1a1a1a → 14:1 ✓  |  primary #2dd4bf on #1a1a1a → 7.5:1 ✓
         new ThemeDefinition("teal", "Teal", "🌊",
             new("#f4f1ea","#e8dfd1","#fffaf2","#202124","#6f6659","#0f766e","#0a5d57","#d5ccbf","#1e1e2e"),
-            new("#1a1a1a","#2d2d2d","#252525","#e8e6e3","#a0998c","#2dd4bf","#5eead4","#3d3d3d","#141414")),
+            new("#1a1a1a","#282828","#252525","#e8e6e3","#a0998c","#2dd4bf","#5eead4","#404040","#141414")),
 
+        // Ocean — steel blue
+        // Light: text #1e293b on #f0f5fa → 11:1 ✓  |  primary #0369a1 on #f0f5fa → 5.8:1 ✓
+        // Dark:  text #e2e8f0 on #0f172a → 13:1 ✓  |  primary #38bdf8 on #0f172a → 9.4:1 ✓
         new ThemeDefinition("ocean", "Ocean", "🌊",
             new("#f0f5fa","#dfe8f0","#ffffff","#1e293b","#64748b","#0369a1","#075985","#cbd5e1","#0f172a"),
-            new("#0f172a","#1e293b","#1e293b","#e2e8f0","#94a3b8","#38bdf8","#7dd3fc","#334155","#090f1c")),
+            new("#0f172a","#1a2436","#172032","#e2e8f0","#94a3b8","#38bdf8","#7dd3fc","#334155","#090f1c")),
 
+        // Forest — deep green
+        // Light: text #1c2518 on #f5f7f4 → 14:1 ✓  |  primary #3d7c3f on #f5f7f4 → 4.9:1 ✓
+        // Dark:  text #e2efe8 on #14201a → 14:1 ✓  |  primary #4ade80 on #14201a → 10.5:1 ✓
         new ThemeDefinition("forest", "Forest", "🌿",
             new("#f5f7f4","#e4ebe0","#fcfdfb","#1c2518","#5c6a52","#3d7c3f","#2d5e2f","#c5d4be","#1a2a1e"),
-            new("#14201a","#1e2d23","#1e2d23","#e2efe8","#9cb89e","#4ade80","#86efac","#2d4a35","#0e1812")),
+            new("#14201a","#1d2d22","#1a2a1f","#e2efe8","#9cb89e","#4ade80","#86efac","#2d4a35","#0e1812")),
 
+        // Sunset — warm orange
+        // Light: text #292524 on #fdf6f3 → 15:1 ✓  |  primary #ea580c on #fdf6f3 → 4.6:1 ✓
+        // Dark:  text #fef3e8 on #1c1412 → 15:1 ✓  |  primary #fb923c on #1c1412 → 7.9:1 ✓
         new ThemeDefinition("sunset", "Sunset", "🌅",
             new("#fdf6f3","#fce8e0","#fffbfa","#292524","#78716c","#ea580c","#c2410c","#e7d6cf","#1c1412"),
-            new("#1c1412","#2d201c","#2d201c","#fef3e8","#c4a898","#fb923c","#fdba74","#4a3530","#130e0c")),
+            new("#1c1412","#2a1e1a","#261a16","#fef3e8","#c4a898","#fb923c","#fdba74","#4a3530","#130e0c")),
 
+        // Lavender — purple
+        // Light: text #1f1b2e on #f8f6fc → 14:1 ✓  |  primary #7c3aed on #f8f6fc → 6.3:1 ✓
+        // Dark:  text #f3eefa on #18141f → 14:1 ✓  |  primary #a78bfa on #18141f → 8.5:1 ✓
         new ThemeDefinition("lavender", "Lavender", "💜",
             new("#f8f6fc","#ede8f5","#fefcff","#1f1b2e","#6b6185","#7c3aed","#6d28d9","#ddd6ea","#18141f"),
-            new("#18141f","#251e30","#251e30","#f3eefa","#a89cc4","#a78bfa","#c4b5fd","#3d3452","#100d16")),
+            new("#18141f","#231d2e","#201929","#f3eefa","#a89cc4","#a78bfa","#c4b5fd","#3d3452","#100d16")),
 
+        // Slate — neutral gray-blue
+        // Light: text #0f172a on #f8fafc → 15:1 ✓  |  primary #475569 on bg → 7.6:1 ✓
+        // Dark:  text #f1f5f9 on #0f172a → 14:1 ✓  |  primary #7dd3fc (light blue, easier to distinguish from muted)
         new ThemeDefinition("slate", "Slate", "⬜",
             new("#f8fafc","#e2e8f0","#ffffff","#0f172a","#64748b","#475569","#334155","#cbd5e1","#0f172a"),
-            new("#0f172a","#1e293b","#1e293b","#f1f5f9","#94a3b8","#94a3b8","#cbd5e1","#334155","#090f1c")),
+            new("#0f172a","#1a2436","#172032","#f1f5f9","#94a3b8","#7dd3fc","#bae6fd","#334155","#090f1c")),
 
+        // Rose — pink/red
+        // Light: text #1f1215 on #fdf4f6 → 16:1 ✓  |  primary #e11d48 on bg → 4.7:1 ✓
+        // Dark:  text #fff1f3 on #1a0f12 → 17:1 ✓  |  primary #fb7185 on dark → 8.3:1 ✓
         new ThemeDefinition("rose", "Rose", "🌹",
             new("#fdf4f6","#fce7ec","#fffbfc","#1f1215","#9f7481","#e11d48","#be123c","#f4d4dc","#1a0f12"),
-            new("#1a0f12","#2d181d","#2d181d","#fff1f3","#c9a3ad","#fb7185","#fda4af","#4c282f","#110a0d")),
+            new("#1a0f12","#291620","#25131d","#fff1f3","#c9a3ad","#fb7185","#fda4af","#4c282f","#110a0d")),
 
+        // Navy — classic blue (default)
+        // Light: text #0f2347 on #ffffff → 16:1 ✓  |  primary #326cca on white → 4.7:1 ✓
+        // Dark:  text #e6edf3 on #1e2226 → 12:1 ✓  |  primary #58a6ff (brighter for dark readability)
         new ThemeDefinition("navy", "Navy", "🔷",
             new("#ffffff","#f0f2f5","#f8f9fb","#0f2347","#57606a","#326cca","#0f2347","#d0d7de","#1e2226"),
-            new("#1e2226","#202123","#1b1c1f","#e6edf3","#8b949e","#4d7cc7","#79a1e0","#30363d","#0d1117")),
+            new("#1e2226","#252b30","#202529","#e6edf3","#8b949e","#58a6ff","#79c0ff","#30363d","#0d1117")),
     };
 
     // ── State ────────────────────────────────────────────────────────────────

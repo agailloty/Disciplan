@@ -27,13 +27,13 @@ else if (_error is not null)
 else if (_ticket is not null)
 {
     <div class="ticket-page">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="flex items-center gap-1 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-gray-700">@L["Nav.Projects"]</a></li>
-            <li class="text-gray-300">/</li>
-            <li><a href="/projects/@_ticket.ProjectId" class="hover:text-gray-700">@_ticket.ProjectKey</a></li>
-            <li class="text-gray-300">/</li>
-            <li class="text-gray-800">@_ticket.TicketRef</li>
+    <nav aria-label="breadcrumb" class="ticket-breadcrumb">
+        <ol class="flex items-center gap-1 text-sm" style="color:var(--text-muted)">
+            <li><a href="/projects" class="hover:underline" style="color:var(--text-muted)">@L["Nav.Projects"]</a></li>
+            <li style="color:var(--border)"> / </li>
+            <li><a href="/projects/@_ticket.ProjectId" class="hover:underline" style="color:var(--text-muted)">@_ticket.ProjectKey</a></li>
+            <li style="color:var(--border)"> / </li>
+            <li style="color:var(--text-base)">@_ticket.TicketRef</li>
         </ol>
     </nav>
 
@@ -43,9 +43,9 @@ else if (_ticket is not null)
         <DataAnnotationsValidator />
 
         @* ── Ticket header ── *@
-        <div class="px-6 pt-5 pb-4 border-b border-gray-100 relative">
+        <div class="px-6 pt-5 pb-4 relative" style="border-bottom:1px solid var(--border)">
             <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                <span class="font-mono text-xs font-semibold text-gray-400 tracking-wide">@_ticket.TicketRef</span>
+                <span class="font-mono text-xs font-semibold tracking-wide" style="color:var(--text-muted)">@_ticket.TicketRef</span>
                 <span class="tdm-type-badge">@_ticket.Type</span>
                 <span class="badge @PriorityClass(_ticket.Priority)">@_ticket.Priority</span>
             </div>
@@ -56,7 +56,7 @@ else if (_ticket is not null)
             }
             else
             {
-                <h1 class="text-lg font-semibold text-gray-900 leading-snug pr-10">@_ticket.Title</h1>
+                <h1 class="text-lg font-semibold leading-snug pr-10" style="color:var(--text-base)">@_ticket.Title</h1>
                 <button type="button" class="modal-close-btn absolute top-4 right-4" title="@L["Edit"]" @onclick="EnterEdit">
                     <i class="bi bi-pencil"></i>
                 </button>
@@ -118,27 +118,29 @@ else if (_ticket is not null)
                         }
                         else
                         {
-                            <p class="text-gray-400 text-sm italic py-1">@L["Ticket.NoDescription"]</p>
+                            <p class="text-sm italic py-1" style="color:var(--text-muted)">@L["Ticket.NoDescription"]</p>
                         }
                     </div>
 
                     @* ── Onglets Commentaires / Activité ── *@
                     <div>
                         @* Tab bar *@
-                        <div class="flex gap-0 border-b border-gray-200 mb-4">
+                        <div class="flex gap-0 mb-4" style="border-bottom:1px solid var(--border)">
                             <button type="button"
-                                    class="px-4 py-2 text-sm font-medium transition-colors @(_activeTab == "comments" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700")"
+                                    class="px-4 py-2 text-sm font-medium transition-colors"
+                                    style="@(_activeTab == "comments" ? "border-bottom:2px solid var(--accent);color:var(--accent)" : "color:var(--text-muted)")"
                                     @onclick='() => SetTab("comments")'>
                                 <span class="flex items-center gap-2">
                                     @L["Ticket.Comments"]
                                     @if (_comments.Count > 0)
                                     {
-                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">@_comments.Count</span>
+                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full text-xs font-semibold" style="background:var(--bg-accent);color:var(--text-muted)">@_comments.Count</span>
                                     }
                                 </span>
                             </button>
                             <button type="button"
-                                    class="px-4 py-2 text-sm font-medium transition-colors @(_activeTab == "history" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700")"
+                                    class="px-4 py-2 text-sm font-medium transition-colors"
+                                    style="@(_activeTab == "history" ? "border-bottom:2px solid var(--accent);color:var(--accent)" : "color:var(--text-muted)")"
                                     @onclick='() => SetTab("history")'>
                                 @L["Ticket.History"]
                             </button>
@@ -149,7 +151,7 @@ else if (_ticket is not null)
                         {
                             @if (_commentsLoading)
                             {
-                                <p class="text-sm text-gray-400 py-2">@L["Loading"]</p>
+                                <p class="text-sm py-2" style="color:var(--text-muted)">@L["Loading"]</p>
                             }
                             else
                             {
@@ -179,7 +181,7 @@ else if (_ticket is not null)
                                                     {
                                                         <div class="tdm-comment-bubble">@c.Content</div>
                                                         <div class="tdm-comment-actions">
-                                                            <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
+                                                            <button class="text-xs transition-colors" style="color:var(--text-muted)" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
                                                             <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
                                                         </div>
                                                     }
@@ -190,25 +192,6 @@ else if (_ticket is not null)
                                 }
 
                                 @* Add comment *@
-                                <div class="flex gap-2.5 items-start">
-                                    <div class="tdm-avatar av-gray shrink-0">
-                                        <i class="bi bi-person" style="font-size:.8rem"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <textarea class="form-textarea text-sm"
-                                                  rows="2"
-                                                  placeholder="@L["Ticket.Comment.Add"]"
-                                                  @bind="_newCommentContent"
-                                                  @bind:event="oninput"></textarea>
-                                        <div class="flex justify-end mt-1.5">
-                                            <button class="btn btn-primary btn-sm" type="button"
-                                                    @onclick="AddCommentAsync"
-                                                    disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
-                                                <i class="bi bi-send-fill"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             }
                         }
 
@@ -217,11 +200,11 @@ else if (_ticket is not null)
                         {
                             @if (_historyLoading)
                             {
-                                <p class="text-sm text-gray-400 py-2">@L["Loading"]</p>
+                                <p class="text-sm py-2" style="color:var(--text-muted)">@L["Loading"]</p>
                             }
                             else if (_history.Count == 0)
                             {
-                                <p class="text-sm text-gray-400 italic py-2">@L["Ticket.History.Empty"]</p>
+                                <p class="text-sm italic py-2" style="color:var(--text-muted)">@L["Ticket.History.Empty"]</p>
                             }
                             else
                             {
@@ -233,13 +216,13 @@ else if (_ticket is not null)
                                             <span class="mt-1 w-2.5 h-2.5 rounded-full @HistoryDotColor(h.Kind) shrink-0"></span>
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                                                    <span class="text-xs font-semibold text-gray-700">@h.ActorName</span>
-                                                    <span class="text-xs text-gray-500"> @HistoryLabel(h)</span>
-                                                    <span class="ml-auto text-xs text-gray-400 shrink-0">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                                    <span class="text-xs font-semibold" style="color:var(--text-base)">@h.ActorName</span>
+                                                    <span class="text-xs" style="color:var(--text-muted)"> @HistoryLabel(h)</span>
+                                                    <span class="ml-auto text-xs shrink-0" style="color:var(--text-muted)">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                                 </div>
                                                 @if (HistoryDetail(h) is { } detail)
                                                 {
-                                                    <div class="mt-0.5 text-xs text-gray-500 bg-gray-50 rounded px-2 py-1 break-words">@detail</div>
+                                                    <div class="mt-0.5 text-xs rounded px-2 py-1 break-words" style="color:var(--text-muted);background:var(--surface)">@detail</div>
                                                 }
                                             </div>
                                         </div>
@@ -320,7 +303,7 @@ else if (_ticket is not null)
                     </div>
                 }
 
-                <div class="border-t border-gray-100 my-3"></div>
+                <div class="my-3" style="border-top:1px solid var(--border)"></div>
 
                 @* Story points and due date: input when editing, display when viewing *@
                 @if (_editing)
@@ -363,7 +346,7 @@ else if (_ticket is not null)
                     }
                 }
 
-                <div class="border-t border-gray-100 my-3"></div>
+                <div class="my-3" style="border-top:1px solid var(--border)"></div>
 
                 @* Labels *@
                 <div class="tdm-prop">
@@ -373,7 +356,7 @@ else if (_ticket is not null)
                                  OnDetach="async l => { await LabelApi.DetachFromTicketAsync(l.Id, _ticket!.Id); }" />
                 </div>
 
-                <div class="border-t border-gray-100 my-3"></div>
+                <div class="my-3" style="border-top:1px solid var(--border)"></div>
 
                 @* Reporter + timestamps (always visible) *@
                 <div class="tdm-meta-row">
@@ -397,16 +380,42 @@ else if (_ticket is not null)
             </div>
         </div>
 
-        @* ── Footer ── *@
+        @* ── Footer (edit mode) ── *@
         @if (_editing)
         {
-            <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+            <div class="flex justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">
                 <button type="button" class="btn btn-outline" @onclick="() => _editing = false" disabled="@_busy">@L["Cancel"]</button>
                 <button type="submit" class="btn btn-primary" disabled="@_busy">@(_busy ? "…" : L["Save"].Value)</button>
             </div>
         }
         </EditForm>
     </div>
+
+    @* ── Sticky comment bar ── *@
+    @if (!_editing && _activeTab == "comments")
+    {
+        <div class="ticket-comment-bar">
+            <div class="flex gap-2.5 items-start">
+                <div class="tdm-avatar av-gray shrink-0">
+                    <i class="bi bi-person" style="font-size:.8rem"></i>
+                </div>
+                <div class="flex-1">
+                    <textarea class="form-textarea text-sm"
+                              rows="2"
+                              placeholder="@L["Ticket.Comment.Add"]"
+                              @bind="_newCommentContent"
+                              @bind:event="oninput"></textarea>
+                    <div class="flex justify-end mt-1.5">
+                        <button class="btn btn-primary btn-sm" type="button"
+                                @onclick="AddCommentAsync"
+                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
+                            <i class="bi bi-send-fill mr-1"></i>Commenter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
     </div>
 }
 
