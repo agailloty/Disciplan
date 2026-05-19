@@ -112,6 +112,7 @@
   <data name="Project.DefaultAssignee" xml:space="preserve"><value>Default assignee</value></data>
   <data name="DefaultAssigneePolicy.None" xml:space="preserve"><value>None</value></data>
   <data name="DefaultAssigneePolicy.Creator" xml:space="preserve"><value>Ticket creator</value></data>
+  <data name="Project.Stats.Title" xml:space="preserve"><value>Statistics</value></data>
   <data name="Project.Stats.Backlog" xml:space="preserve"><value>Backlog</value></data>
   <data name="Project.Stats.BacklogSub" xml:space="preserve"><value>unplanned tickets</value></data>
   <data name="Project.Stats.Sprints" xml:space="preserve"><value>Sprints</value></data>

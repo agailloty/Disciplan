@@ -549,6 +549,7 @@ body {
     width: 280px; flex-shrink: 0;
     background: var(--surface); border: 1px solid var(--border); border-radius: .5rem;
     display: flex; flex-direction: column;
+    height: 70vh;
     transition: border-color .15s, background .15s;
     scroll-snap-align: start;
 }
@@ -559,19 +560,23 @@ body {
     border-bottom: 1px solid var(--border);
     border-radius: .5rem .5rem 0 0;
     background: var(--page-bg);
+    flex-shrink: 0;
 }
-.kanban-column-body { padding: .5rem .625rem; flex: 1; min-height: 60px; display: flex; flex-direction: column; gap: .5rem; }
-.kanban-column-footer { padding: .5rem .625rem .75rem; }
+.kanban-column-body { padding: .5rem .625rem; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: .5rem; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.kanban-column-body::-webkit-scrollbar { width: 4px; }
+.kanban-column-body::-webkit-scrollbar-track { background: transparent; }
+.kanban-column-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.kanban-column-footer { padding: .5rem .625rem .75rem; border-top: 1px solid var(--border); flex-shrink: 0; background: var(--surface); border-radius: 0 0 .5rem .5rem; }
 
 .btn-add-card {
     width: 100%; background: transparent; border: 1px dashed var(--border);
-    color: var(--text-muted); font-size: .8rem; border-radius: .375rem; padding: .4rem .5rem;
+    color: var(--text-muted); font-size: .8rem; border-radius: .375rem; padding: .4rem .75rem;
     cursor: pointer; transition: background .12s, color .12s, border-color .12s;
-    display: flex; align-items: center; gap: .25rem;
-    min-height: 36px;
+    display: flex; align-items: center; gap: .5rem;
+    min-height: 34px;
     -webkit-tap-highlight-color: transparent;
 }
-.btn-add-card:hover { background: var(--bg-accent); color: var(--text-base); border-color: var(--text-muted); border-style: solid; }
+.btn-add-card:hover { background: var(--bg-accent); color: var(--text-base); border-color: var(--accent); border-style: solid; }
 
 /* -- Kanban cards ----------------------------------------------------------- */
 .kanban-card {

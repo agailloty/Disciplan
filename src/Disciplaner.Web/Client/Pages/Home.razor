@@ -155,15 +155,15 @@ else
                                 {
                                     var t = ticket;
                                     var ticketUrl = "/tickets/" + t.TicketRef;
-                                    <div class="flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors"
+                                    <div class="flex items-center gap-2 px-5 py-3 cursor-pointer transition-colors"
                                          @onclick="() => Nav.NavigateTo(ticketUrl)">
-                                        <span class="flex items-center gap-1 shrink-0 w-24">
+                                        <span class="flex items-center gap-1 shrink-0" style="max-width:5.5rem">
                                             <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
-                                            <span class="text-xs hidden sm:block truncate" style="color:var(--text-muted)">@t.Status.Name</span>
+                                            <span class="text-xs truncate" style="color:var(--text-muted)">@t.Status.Name</span>
                                         </span>
                                         <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                         <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@t.Title</span>
-                                        <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                                        <span class="badge @PriorityBadge(t.Priority) shrink-0 hidden sm:flex">@t.Priority</span>
                                         @if (t.DueDate.HasValue)
                                         {
                                             var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
@@ -289,15 +289,15 @@ else
                                     {
                                         var t = ticket;
                                         var svTicketUrl = "/tickets/" + t.TicketRef;
-                                        <div class="flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors"
+                                        <div class="flex items-center gap-2 px-5 py-3 cursor-pointer transition-colors"
                                              @onclick="() => Nav.NavigateTo(svTicketUrl)">
-                                            <span class="flex items-center gap-1 shrink-0 w-24">
+                                            <span class="flex items-center gap-1 shrink-0" style="max-width:5.5rem">
                                                 <span class="w-2 h-2 rounded-full inline-block shrink-0" style="background:@t.Status.Color"></span>
-                                                <span class="text-xs hidden sm:block truncate" style="color:var(--text-muted)">@t.Status.Name</span>
+                                                <span class="text-xs truncate" style="color:var(--text-muted)">@t.Status.Name</span>
                                             </span>
                                             <span class="badge badge-dark font-mono shrink-0">@t.TicketRef</span>
                                             <span class="text-sm font-medium flex-1 truncate" style="color:var(--text-base)">@t.Title</span>
-                                            <span class="badge @PriorityBadge(t.Priority) shrink-0">@t.Priority</span>
+                                            <span class="badge @PriorityBadge(t.Priority) shrink-0 hidden sm:flex">@t.Priority</span>
                                             @if (t.DueDate.HasValue)
                                             {
                                                 var overdue = t.DueDate.Value.ToUniversalTime() < DateTime.UtcNow;
