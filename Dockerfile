@@ -26,8 +26,8 @@ RUN dotnet publish src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# /data is the mount point for the SQLite database volume
-RUN mkdir -p /data && chown $APP_UID /data
+# /data is the mount point for the SQLite database and uploaded files
+RUN mkdir -p /data /data/uploads && chown $APP_UID /data /data/uploads
 VOLUME ["/data"]
 
 COPY --from=build /app/publish .

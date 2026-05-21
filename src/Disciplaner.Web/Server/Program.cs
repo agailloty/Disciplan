@@ -1,4 +1,5 @@
 using System.Text;
+using Disciplaner.Application;
 using Disciplaner.Infrastructure;
 using Disciplaner.Infrastructure.Data;
 using Disciplaner.Infrastructure.Identity;
@@ -70,6 +71,16 @@ builder.Services.AddAuthorization();
 
 // ── Infrastructure + Application services ────────────────────────────────────
 builder.Services.AddInfrastructure();
+
+// ── File storage ──────────────────────────────────────────────────────────────
+builder.Services.Configure<FileStorageOptions>(
+    builder.Configuration.GetSection(FileStorageOptions.SectionName));
+
+// Allow up to 50 MB multipart uploads (matches MaxFileSizeBytes default)
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 52_428_800;
+});
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Configured via Cors:Origins in appsettings / env vars (CORS__ORIGINS__0=https://…).

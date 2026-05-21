@@ -66,4 +66,11 @@ public static class DomainConstraints
         public const int NameMaxLength = 100;
         public const int DescriptionMaxLength = 500;
     }
+
+    public static class Attachment
+    {
+        public const int FileNameMaxLength = 255;
+        public const int ContentTypeMaxLength = 100;
+        public const int StoragePathMaxLength = 500;
+    }
 }

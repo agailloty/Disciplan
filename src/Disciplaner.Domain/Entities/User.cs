@@ -14,6 +14,7 @@ public class User
     public string UserName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
     public string DisplayName { get; private set; } = string.Empty;
+    public string? ProfilePictureUrl { get; init; }
     public DateTime CreatedAt { get; private init; } = DateTime.UtcNow;
     public bool IsActive { get; private set; } = true;
 
