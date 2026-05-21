@@ -1,0 +1,244 @@
+@inject AttachmentApiClient AttachmentApi
+@inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> L
+@using Disciplaner.Application.DTOs.Attachment
+@using Microsoft.AspNetCore.Components.Forms
+
+@* ────────────────────────────────────────────────────────────────────────────
+   AttachmentPanel  — Reusable attachment section for Tickets, Comments, Boards
+   
+   Usage:
+     <AttachmentPanel TicketId="ticket.Id" />
+     <AttachmentPanel CommentId="comment.Id" />
+     <AttachmentPanel BoardId="board.Id" />
+──────────────────────────────────────────────────────────────────────────── *@
+
+<div class="attachment-panel">
+
+    @* ── Header row ── *@
+    <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+            <span class="tdm-section-label">Pièces jointes</span>
+            @if (_attachments.Count > 0)
+            {
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">@_attachments.Count</span>
+            }
+        </div>
+        <label class="btn btn-outline btn-sm cursor-pointer select-none"
+               title="Ajouter des fichiers"
+               style="@(_uploading ? "pointer-events:none;opacity:.5;" : "")">
+            <i class="bi bi-paperclip mr-1"></i>Ajouter
+            <InputFile OnChange="HandleFilesSelectedAsync"
+                       class="hidden"
+                       multiple
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
+        </label>
+    </div>
+
+    @* ── Upload progress ── *@
+    @if (_uploading)
+    {
+        <div class="flex items-center gap-2 py-1.5 text-sm text-gray-500">
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-500 shrink-0"></div>
+            <span>Envoi en cours…</span>
+        </div>
+    }
+
+    @* ── Upload error ── *@
+    @if (_uploadError is not null)
+    {
+        <div class="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700 mb-2">
+            <i class="bi bi-exclamation-circle shrink-0 mt-0.5"></i>
+            <span>@_uploadError</span>
+            <button class="ml-auto text-red-400 hover:text-red-600" @onclick="() => _uploadError = null">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+
+    @* ── Loading ── *@
+    @if (_loading)
+    {
+        <p class="text-sm text-gray-400 py-1">Chargement…</p>
+    }
+    else if (_attachments.Count == 0)
+    {
+        @* ── Empty state / drop hint ── *@
+        <div class="att-dropzone rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors py-5 px-4 text-center">
+            <i class="bi bi-paperclip text-2xl text-gray-300 block mb-1"></i>
+            <p class="text-xs text-gray-400">Aucune pièce jointe — cliquez sur <strong>Ajouter</strong> pour en joindre</p>
+        </div>
+    }
+    else
+    {
+        @* ── Attachment list ── *@
+        <div class="flex flex-col gap-1">
+            @foreach (var a in _attachments)
+            {
+                <div class="att-item flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors">
+                    @* File-type icon *@
+                    <i class="@FileIcon(a.ContentType) text-xl shrink-0"></i>
+
+                    @* File info *@
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate leading-tight">@a.FileName</p>
+                        <p class="text-xs text-gray-400 truncate">
+                            @FormatSize(a.SizeBytes) · @a.UploadedByName · @a.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                        </p>
+                    </div>
+
+                    @* Actions (revealed on hover) *@
+                    <div class="att-actions flex items-center gap-0.5 shrink-0">
+                        @if (IsPreviewable(a.ContentType))
+                        {
+                            <button class="att-action-btn" title="Aperçu" @onclick="() => OpenPreview(a)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="att-action-btn" title="Ouvrir dans un onglet" @onclick="() => OpenInNewTabAsync(a)">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </button>
+                        }
+                        <button class="att-action-btn" title="Télécharger" @onclick="() => DownloadAsync(a)">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="att-action-btn text-red-400 hover:text-red-600 hover:bg-red-50"
+                                title="Supprimer"
+                                @onclick="() => DeleteAsync(a.Id)">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* ── Preview modal (rendered at this level to avoid z-index issues) ── *@
+<FilePreviewModal Attachment="_previewAttachment"
+                  Visible="_previewAttachment is not null"
+                  OnClose="() => _previewAttachment = null" />
+
+@code {
+    // ── Parameters ──────────────────────────────────────────────────────────
+    [Parameter] public Guid? TicketId  { get; set; }
+    [Parameter] public Guid? CommentId { get; set; }
+    [Parameter] public Guid? BoardId   { get; set; }
+
+    // ── State ────────────────────────────────────────────────────────────────
+    private List<AttachmentDto> _attachments = [];
+    private bool _loading;
+    private bool _uploading;
+    private string? _uploadError;
+    private AttachmentDto? _previewAttachment;
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    protected override async Task OnParametersSetAsync()
+        => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+        try
+        {
+            IReadOnlyList<AttachmentDto> result = TicketId.HasValue  ? await AttachmentApi.GetByTicketAsync(TicketId.Value)   :
+                                                  CommentId.HasValue ? await AttachmentApi.GetByCommentAsync(CommentId.Value) :
+                                                  BoardId.HasValue   ? await AttachmentApi.GetByBoardAsync(BoardId.Value)     :
+                                                  (IReadOnlyList<AttachmentDto>)[];
+            _attachments = [.. result];
+        }
+        catch { /* silently ignore load errors */ }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // ── Upload ───────────────────────────────────────────────────────────────
+
+    private async Task HandleFilesSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _uploadError = null;
+        _uploading   = true;
+        StateHasChanged();
+
+        try
+        {
+            foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+            {
+                AttachmentDto? dto =
+                    TicketId.HasValue  ? await AttachmentApi.UploadForTicketAsync(TicketId.Value, file)   :
+                    CommentId.HasValue ? await AttachmentApi.UploadForCommentAsync(CommentId.Value, file) :
+                    BoardId.HasValue   ? await AttachmentApi.UploadForBoardAsync(BoardId.Value, file)     :
+                    null;
+
+                if (dto is not null)
+                    _attachments.Add(dto);
+            }
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Erreur lors de l'envoi : {ex.Message}";
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    // ── Preview ──────────────────────────────────────────────────────────────
+
+    private void OpenPreview(AttachmentDto a) => _previewAttachment = a;
+
+    // ── Download ─────────────────────────────────────────────────────────────
+
+    private async Task DownloadAsync(AttachmentDto a)
+    {
+        try
+        {
+            var (bytes, contentType) = await AttachmentApi.DownloadAsync(a.Id);
+            await JS.InvokeVoidAsync("disciplaner.downloadBlob", bytes, contentType, a.FileName);
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Erreur lors du téléchargement : {ex.Message}";
+        }
+    }
+    private async Task OpenInNewTabAsync(AttachmentDto a)
+    {
+        try
+        {
+            var (bytes, contentType) = await AttachmentApi.DownloadAsync(a.Id);
+            await JS.InvokeVoidAsync("disciplaner.openBlobInTab", bytes, contentType);
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Erreur lors de l'ouverture : {ex.Message}";
+        }
+    }
+    // ── Delete ───────────────────────────────────────────────────────────────
+
+    private async Task DeleteAsync(Guid id)
+    {
+        try
+        {
+            await AttachmentApi.DeleteAsync(id);
+            _attachments.RemoveAll(a => a.Id == id);
+        }
+        catch (Exception ex)
+        {
+            _uploadError = $"Erreur lors de la suppression : {ex.Message}";
+        }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static bool IsPreviewable(string ct) =>
+        ct.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ||
+        ct.Equals("application/pdf", StringComparison.OrdinalIgnoreCase);
+
+    private static string FileIcon(string ct) => FilePreviewModal.FileIcon(ct);
+
+    private static string FormatSize(long bytes) => FilePreviewModal.FormatSize(bytes);
+}

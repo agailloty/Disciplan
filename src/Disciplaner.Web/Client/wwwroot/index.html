@@ -123,6 +123,35 @@
                         reg.waiting.postMessage({ type: 'SKIP_WAITING' });
                     }
                 });
+            },
+
+            // ── Attachment preview / download helpers ────────────────────
+            // bytes is a Uint8Array passed from Blazor (byte[] marshals as Uint8Array)
+            createBlobUrl: function (bytes, contentType) {
+                var blob = new Blob([bytes], { type: contentType });
+                return URL.createObjectURL(blob);
+            },
+            revokeBlobUrl: function (url) {
+                if (url) URL.revokeObjectURL(url);
+            },
+            downloadBlob: function (bytes, contentType, fileName) {
+                var blob = new Blob([bytes], { type: contentType });
+                var url  = URL.createObjectURL(blob);
+                var a    = document.createElement('a');
+                a.href     = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+            openBlobInTab: function (bytes, contentType) {
+                var blob = new Blob([bytes], { type: contentType });
+                var url  = URL.createObjectURL(blob);
+                var tab  = window.open(url, '_blank');
+                // Revoke after a short delay to allow the tab to load
+                if (tab) { tab.addEventListener('load', function () { URL.revokeObjectURL(url); }, { once: true }); }
+                else { setTimeout(function () { URL.revokeObjectURL(url); }, 30000); }
             }
         };
 

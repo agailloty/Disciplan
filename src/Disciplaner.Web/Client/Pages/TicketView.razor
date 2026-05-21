@@ -10,6 +10,8 @@
 @inject ActivityApiClient ActivityApi
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
+@inject AttachmentApiClient AttachmentApi
+@inject IJSRuntime JS
 @using Disciplaner.Application.DTOs.User
 @using Disciplaner.Application.DTOs.Sprint
 @using Disciplaner.Application.DTOs.Activity
@@ -102,6 +104,9 @@ else if (_ticket is not null)
                         <InputTextArea class="form-textarea" rows="8" @bind-Value="_form.Description" />
                     </div>
 
+                    @* Attachments in edit mode *@
+                    <AttachmentPanel TicketId="_ticket.Id" />
+
                     @if (_actionError is not null)
                     {
                         <ErrorAlert Message="@_actionError" />
@@ -180,6 +185,9 @@ else if (_ticket is not null)
                                                     else
                                                     {
                                                         <div class="tdm-comment-bubble">@c.Content</div>
+                                                        <div class="mt-1.5 pl-0.5">
+                                                            <AttachmentPanel CommentId="c.Id" />
+                                                        </div>
                                                         <div class="tdm-comment-actions">
                                                             <button class="text-xs transition-colors" style="color:var(--text-muted)" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
                                                             <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
@@ -231,6 +239,9 @@ else if (_ticket is not null)
                             }
                         }
                     </div>
+
+                    @* ── Pièces jointes du ticket ── *@
+                    <AttachmentPanel TicketId="_ticket.Id" />
 
                     @if (_actionError is not null)
                     {
@@ -405,10 +416,37 @@ else if (_ticket is not null)
                               placeholder="@L["Ticket.Comment.Add"]"
                               @bind="_newCommentContent"
                               @bind:event="oninput"></textarea>
-                    <div class="flex justify-end mt-1.5">
+
+                    @* Pending files chips *@
+                    @if (_pendingCommentFiles.Count > 0)
+                    {
+                        <div class="flex flex-wrap gap-1.5 mt-1.5">
+                            @foreach (var f in _pendingCommentFiles)
+                            {
+                                var file = f;
+                                <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 max-w-[180px]">
+                                    <i class="bi bi-paperclip shrink-0"></i>
+                                    <span class="truncate">@file.Name</span>
+                                    <button type="button" class="ml-0.5 text-blue-400 hover:text-red-500 shrink-0"
+                                            @onclick="() => _pendingCommentFiles.Remove(file)">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+
+                    <div class="flex items-center justify-between mt-1.5">
+                        <label class="inline-flex items-center gap-1 text-xs cursor-pointer select-none px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                               style="color:var(--text-muted)"
+                               title="Joindre des fichiers">
+                            <i class="bi bi-paperclip text-sm"></i>Joindre
+                            <InputFile OnChange="HandlePendingCommentFilesAsync" class="hidden" multiple
+                                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
+                        </label>
                         <button class="btn btn-primary btn-sm" type="button"
                                 @onclick="AddCommentAsync"
-                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
+                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent) && _pendingCommentFiles.Count == 0)">
                             <i class="bi bi-send-fill mr-1"></i>Commenter
                         </button>
                     </div>
@@ -448,6 +486,7 @@ else if (_ticket is not null)
     private string _newCommentContent = string.Empty;
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
+    private List<IBrowserFile> _pendingCommentFiles = [];
 
     private sealed class TicketEditForm
     {
@@ -682,14 +721,31 @@ else if (_ticket is not null)
 
     private async Task AddCommentAsync()
     {
-        if (_ticket is null || string.IsNullOrWhiteSpace(_newCommentContent)) return;
+        if (_ticket is null) return;
+        if (string.IsNullOrWhiteSpace(_newCommentContent) && _pendingCommentFiles.Count == 0) return;
         try
         {
-            var comment = await CommentApi.CreateForTicketAsync(_ticket.Id, new CreateCommentRequest(_newCommentContent));
-            if (comment is not null) _comments = [.. _comments, comment];
+            var content = string.IsNullOrWhiteSpace(_newCommentContent) ? "📎" : _newCommentContent;
+            var comment = await CommentApi.CreateForTicketAsync(_ticket.Id, new CreateCommentRequest(content));
+            if (comment is not null)
+            {
+                _comments = [.. _comments, comment];
+                // Upload pending files to the new comment
+                foreach (var file in _pendingCommentFiles)
+                {
+                    try { await AttachmentApi.UploadForCommentAsync(comment.Id, file); } catch { /* ignore */ }
+                }
+                _pendingCommentFiles.Clear();
+            }
             _newCommentContent = string.Empty;
         }
         catch { }
+    }
+
+    private void HandlePendingCommentFilesAsync(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+            _pendingCommentFiles.Add(file);
     }
 
     private void StartEditComment(CommentDto c)
