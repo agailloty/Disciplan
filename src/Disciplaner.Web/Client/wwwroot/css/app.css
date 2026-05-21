@@ -856,6 +856,9 @@ body {
     margin-top: .3rem;
 }
 
+/* Spacing utility used by the dashboard widget list (not in compiled tailwind.css) */
+.space-y-8 > * + * { margin-top: 2rem; }
+
 /* ── Dark mode global overrides ────────────────────────────────────────────── */
 /* Force inherited color/bg when Tailwind's compiled utilities would override */
 [data-dark="1"] body {
