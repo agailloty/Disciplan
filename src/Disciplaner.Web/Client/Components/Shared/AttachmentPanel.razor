@@ -18,21 +18,24 @@
     @* ── Header row ── *@
     <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
-            <span class="tdm-section-label">Pièces jointes</span>
+            <span class="tdm-section-label">@L["Attachment.SectionLabel"]</span>
             @if (_attachments.Count > 0)
             {
                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold">@_attachments.Count</span>
             }
         </div>
-        <label class="btn btn-outline btn-sm cursor-pointer select-none"
-               title="Ajouter des fichiers"
-               style="@(_uploading ? "pointer-events:none;opacity:.5;" : "")">
-            <i class="bi bi-paperclip mr-1"></i>Ajouter
-            <InputFile OnChange="HandleFilesSelectedAsync"
-                       class="hidden"
-                       multiple
-                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
-        </label>
+        @if (CanAdd)
+        {
+            <label class="btn btn-outline btn-sm cursor-pointer select-none"
+                   title="@L["Attachment.AddFiles"]"
+                   style="@(_uploading ? "pointer-events:none;opacity:.5;" : "")">
+                <i class="bi bi-paperclip mr-1"></i>@L["Attachment.Add"]
+                <InputFile OnChange="HandleFilesSelectedAsync"
+                           class="hidden"
+                           multiple
+                           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
+            </label>
+        }
     </div>
 
     @* ── Upload progress ── *@
@@ -40,7 +43,7 @@
     {
         <div class="flex items-center gap-2 py-1.5 text-sm text-gray-500">
             <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-500 shrink-0"></div>
-            <span>Envoi en cours…</span>
+            <span>@L["Attachment.Uploading"]</span>
         </div>
     }
 
@@ -59,14 +62,14 @@
     @* ── Loading ── *@
     @if (_loading)
     {
-        <p class="text-sm text-gray-400 py-1">Chargement…</p>
+        <p class="text-sm text-gray-400 py-1">@L["Loading"]</p>
     }
     else if (_attachments.Count == 0)
     {
         @* ── Empty state / drop hint ── *@
         <div class="att-dropzone rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors py-5 px-4 text-center">
             <i class="bi bi-paperclip text-2xl text-gray-300 block mb-1"></i>
-            <p class="text-xs text-gray-400">Aucune pièce jointe — cliquez sur <strong>Ajouter</strong> pour en joindre</p>
+            <p class="text-xs text-gray-400">@L["Attachment.Empty"]</p>
         </div>
     }
     else
@@ -91,18 +94,18 @@
                     <div class="att-actions flex items-center gap-0.5 shrink-0">
                         @if (IsPreviewable(a.ContentType))
                         {
-                            <button class="att-action-btn" title="Aperçu" @onclick="() => OpenPreview(a)">
+                            <button class="att-action-btn" title="@L["Attachment.Preview"]" @onclick="() => OpenPreview(a)">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="att-action-btn" title="Ouvrir dans un onglet" @onclick="() => OpenInNewTabAsync(a)">
+                            <button class="att-action-btn" title="@L["Attachment.OpenInTab"]" @onclick="() => OpenInNewTabAsync(a)">
                                 <i class="bi bi-box-arrow-up-right"></i>
                             </button>
                         }
-                        <button class="att-action-btn" title="Télécharger" @onclick="() => DownloadAsync(a)">
+                        <button class="att-action-btn" title="@L["Attachment.Download"]" @onclick="() => DownloadAsync(a)">
                             <i class="bi bi-download"></i>
                         </button>
                         <button class="att-action-btn text-red-400 hover:text-red-600 hover:bg-red-50"
-                                title="Supprimer"
+                                title="@L["Delete"]"
                                 @onclick="() => DeleteAsync(a.Id)">
                             <i class="bi bi-trash3"></i>
                         </button>
@@ -123,6 +126,7 @@
     [Parameter] public Guid? TicketId  { get; set; }
     [Parameter] public Guid? CommentId { get; set; }
     [Parameter] public Guid? BoardId   { get; set; }
+    [Parameter] public bool  CanAdd    { get; set; } = true;
 
     // ── State ────────────────────────────────────────────────────────────────
     private List<AttachmentDto> _attachments = [];
@@ -179,7 +183,7 @@
         }
         catch (Exception ex)
         {
-            _uploadError = $"Erreur lors de l'envoi : {ex.Message}";
+            _uploadError = L["Attachment.Error.Upload", ex.Message];
         }
         finally
         {
@@ -202,7 +206,7 @@
         }
         catch (Exception ex)
         {
-            _uploadError = $"Erreur lors du téléchargement : {ex.Message}";
+            _uploadError = L["Attachment.Error.Download", ex.Message];
         }
     }
     private async Task OpenInNewTabAsync(AttachmentDto a)
@@ -214,7 +218,7 @@
         }
         catch (Exception ex)
         {
-            _uploadError = $"Erreur lors de l'ouverture : {ex.Message}";
+            _uploadError = L["Attachment.Error.Open", ex.Message];
         }
     }
     // ── Delete ───────────────────────────────────────────────────────────────
@@ -228,7 +232,7 @@
         }
         catch (Exception ex)
         {
-            _uploadError = $"Erreur lors de la suppression : {ex.Message}";
+            _uploadError = L["Attachment.Error.Delete", ex.Message];
         }
     }
 

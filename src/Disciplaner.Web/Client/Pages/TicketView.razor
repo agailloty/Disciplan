@@ -177,6 +177,9 @@ else if (_ticket is not null)
                                                     @if (_editingCommentId == c.Id)
                                                     {
                                                         <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
+                                                        <div class="mt-1.5 pl-0.5">
+                                                            <AttachmentPanel CommentId="c.Id" />
+                                                        </div>
                                                         <div class="flex gap-1.5 mt-1.5">
                                                             <button class="btn btn-primary btn-sm" type="button" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
                                                             <button class="btn btn-outline btn-sm" type="button" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
@@ -186,7 +189,7 @@ else if (_ticket is not null)
                                                     {
                                                         <div class="tdm-comment-bubble">@c.Content</div>
                                                         <div class="mt-1.5 pl-0.5">
-                                                            <AttachmentPanel CommentId="c.Id" />
+                                                            <AttachmentPanel CommentId="c.Id" CanAdd="false" />
                                                         </div>
                                                         <div class="tdm-comment-actions">
                                                             <button class="text-xs transition-colors" style="color:var(--text-muted)" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
@@ -439,15 +442,15 @@ else if (_ticket is not null)
                     <div class="flex items-center justify-between mt-1.5">
                         <label class="inline-flex items-center gap-1 text-xs cursor-pointer select-none px-2 py-1 rounded hover:bg-gray-100 transition-colors"
                                style="color:var(--text-muted)"
-                               title="Joindre des fichiers">
-                            <i class="bi bi-paperclip text-sm"></i>Joindre
+                               title="@L["Attachment.AttachFiles"]">
+                            <i class="bi bi-paperclip text-sm"></i>@L["Attachment.Attach"]
                             <InputFile OnChange="HandlePendingCommentFilesAsync" class="hidden" multiple
                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
                         </label>
                         <button class="btn btn-primary btn-sm" type="button"
                                 @onclick="AddCommentAsync"
                                 disabled="@(string.IsNullOrWhiteSpace(_newCommentContent) && _pendingCommentFiles.Count == 0)">
-                            <i class="bi bi-send-fill mr-1"></i>Commenter
+                            <i class="bi bi-send-fill mr-1"></i>@L["Ticket.Comment.Submit"]
                         </button>
                     </div>
                 </div>

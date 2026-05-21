@@ -82,6 +82,9 @@
                                                 @if (_editingCommentId == c.Id)
                                                 {
                                                     <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
+                                                    <div class="mt-1.5 pl-0.5">
+                                                        <AttachmentPanel CommentId="c.Id" />
+                                                    </div>
                                                     <div class="flex gap-1.5 mt-1.5">
                                                         <button class="btn btn-primary btn-sm" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
                                                         <button class="btn btn-outline btn-sm" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
@@ -91,7 +94,7 @@
                                                 {
                                                     <div class="tdm-comment-bubble">@c.Content</div>
                                                     <div class="mt-1.5 pl-0.5">
-                                                        <AttachmentPanel CommentId="c.Id" />
+                                                        <AttachmentPanel CommentId="c.Id" CanAdd="false" />
                                                     </div>
                                                     <div class="tdm-comment-actions">
                                                         <button class="text-xs text-gray-400 hover:text-gray-700 transition-colors" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
@@ -137,8 +140,8 @@
 
                                     <div class="flex items-center justify-between mt-1.5">
                                         <label class="inline-flex items-center gap-1 text-xs cursor-pointer select-none px-2 py-1 rounded hover:bg-gray-100 transition-colors text-gray-400"
-                                               title="Joindre des fichiers">
-                                            <i class="bi bi-paperclip text-sm"></i>Joindre
+                                               title="@L["Attachment.AttachFiles"]">
+                                            <i class="bi bi-paperclip text-sm"></i>@L["Attachment.Attach"]
                                             <InputFile OnChange="HandlePendingCommentFilesAsync" class="hidden" multiple
                                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
                                         </label>

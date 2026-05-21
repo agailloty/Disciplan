@@ -1,5 +1,6 @@
 @inject AttachmentApiClient AttachmentApi
 @inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> L
 @implements IAsyncDisposable
 
 @if (Visible && Attachment is not null)
@@ -18,13 +19,13 @@
                     <p class="text-xs text-gray-400">@FormatSize(Attachment.SizeBytes) · @Attachment.UploadedByName · @Attachment.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy")</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <button class="btn btn-outline btn-sm" @onclick="OpenInNewTabAsync" disabled="@(_loading || _bytes is null)" title="Ouvrir dans un nouvel onglet">
-                        <i class="bi bi-box-arrow-up-right mr-1"></i>Nouvel onglet
+                    <button class="btn btn-outline btn-sm" @onclick="OpenInNewTabAsync" disabled="@(_loading || _bytes is null)" title="@L["Attachment.OpenInNewTab"]">
+                        <i class="bi bi-box-arrow-up-right mr-1"></i>@L["Attachment.NewTab"]
                     </button>
                     <button class="btn btn-outline btn-sm" @onclick="DownloadAsync" disabled="@(_loading || _bytes is null)">
-                        <i class="bi bi-download mr-1"></i>Télécharger
+                        <i class="bi bi-download mr-1"></i>@L["Attachment.Download"]
                     </button>
-                    <button class="modal-close-btn" title="Fermer" @onclick="CloseAsync">
+                    <button class="modal-close-btn" title="@L["Close"]" @onclick="CloseAsync">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -36,7 +37,7 @@
                 {
                     <div class="flex flex-col items-center gap-3 text-gray-400 py-12">
                         <div class="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-blue-500"></div>
-                        <span class="text-sm">Chargement en cours…</span>
+                        <span class="text-sm">@L["Attachment.LoadingPreview"]</span>
                     </div>
                 }
                 else if (_error is not null)
@@ -44,7 +45,7 @@
                     <div class="flex flex-col items-center gap-3 text-red-500 py-12">
                         <i class="bi bi-exclamation-triangle text-4xl"></i>
                         <p class="text-sm">@_error</p>
-                        <button class="btn btn-outline btn-sm" @onclick="LoadAsync">Réessayer</button>
+                        <button class="btn btn-outline btn-sm" @onclick="LoadAsync">@L["Attachment.Retry"]</button>
                     </div>
                 }
                 else if (IsImage(Attachment.ContentType))
@@ -65,9 +66,9 @@
                 {
                     <div class="flex flex-col items-center gap-4 py-12 text-gray-500">
                         <i class="@FileIcon(Attachment.ContentType) text-7xl"></i>
-                        <p class="text-sm">L'aperçu n'est pas disponible pour ce type de fichier.</p>
+                        <p class="text-sm">@L["Attachment.NoPreview"]</p>
                         <button class="btn btn-primary btn-sm" @onclick="DownloadAsync" disabled="@(_bytes is null)">
-                            <i class="bi bi-download mr-1.5"></i>Télécharger le fichier
+                            <i class="bi bi-download mr-1.5"></i>@L["Attachment.DownloadFile"]
                         </button>
                     </div>
                 }
@@ -124,7 +125,7 @@
         }
         catch (Exception ex)
         {
-            _error = $"Impossible de charger le fichier : {ex.Message}";
+            _error = L["Attachment.Error.Load", ex.Message];
         }
         finally
         {
