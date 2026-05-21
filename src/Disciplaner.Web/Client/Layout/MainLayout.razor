@@ -2,11 +2,25 @@
 @inject AuthApiClient Auth
 @inject NavigationManager Nav
 @inject ThemeService Theme
+@inject IJSRuntime JS
 @inject IStringLocalizer<AppResources> L
 @implements IDisposable
 @using System.Security.Claims
 
 <div class="app-shell">
+    @if (_updateAvailable)
+    {
+        <div class="pwa-update-banner">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>@L["Pwa.UpdateAvailable"]</span>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" @onclick="ApplyUpdateAsync">
+                @L["Pwa.Update"]
+            </button>
+            <button class="pwa-update-dismiss" @onclick="() => _updateAvailable = false" aria-label="Fermer">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    }
     <NavMenu OnLogout="LogoutAsync" />
     <main class="app-main">
         <header class="app-topbar">
@@ -27,13 +41,41 @@
 </div>
 
 @code {
+    private bool _updateAvailable;
+    private DotNetObjectReference<MainLayout>? _selfRef;
+
     protected override async Task OnInitializedAsync()
     {
         await Theme.LoadAsync();
         Theme.OnChange += StateHasChanged;
     }
 
-    public void Dispose() => Theme.OnChange -= StateHasChanged;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _selfRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("disciplaner.registerPwaUpdateCallback", _selfRef);
+        }
+    }
+
+    [JSInvokable]
+    public void NotifyUpdateAvailable()
+    {
+        _updateAvailable = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ApplyUpdateAsync()
+    {
+        await JS.InvokeVoidAsync("disciplaner.applyPwaUpdate");
+    }
+
+    public void Dispose()
+    {
+        Theme.OnChange -= StateHasChanged;
+        _selfRef?.Dispose();
+    }
 
     private async Task ToggleDark()
     {

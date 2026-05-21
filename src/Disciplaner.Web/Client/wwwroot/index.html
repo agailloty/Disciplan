@@ -18,6 +18,8 @@
     <link href="Disciplaner.Web.Client.styles.css" rel="stylesheet" />
 
     <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 </head>
 
 <body>
@@ -33,6 +35,41 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+
+    <!-- ── Service Worker registration ───────────────────────────────────── -->
+    <script>
+        (function () {
+            if (!('serviceWorker' in navigator)) return;
+
+            var reloadPending = false;
+
+            function fireUpdate() {
+                window.__swUpdateAvailable = true;
+                window.dispatchEvent(new CustomEvent('swUpdateAvailable'));
+            }
+
+            navigator.serviceWorker.register('service-worker.js').then(function (reg) {
+                // A SW is already waiting (e.g. page was refreshed during an update)
+                if (reg.waiting) { fireUpdate(); }
+
+                // Listen for a new SW being found and installed
+                reg.addEventListener('updatefound', function () {
+                    var newWorker = reg.installing;
+                    if (!newWorker) return;
+                    newWorker.addEventListener('statechange', function () {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            fireUpdate();
+                        }
+                    });
+                });
+            });
+
+            // When the new SW takes control (after skipWaiting), reload once
+            navigator.serviceWorker.addEventListener('controllerchange', function () {
+                if (!reloadPending) { reloadPending = true; window.location.reload(); }
+            });
+        })();
+    </script>
     <script src="js/kanban.js"></script>
     <script>
         window.blazorCulture = {
@@ -66,6 +103,26 @@
                 r.setProperty('--accent-light', accent + '20');
                 r.setProperty('--sidebar-bg', sidebarBg);
                 r.setProperty('--page-bg',    pageBg);
+            },
+            // ── PWA update ────────────────────────────────────────────────
+            // Called by MainLayout after Blazor boots to receive update notifications.
+            registerPwaUpdateCallback: function (dotnetHelper) {
+                window.addEventListener('swUpdateAvailable', function () {
+                    dotnetHelper.invokeMethodAsync('NotifyUpdateAvailable');
+                });
+                // Handle the case where the event fired before Blazor was ready
+                if (window.__swUpdateAvailable) {
+                    dotnetHelper.invokeMethodAsync('NotifyUpdateAvailable');
+                }
+            },
+            // Tell the waiting SW to skip waiting, then the controllerchange
+            // handler in the registration script will reload the page.
+            applyPwaUpdate: function () {
+                navigator.serviceWorker.getRegistration().then(function (reg) {
+                    if (reg && reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                });
             }
         };
 
