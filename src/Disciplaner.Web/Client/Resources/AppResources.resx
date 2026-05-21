@@ -188,6 +188,8 @@
 
   <!-- ── Navigation (suite) ───────────────────────────────────────────────── -->
   <data name="Nav.Settings" xml:space="preserve"><value>Paramètres</value></data>  <data name="Nav.Menu" xml:space="preserve"><value>Menu</value></data>
+  <data name="Pwa.UpdateAvailable" xml:space="preserve"><value>Une nouvelle version est disponible.</value></data>
+  <data name="Pwa.Update" xml:space="preserve"><value>Mettre à jour</value></data>
   <!-- ── Paramètres ─────────────────────────────────────────────────────────── -->
   <data name="Settings.Title" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Settings.Language" xml:space="preserve"><value>Langue de l'application</value></data>
