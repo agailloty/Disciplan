@@ -81,6 +81,7 @@ body {
     margin: 0 auto;
     padding-bottom: calc(1.75rem + env(safe-area-inset-bottom));
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ── Vertical Sidebar ───────────────────────────────────────────────────────── */
@@ -389,7 +390,40 @@ body {
 
     .app-main { min-height: calc(100vh - 52px); }
 
-    .app-content { padding: 1.25rem 1rem; }
+    /*
+     * overflow-x: clip instead of hidden:
+     * `hidden` creates an implicit scroll container on iOS Safari, which makes
+     * the *div* scroll instead of the body and breaks momentum/native scroll.
+     * `clip` only clips visually without creating a scroll container.
+     */
+    .app-content {
+        padding: 1.25rem 1rem;
+        overflow-x: clip;
+    }
+
+    /* ── Ticket page ── */
+    /* Correct break-out margins to match mobile padding (1.25rem / 1rem)     */
+    .ticket-page {
+        margin: -1.25rem -1rem 0;
+        min-height: 0;
+        /* room for the fixed comment bar */
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+
+    .ticket-breadcrumb { padding: .75rem 1rem .25rem; }
+
+    /* On mobile, sticky inside a broken scroll context is unreliable.         */
+    /* Use fixed positioning so the bar always sits at the bottom of the screen */
+    .ticket-comment-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+        z-index: 30;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+    }
 }
 
 @media (min-width: 768px) {
