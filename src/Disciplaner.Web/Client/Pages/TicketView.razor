@@ -15,6 +15,7 @@
 @using Disciplaner.Application.DTOs.User
 @using Disciplaner.Application.DTOs.Sprint
 @using Disciplaner.Application.DTOs.Activity
+@using Disciplaner.Application.DTOs.Attachment
 
 <PageTitle>@(_ticket?.TicketRef ?? L["Title"].Value) — Disciplaner</PageTitle>
 
@@ -231,7 +232,20 @@ else if (_ticket is not null)
                                                     <span class="text-xs" style="color:var(--text-muted)">@HistoryLabel(h)</span>
                                                     <span class="ml-auto text-xs shrink-0" style="color:var(--text-muted)">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                                 </div>
-                                                @if (HistoryDetail(h) is { } detail)
+                                                @if (h.Kind == "attachment_added")
+                                                {
+                                                    <div class="mt-0.5 flex items-center gap-1.5 text-xs rounded px-2 py-1" style="background:var(--surface)">
+                                                        <i class="bi bi-paperclip text-gray-400 shrink-0"></i>
+                                                        <span class="truncate flex-1" style="color:var(--text-muted)">@h.NewValue</span>
+                                                        <button class="att-action-btn" title="@L["Attachment.Preview"]" @onclick="() => OpenHistoryPreview(h)">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <button class="att-action-btn" title="@L["Attachment.OpenInTab"]" @onclick="() => OpenHistoryInTabAsync(h)">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                                else if (HistoryDetail(h) is { } detail)
                                                 {
                                                     <div class="mt-0.5 text-xs rounded px-2 py-1 break-words" style="color:var(--text-muted);background:var(--surface)">@detail</div>
                                                 }
@@ -460,6 +474,10 @@ else if (_ticket is not null)
     </div>
 }
 
+<FilePreviewModal Attachment="_historyPreviewAttachment"
+                  Visible="_historyPreviewAttachment is not null"
+                  OnClose="() => _historyPreviewAttachment = null" />
+
 @code {
     [Parameter] public Guid Id { get; set; }
     [Parameter] public string? Ref { get; set; }
@@ -486,6 +504,7 @@ else if (_ticket is not null)
     // History
     private IReadOnlyList<TicketHistoryEntryDto> _history = [];
     private bool _historyLoading;
+    private AttachmentDto? _historyPreviewAttachment;
     private string _newCommentContent = string.Empty;
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
@@ -582,6 +601,7 @@ else if (_ticket is not null)
     {
         "created" => "bg-green-400",
         "comment_added" or "comment_deleted" => "bg-blue-400",
+        "attachment_added" => "bg-yellow-400",
         "status_changed" => "bg-purple-400",
         _ => "bg-gray-300"
     };
@@ -600,13 +620,13 @@ else if (_ticket is not null)
         "due_date_changed" => L["History.due_date_changed"],
         "comment_added" => L["History.comment_added"],
         "comment_deleted" => L["History.comment_deleted"],
+        "attachment_added" => L["History.attachment_added"],
         _ => h.Kind
     };
 
     private static string? HistoryDetail(TicketHistoryEntryDto h) => h.Kind switch
     {
-        "created" => null,
-        "comment_added" => h.NewValue is { Length: > 0 } v ? $"« {v} »" : null,
+        "created" => null,        "attachment_added" => null,   // rendered as custom chip with preview/open actions        "comment_added" => h.NewValue is { Length: > 0 } v ? $"« {v} »" : null,
         "comment_deleted" => h.OldValue is { Length: > 0 } v ? $"« {v} »" : null,
         _ when h.OldValue is not null && h.NewValue is not null => $"{h.OldValue} → {h.NewValue}",
         _ when h.NewValue is not null => h.NewValue,
@@ -777,5 +797,21 @@ else if (_ticket is not null)
             _comments = _comments.Where(c => c.Id != commentId).ToList().AsReadOnly();
         }
         catch { }
+    }
+
+    // ── History attachment actions ────────────────────────────────────────────
+
+    private void OpenHistoryPreview(TicketHistoryEntryDto h)
+    {
+        if (!Guid.TryParse(h.OldValue, out var aid)) return;
+        _historyPreviewAttachment = new AttachmentDto(
+            aid, h.NewValue ?? "file", "application/octet-stream", 0, "", "", DateTime.UtcNow, null, null, null);
+    }
+
+    private async Task OpenHistoryInTabAsync(TicketHistoryEntryDto h)
+    {
+        if (!Guid.TryParse(h.OldValue, out var aid)) return;
+        var (bytes, contentType) = await AttachmentApi.DownloadAsync(aid);
+        await JS.InvokeVoidAsync("disciplaner.openBlobInTab", bytes, contentType);
     }
 }

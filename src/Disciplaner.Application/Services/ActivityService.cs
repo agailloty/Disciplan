@@ -56,7 +56,12 @@ public sealed class ActivityService : IActivityService
 
                 var events = g
                     .OrderByDescending(h => h.OccurredAt)
-                    .Select(h => new ActivityItemDto(h.Kind, BuildSummary(h), ticketRef, h.TicketId, h.OccurredAt))
+                    .Select(h =>
+                    {
+                        Guid? attachmentId = h.Kind == "attachment_added" && Guid.TryParse(h.OldValue, out var aid)
+                            ? aid : null;
+                        return new ActivityItemDto(h.Kind, BuildSummary(h), ticketRef, h.TicketId, h.OccurredAt, attachmentId);
+                    })
                     .ToList()
                     .AsReadOnly();
 
@@ -89,6 +94,7 @@ public sealed class ActivityService : IActivityService
         "due_date_changed"      => $"{h.OldValue ?? "—"} → {h.NewValue ?? "—"}",
         "comment_added"         => h.NewValue ?? string.Empty,
         "comment_deleted"       => h.OldValue ?? string.Empty,
+        "attachment_added"      => h.NewValue ?? string.Empty,
         _                       => h.NewValue ?? h.OldValue ?? string.Empty
     };
 }

@@ -60,6 +60,14 @@ public sealed class AttachmentService : IAttachmentService
             file.OriginalFileName, storagePath, file.ContentType, file.SizeBytes, uploadedById, ticketId);
 
         await _uow.Attachments.AddAsync(attachment, cancellationToken);
+
+        var actor = await _uow.Users.GetByIdAsync(uploadedById, cancellationToken);
+        var actorName = actor?.DisplayName ?? actor?.Email ?? uploadedById;
+        await _uow.TicketHistory.AddAsync(
+            TicketHistory.Record(ticketId, "attachment_added", uploadedById, actorName,
+                oldValue: attachment.Id.ToString(), newValue: file.OriginalFileName),
+            cancellationToken);
+
         await _uow.SaveChangesAsync(cancellationToken);
 
         return await ToDtoAsync(attachment, cancellationToken);
@@ -77,6 +85,18 @@ public sealed class AttachmentService : IAttachmentService
             file.OriginalFileName, storagePath, file.ContentType, file.SizeBytes, uploadedById, commentId);
 
         await _uow.Attachments.AddAsync(attachment, cancellationToken);
+
+        var comment = await _uow.Comments.GetByIdAsync(commentId, cancellationToken);
+        if (comment?.TicketId.HasValue == true)
+        {
+            var actor = await _uow.Users.GetByIdAsync(uploadedById, cancellationToken);
+            var actorName = actor?.DisplayName ?? actor?.Email ?? uploadedById;
+            await _uow.TicketHistory.AddAsync(
+                TicketHistory.Record(comment.TicketId.Value, "attachment_added", uploadedById, actorName,
+                    oldValue: attachment.Id.ToString(), newValue: file.OriginalFileName),
+                cancellationToken);
+        }
+
         await _uow.SaveChangesAsync(cancellationToken);
 
         return await ToDtoAsync(attachment, cancellationToken);

@@ -236,6 +236,7 @@
   <data name="History.due_date_changed" xml:space="preserve"><value>a modifié l'échéance</value></data>
   <data name="History.comment_added" xml:space="preserve"><value>a ajouté un commentaire</value></data>
   <data name="History.comment_deleted" xml:space="preserve"><value>a supprimé un commentaire</value></data>
+  <data name="History.attachment_added" xml:space="preserve"><value>a joint une pièce jointe</value></data>
 
   <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>Nouvelle colonne</value></data>
@@ -261,6 +262,7 @@
   <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket créé</value></data>
   <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket modifié</value></data>
   <data name="Home.Activity.Commented" xml:space="preserve"><value>Commentaire ajouté</value></data>
+  <data name="Home.Activity.Attachment" xml:space="preserve"><value>Pièce jointe ajoutée</value></data>
   <data name="Home.Configure" xml:space="preserve"><value>Configurer</value></data>
   <data name="Home.NoDashboardWidgets" xml:space="preserve"><value>Aucun widget visible.</value></data>
   <data name="Home.ConfigureDashboard" xml:space="preserve"><value>Configurer le tableau de bord</value></data>

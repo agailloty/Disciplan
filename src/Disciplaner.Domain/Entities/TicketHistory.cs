@@ -17,6 +17,7 @@ namespace Disciplaner.Domain.Entities;
 ///   <item><c>due_date_changed</c></item>
 ///   <item><c>comment_added</c></item>
 ///   <item><c>comment_deleted</c></item>
+///   <item><c>attachment_added</c>  — OldValue = attachmentId, NewValue = fileName</item>
 /// </list>
 /// </para>
 /// </summary>

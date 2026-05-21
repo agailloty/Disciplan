@@ -11,10 +11,13 @@
 @inject UserProfileService UserProfile
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
+@inject AttachmentApiClient AttachmentApi
+@inject IJSRuntime JS
 
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Ticket
 @using Disciplaner.Application.DTOs.Activity
+@using Disciplaner.Application.DTOs.Attachment
 @using Disciplaner.Application.DTOs.SavedView
 @using Disciplaner.Application.DTOs.Sprint
 @using Disciplaner.Domain.Enums
@@ -256,7 +259,20 @@ else
                                                         <span class="shrink-0 w-3.5 text-center @ActivityIconColor(e.Kind)">
                                                             <i class="bi @ActivityIcon(e.Kind) text-xs"></i>
                                                         </span>
-                                                        <span class="text-xs truncate" style="color:var(--text-muted)">@e.Summary</span>
+                                                        <span class="text-xs truncate flex-1" style="color:var(--text-muted)">@e.Summary</span>
+                                                        @if (e.Kind == "attachment_added" && e.AttachmentId.HasValue)
+                                                        {
+                                                            var attachmentId = e.AttachmentId.Value;
+                                                            var fileName = e.Summary;
+                                                            <button class="att-action-btn shrink-0" title="@L["Attachment.Preview"]"
+                                                                    @onclick="() => OpenHomeAttachmentPreviewAsync(attachmentId, fileName)">
+                                                                <i class="bi bi-eye text-xs"></i>
+                                                            </button>
+                                                            <button class="att-action-btn shrink-0" title="@L["Attachment.OpenInTab"]"
+                                                                    @onclick="() => OpenHomeAttachmentInTabAsync(attachmentId)">
+                                                                <i class="bi bi-box-arrow-up-right text-xs"></i>
+                                                            </button>
+                                                        }
                                                     </div>
                                                 }
                                             </div>
@@ -317,12 +333,17 @@ else
     </div>
 }
 
+<FilePreviewModal Attachment="_homePreviewAttachment"
+                  Visible="_homePreviewAttachment is not null"
+                  OnClose="() => _homePreviewAttachment = null" />
+
 @code {
     private string? _displayName;
 
     // ── Built-in widget data ───────────────────────────────────────────────────
     private List<TicketDto>? _tickets;
     private List<TicketActivityGroupDto>? _activityGroups;
+    private AttachmentDto? _homePreviewAttachment;
     private List<SprintDto>? _activeSprints;
     private bool _ticketsLoading = true;
     private bool _activityLoading = true;
@@ -485,26 +506,29 @@ else
 
     private static string ActivityIcon(string kind) => kind switch
     {
-        "ticket_created" => "bi-plus-circle-fill",
-        "ticket_updated" => "bi-pencil-fill",
-        "comment_added"  => "bi-chat-left-fill",
-        _                => "bi-activity"
+        "ticket_created"  => "bi-plus-circle-fill",
+        "ticket_updated"  => "bi-pencil-fill",
+        "comment_added"   => "bi-chat-left-fill",
+        "attachment_added"=> "bi-paperclip",
+        _                 => "bi-activity"
     };
 
     private static string ActivityIconColor(string kind) => kind switch
     {
-        "ticket_created" => "text-green-500",
-        "ticket_updated" => "text-amber-500",
-        "comment_added"  => "text-blue-500",
-        _                => "text-gray-400"
+        "ticket_created"  => "text-green-500",
+        "ticket_updated"  => "text-amber-500",
+        "comment_added"   => "text-blue-500",
+        "attachment_added"=> "text-yellow-500",
+        _                 => "text-gray-400"
     };
 
     private string ActivityLabel(string kind) => kind switch
     {
-        "ticket_created" => L["Home.Activity.Created"],
-        "ticket_updated" => L["Home.Activity.Updated"],
-        "comment_added"  => L["Home.Activity.Commented"],
-        _                => kind
+        "ticket_created"  => L["Home.Activity.Created"],
+        "ticket_updated"  => L["Home.Activity.Updated"],
+        "comment_added"   => L["Home.Activity.Commented"],
+        "attachment_added"=> L["Home.Activity.Attachment"],
+        _                 => kind
     };
 
     private string RelativeTime(DateTime utc)
@@ -515,5 +539,19 @@ else
         if (diff.TotalHours < 24)   return L["Time.HoursAgo", (int)diff.TotalHours];
         if (diff.TotalDays < 7)     return L["Time.DaysAgo", (int)diff.TotalDays];
         return utc.ToLocalTime().ToString("d", System.Globalization.CultureInfo.CurrentCulture);
+    }
+
+    // ── Home attachment preview / open-in-tab ──────────────────────────────────
+
+    private void OpenHomeAttachmentPreviewAsync(Guid attachmentId, string fileName)
+    {
+        _homePreviewAttachment = new AttachmentDto(
+            attachmentId, fileName, "application/octet-stream", 0, "", "", DateTime.UtcNow, null, null, null);
+    }
+
+    private async Task OpenHomeAttachmentInTabAsync(Guid attachmentId)
+    {
+        var (bytes, contentType) = await AttachmentApi.DownloadAsync(attachmentId);
+        await JS.InvokeVoidAsync("disciplaner.openBlobInTab", bytes, contentType);
     }
 }
