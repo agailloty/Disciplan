@@ -240,9 +240,6 @@ else if (_ticket is not null)
                                                         <button class="att-action-btn" title="@L["Attachment.Preview"]" @onclick="() => OpenHistoryPreview(h)">
                                                             <i class="bi bi-eye"></i>
                                                         </button>
-                                                        <button class="att-action-btn" title="@L["Attachment.OpenInTab"]" @onclick="() => OpenHistoryInTabAsync(h)">
-                                                            <i class="bi bi-box-arrow-up-right"></i>
-                                                        </button>
                                                     </div>
                                                 }
                                                 else if (HistoryDetail(h) is { } detail)
@@ -806,12 +803,5 @@ else if (_ticket is not null)
         if (!Guid.TryParse(h.OldValue, out var aid)) return;
         _historyPreviewAttachment = new AttachmentDto(
             aid, h.NewValue ?? "file", "application/octet-stream", 0, "", "", DateTime.UtcNow, null, null, null);
-    }
-
-    private async Task OpenHistoryInTabAsync(TicketHistoryEntryDto h)
-    {
-        if (!Guid.TryParse(h.OldValue, out var aid)) return;
-        var (bytes, contentType) = await AttachmentApi.DownloadAsync(aid);
-        await JS.InvokeVoidAsync("disciplaner.openBlobInTab", bytes, contentType);
     }
 }

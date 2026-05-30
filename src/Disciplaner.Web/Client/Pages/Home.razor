@@ -12,7 +12,6 @@
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
 @inject AttachmentApiClient AttachmentApi
-@inject IJSRuntime JS
 
 @using System.Security.Claims
 @using Disciplaner.Application.DTOs.Ticket
@@ -267,10 +266,6 @@ else
                                                             <button class="att-action-btn shrink-0" title="@L["Attachment.Preview"]"
                                                                     @onclick="() => OpenHomeAttachmentPreviewAsync(attachmentId, fileName)">
                                                                 <i class="bi bi-eye text-xs"></i>
-                                                            </button>
-                                                            <button class="att-action-btn shrink-0" title="@L["Attachment.OpenInTab"]"
-                                                                    @onclick="() => OpenHomeAttachmentInTabAsync(attachmentId)">
-                                                                <i class="bi bi-box-arrow-up-right text-xs"></i>
                                                             </button>
                                                         }
                                                     </div>
@@ -547,11 +542,5 @@ else
     {
         _homePreviewAttachment = new AttachmentDto(
             attachmentId, fileName, "application/octet-stream", 0, "", "", DateTime.UtcNow, null, null, null);
-    }
-
-    private async Task OpenHomeAttachmentInTabAsync(Guid attachmentId)
-    {
-        var (bytes, contentType) = await AttachmentApi.DownloadAsync(attachmentId);
-        await JS.InvokeVoidAsync("disciplaner.openBlobInTab", bytes, contentType);
     }
 }
