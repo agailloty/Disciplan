@@ -34,5 +34,8 @@ internal sealed class UserRepository : IUserRepository
         => await _userManager.FindByIdAsync(id) is not null;
 
     private static User Map(ApplicationUser app)
-        => new(app.Id, app.UserName ?? app.Email ?? app.Id, app.Email ?? string.Empty, app.DisplayName);
+        => new(app.Id, app.UserName ?? app.Email ?? app.Id, app.Email ?? string.Empty, app.DisplayName)
+        {
+            ProfilePictureUrl = app.ProfilePictureUrl
+        };
 }

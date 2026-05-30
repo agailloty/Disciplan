@@ -10,9 +10,12 @@
 @inject ActivityApiClient ActivityApi
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppResources> L
+@inject AttachmentApiClient AttachmentApi
+@inject IJSRuntime JS
 @using Disciplaner.Application.DTOs.User
 @using Disciplaner.Application.DTOs.Sprint
 @using Disciplaner.Application.DTOs.Activity
+@using Disciplaner.Application.DTOs.Attachment
 
 <PageTitle>@(_ticket?.TicketRef ?? L["Title"].Value) — Disciplaner</PageTitle>
 
@@ -102,6 +105,9 @@ else if (_ticket is not null)
                         <InputTextArea class="form-textarea" rows="8" @bind-Value="_form.Description" />
                     </div>
 
+                    @* Attachments in edit mode *@
+                    <AttachmentPanel TicketId="_ticket.Id" />
+
                     @if (_actionError is not null)
                     {
                         <ErrorAlert Message="@_actionError" />
@@ -172,6 +178,9 @@ else if (_ticket is not null)
                                                     @if (_editingCommentId == c.Id)
                                                     {
                                                         <textarea class="form-textarea text-sm" rows="2" @bind="_editCommentContent"></textarea>
+                                                        <div class="mt-1.5 pl-0.5">
+                                                            <AttachmentPanel CommentId="c.Id" />
+                                                        </div>
                                                         <div class="flex gap-1.5 mt-1.5">
                                                             <button class="btn btn-primary btn-sm" type="button" @onclick="() => SaveCommentEditAsync(c.Id)">@L["Ticket.Comment.Save"]</button>
                                                             <button class="btn btn-outline btn-sm" type="button" @onclick="() => _editingCommentId = null">@L["Cancel"]</button>
@@ -180,6 +189,9 @@ else if (_ticket is not null)
                                                     else
                                                     {
                                                         <div class="tdm-comment-bubble">@c.Content</div>
+                                                        <div class="mt-1.5 pl-0.5">
+                                                            <AttachmentPanel CommentId="c.Id" CanAdd="false" />
+                                                        </div>
                                                         <div class="tdm-comment-actions">
                                                             <button class="text-xs transition-colors" style="color:var(--text-muted)" type="button" @onclick="() => StartEditComment(c)">@L["Ticket.Comment.Edit"]</button>
                                                             <button class="text-xs text-red-400 hover:text-red-600 transition-colors" type="button" @onclick="() => DeleteCommentAsync(c.Id)">@L["Ticket.Comment.Delete"]</button>
@@ -220,7 +232,17 @@ else if (_ticket is not null)
                                                     <span class="text-xs" style="color:var(--text-muted)">@HistoryLabel(h)</span>
                                                     <span class="ml-auto text-xs shrink-0" style="color:var(--text-muted)">@h.OccurredAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                                 </div>
-                                                @if (HistoryDetail(h) is { } detail)
+                                                @if (h.Kind == "attachment_added")
+                                                {
+                                                    <div class="mt-0.5 flex items-center gap-1.5 text-xs rounded px-2 py-1" style="background:var(--surface)">
+                                                        <i class="bi bi-paperclip text-gray-400 shrink-0"></i>
+                                                        <span class="truncate flex-1" style="color:var(--text-muted)">@h.NewValue</span>
+                                                        <button class="att-action-btn" title="@L["Attachment.Preview"]" @onclick="() => OpenHistoryPreview(h)">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                                else if (HistoryDetail(h) is { } detail)
                                                 {
                                                     <div class="mt-0.5 text-xs rounded px-2 py-1 break-words" style="color:var(--text-muted);background:var(--surface)">@detail</div>
                                                 }
@@ -231,6 +253,9 @@ else if (_ticket is not null)
                             }
                         }
                     </div>
+
+                    @* ── Pièces jointes du ticket ── *@
+                    <AttachmentPanel TicketId="_ticket.Id" />
 
                     @if (_actionError is not null)
                     {
@@ -405,11 +430,38 @@ else if (_ticket is not null)
                               placeholder="@L["Ticket.Comment.Add"]"
                               @bind="_newCommentContent"
                               @bind:event="oninput"></textarea>
-                    <div class="flex justify-end mt-1.5">
+
+                    @* Pending files chips *@
+                    @if (_pendingCommentFiles.Count > 0)
+                    {
+                        <div class="flex flex-wrap gap-1.5 mt-1.5">
+                            @foreach (var f in _pendingCommentFiles)
+                            {
+                                var file = f;
+                                <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs text-blue-700 max-w-[180px]">
+                                    <i class="bi bi-paperclip shrink-0"></i>
+                                    <span class="truncate">@file.Name</span>
+                                    <button type="button" class="ml-0.5 text-blue-400 hover:text-red-500 shrink-0"
+                                            @onclick="() => _pendingCommentFiles.Remove(file)">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </span>
+                            }
+                        </div>
+                    }
+
+                    <div class="flex items-center justify-between mt-1.5">
+                        <label class="inline-flex items-center gap-1 text-xs cursor-pointer select-none px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+                               style="color:var(--text-muted)"
+                               title="@L["Attachment.AttachFiles"]">
+                            <i class="bi bi-paperclip text-sm"></i>@L["Attachment.Attach"]
+                            <InputFile OnChange="HandlePendingCommentFilesAsync" class="hidden" multiple
+                                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" />
+                        </label>
                         <button class="btn btn-primary btn-sm" type="button"
                                 @onclick="AddCommentAsync"
-                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent))">
-                            <i class="bi bi-send-fill mr-1"></i>Commenter
+                                disabled="@(string.IsNullOrWhiteSpace(_newCommentContent) && _pendingCommentFiles.Count == 0)">
+                            <i class="bi bi-send-fill mr-1"></i>@L["Ticket.Comment.Submit"]
                         </button>
                     </div>
                 </div>
@@ -418,6 +470,10 @@ else if (_ticket is not null)
     }
     </div>
 }
+
+<FilePreviewModal Attachment="_historyPreviewAttachment"
+                  Visible="_historyPreviewAttachment is not null"
+                  OnClose="() => _historyPreviewAttachment = null" />
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -445,9 +501,11 @@ else if (_ticket is not null)
     // History
     private IReadOnlyList<TicketHistoryEntryDto> _history = [];
     private bool _historyLoading;
+    private AttachmentDto? _historyPreviewAttachment;
     private string _newCommentContent = string.Empty;
     private Guid? _editingCommentId;
     private string _editCommentContent = string.Empty;
+    private List<IBrowserFile> _pendingCommentFiles = [];
 
     private sealed class TicketEditForm
     {
@@ -540,6 +598,7 @@ else if (_ticket is not null)
     {
         "created" => "bg-green-400",
         "comment_added" or "comment_deleted" => "bg-blue-400",
+        "attachment_added" => "bg-yellow-400",
         "status_changed" => "bg-purple-400",
         _ => "bg-gray-300"
     };
@@ -558,13 +617,13 @@ else if (_ticket is not null)
         "due_date_changed" => L["History.due_date_changed"],
         "comment_added" => L["History.comment_added"],
         "comment_deleted" => L["History.comment_deleted"],
+        "attachment_added" => L["History.attachment_added"],
         _ => h.Kind
     };
 
     private static string? HistoryDetail(TicketHistoryEntryDto h) => h.Kind switch
     {
-        "created" => null,
-        "comment_added" => h.NewValue is { Length: > 0 } v ? $"« {v} »" : null,
+        "created" => null,        "attachment_added" => null,   // rendered as custom chip with preview/open actions        "comment_added" => h.NewValue is { Length: > 0 } v ? $"« {v} »" : null,
         "comment_deleted" => h.OldValue is { Length: > 0 } v ? $"« {v} »" : null,
         _ when h.OldValue is not null && h.NewValue is not null => $"{h.OldValue} → {h.NewValue}",
         _ when h.NewValue is not null => h.NewValue,
@@ -682,14 +741,31 @@ else if (_ticket is not null)
 
     private async Task AddCommentAsync()
     {
-        if (_ticket is null || string.IsNullOrWhiteSpace(_newCommentContent)) return;
+        if (_ticket is null) return;
+        if (string.IsNullOrWhiteSpace(_newCommentContent) && _pendingCommentFiles.Count == 0) return;
         try
         {
-            var comment = await CommentApi.CreateForTicketAsync(_ticket.Id, new CreateCommentRequest(_newCommentContent));
-            if (comment is not null) _comments = [.. _comments, comment];
+            var content = string.IsNullOrWhiteSpace(_newCommentContent) ? "📎" : _newCommentContent;
+            var comment = await CommentApi.CreateForTicketAsync(_ticket.Id, new CreateCommentRequest(content));
+            if (comment is not null)
+            {
+                _comments = [.. _comments, comment];
+                // Upload pending files to the new comment
+                foreach (var file in _pendingCommentFiles)
+                {
+                    try { await AttachmentApi.UploadForCommentAsync(comment.Id, file); } catch { /* ignore */ }
+                }
+                _pendingCommentFiles.Clear();
+            }
             _newCommentContent = string.Empty;
         }
         catch { }
+    }
+
+    private void HandlePendingCommentFilesAsync(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+            _pendingCommentFiles.Add(file);
     }
 
     private void StartEditComment(CommentDto c)
@@ -718,5 +794,14 @@ else if (_ticket is not null)
             _comments = _comments.Where(c => c.Id != commentId).ToList().AsReadOnly();
         }
         catch { }
+    }
+
+    // ── History attachment actions ────────────────────────────────────────────
+
+    private void OpenHistoryPreview(TicketHistoryEntryDto h)
+    {
+        if (!Guid.TryParse(h.OldValue, out var aid)) return;
+        _historyPreviewAttachment = new AttachmentDto(
+            aid, h.NewValue ?? "file", "application/octet-stream", 0, "", "", DateTime.UtcNow, null, null, null);
     }
 }

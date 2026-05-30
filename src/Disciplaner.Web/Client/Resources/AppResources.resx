@@ -236,6 +236,7 @@
   <data name="History.due_date_changed" xml:space="preserve"><value>a modifié l'échéance</value></data>
   <data name="History.comment_added" xml:space="preserve"><value>a ajouté un commentaire</value></data>
   <data name="History.comment_deleted" xml:space="preserve"><value>a supprimé un commentaire</value></data>
+  <data name="History.attachment_added" xml:space="preserve"><value>a joint une pièce jointe</value></data>
 
   <!-- ── Colonnes de tableau ─────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>Nouvelle colonne</value></data>
@@ -261,6 +262,7 @@
   <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket créé</value></data>
   <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket modifié</value></data>
   <data name="Home.Activity.Commented" xml:space="preserve"><value>Commentaire ajouté</value></data>
+  <data name="Home.Activity.Attachment" xml:space="preserve"><value>Pièce jointe ajoutée</value></data>
   <data name="Home.Configure" xml:space="preserve"><value>Configurer</value></data>
   <data name="Home.NoDashboardWidgets" xml:space="preserve"><value>Aucun widget visible.</value></data>
   <data name="Home.ConfigureDashboard" xml:space="preserve"><value>Configurer le tableau de bord</value></data>
@@ -394,4 +396,28 @@
   <!-- ── Admin actions ─────────────────────────────────────────────────────────── -->
   <data name="Admin.Activate" xml:space="preserve"><value>Activer</value></data>
   <data name="Admin.PromoteAdmin" xml:space="preserve"><value>Promouvoir Admin</value></data>
+
+  <!-- ── Pièces jointes ───────────────────────────────────────────────────────── -->
+  <data name="Attachment.SectionLabel" xml:space="preserve"><value>Pièces jointes</value></data>
+  <data name="Attachment.Add" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="Attachment.AddFiles" xml:space="preserve"><value>Ajouter des fichiers</value></data>
+  <data name="Attachment.Attach" xml:space="preserve"><value>Joindre</value></data>
+  <data name="Attachment.AttachFiles" xml:space="preserve"><value>Joindre des fichiers</value></data>
+  <data name="Attachment.Uploading" xml:space="preserve"><value>Envoi en cours…</value></data>
+  <data name="Attachment.Empty" xml:space="preserve"><value>Aucune pièce jointe — cliquez sur Ajouter pour en joindre</value></data>
+  <data name="Attachment.Preview" xml:space="preserve"><value>Aperçu</value></data>
+  <data name="Attachment.OpenInTab" xml:space="preserve"><value>Ouvrir dans un onglet</value></data>
+  <data name="Attachment.OpenInNewTab" xml:space="preserve"><value>Ouvrir dans un nouvel onglet</value></data>
+  <data name="Attachment.NewTab" xml:space="preserve"><value>Nouvel onglet</value></data>
+  <data name="Attachment.Download" xml:space="preserve"><value>Télécharger</value></data>
+  <data name="Attachment.DownloadFile" xml:space="preserve"><value>Télécharger le fichier</value></data>
+  <data name="Attachment.NoPreview" xml:space="preserve"><value>L'aperçu n'est pas disponible pour ce type de fichier.</value></data>
+  <data name="Attachment.LoadingPreview" xml:space="preserve"><value>Chargement en cours…</value></data>
+  <data name="Attachment.Retry" xml:space="preserve"><value>Réessayer</value></data>
+  <data name="Attachment.Error.Upload" xml:space="preserve"><value>Erreur lors de l'envoi : {0}</value></data>
+  <data name="Attachment.Error.Download" xml:space="preserve"><value>Erreur lors du téléchargement : {0}</value></data>
+  <data name="Attachment.Error.Open" xml:space="preserve"><value>Erreur lors de l'ouverture : {0}</value></data>
+  <data name="Attachment.Error.Delete" xml:space="preserve"><value>Erreur lors de la suppression : {0}</value></data>
+  <data name="Attachment.Error.Load" xml:space="preserve"><value>Impossible de charger le fichier : {0}</value></data>
+  <data name="Ticket.Comment.Submit" xml:space="preserve"><value>Commenter</value></data>
 </root>

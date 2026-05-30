@@ -7,6 +7,7 @@ public sealed class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
 
+    public IAttachmentRepository Attachments { get; }
     public IBoardRepository Boards { get; }
     public IColumnRepository Columns { get; }
     public ICardRepository Cards { get; }
@@ -23,6 +24,7 @@ public sealed class UnitOfWork : IUnitOfWork
 
     public UnitOfWork(
         ApplicationDbContext context,
+        IAttachmentRepository attachments,
         IBoardRepository boards,
         IColumnRepository columns,
         ICardRepository cards,
@@ -38,6 +40,7 @@ public sealed class UnitOfWork : IUnitOfWork
         IProjectMemberRepository projectMembers)
     {
         _context = context;
+        Attachments = attachments;
         Boards = boards;
         Columns = columns;
         Cards = cards;

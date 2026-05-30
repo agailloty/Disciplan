@@ -43,6 +43,7 @@ builder.Services.AddScoped<BoardMemberApiClient>();
 builder.Services.AddScoped<ColumnApiClient>();
 builder.Services.AddScoped<CardApiClient>();
 builder.Services.AddScoped<CommentApiClient>();
+builder.Services.AddScoped<AttachmentApiClient>();
 builder.Services.AddScoped<ProjectApiClient>();
 builder.Services.AddScoped<ProjectMemberApiClient>();
 builder.Services.AddScoped<SprintApiClient>();

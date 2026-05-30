@@ -239,6 +239,7 @@
   <data name="History.due_date_changed" xml:space="preserve"><value>updated the due date</value></data>
   <data name="History.comment_added" xml:space="preserve"><value>added a comment</value></data>
   <data name="History.comment_deleted" xml:space="preserve"><value>deleted a comment</value></data>
+  <data name="History.attachment_added" xml:space="preserve"><value>added an attachment</value></data>
 
   <!-- ── Table columns ────────────────────────────────────────────────────── -->
   <data name="Col.CreateTitle" xml:space="preserve"><value>New column</value></data>
@@ -264,6 +265,7 @@
   <data name="Home.Activity.Created" xml:space="preserve"><value>Ticket created</value></data>
   <data name="Home.Activity.Updated" xml:space="preserve"><value>Ticket updated</value></data>
   <data name="Home.Activity.Commented" xml:space="preserve"><value>Comment added</value></data>
+  <data name="Home.Activity.Attachment" xml:space="preserve"><value>Attachment added</value></data>
   <data name="Home.Configure" xml:space="preserve"><value>Configure</value></data>
   <data name="Home.NoDashboardWidgets" xml:space="preserve"><value>No visible widgets.</value></data>
   <data name="Home.ConfigureDashboard" xml:space="preserve"><value>Configure dashboard</value></data>
@@ -400,4 +402,28 @@
   <!-- ── Admin actions ─────────────────────────────────────────────────────────── -->
   <data name="Admin.Activate" xml:space="preserve"><value>Activate</value></data>
   <data name="Admin.PromoteAdmin" xml:space="preserve"><value>Promote to Admin</value></data>
+
+  <!-- ── Attachments ───────────────────────────────────────────────────────────── -->
+  <data name="Attachment.SectionLabel" xml:space="preserve"><value>Attachments</value></data>
+  <data name="Attachment.Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Attachment.AddFiles" xml:space="preserve"><value>Add files</value></data>
+  <data name="Attachment.Attach" xml:space="preserve"><value>Attach</value></data>
+  <data name="Attachment.AttachFiles" xml:space="preserve"><value>Attach files</value></data>
+  <data name="Attachment.Uploading" xml:space="preserve"><value>Uploading…</value></data>
+  <data name="Attachment.Empty" xml:space="preserve"><value>No attachments — click Add to attach files</value></data>
+  <data name="Attachment.Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Attachment.OpenInTab" xml:space="preserve"><value>Open in tab</value></data>
+  <data name="Attachment.OpenInNewTab" xml:space="preserve"><value>Open in new tab</value></data>
+  <data name="Attachment.NewTab" xml:space="preserve"><value>New tab</value></data>
+  <data name="Attachment.Download" xml:space="preserve"><value>Download</value></data>
+  <data name="Attachment.DownloadFile" xml:space="preserve"><value>Download file</value></data>
+  <data name="Attachment.NoPreview" xml:space="preserve"><value>Preview not available for this file type.</value></data>
+  <data name="Attachment.LoadingPreview" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Attachment.Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Attachment.Error.Upload" xml:space="preserve"><value>Upload error: {0}</value></data>
+  <data name="Attachment.Error.Download" xml:space="preserve"><value>Download error: {0}</value></data>
+  <data name="Attachment.Error.Open" xml:space="preserve"><value>Error opening file: {0}</value></data>
+  <data name="Attachment.Error.Delete" xml:space="preserve"><value>Delete error: {0}</value></data>
+  <data name="Attachment.Error.Load" xml:space="preserve"><value>Failed to load file: {0}</value></data>
+  <data name="Ticket.Comment.Submit" xml:space="preserve"><value>Comment</value></data>
 </root>

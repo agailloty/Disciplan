@@ -9,4 +9,5 @@ public sealed record ActivityItemDto(
     string Summary,
     string? TicketRef,
     Guid? TicketId,
-    DateTime OccurredAt);
+    DateTime OccurredAt,
+    Guid? AttachmentId = null);

@@ -739,6 +739,27 @@ body {
 .tdm-comment-actions { display: flex; gap: .625rem; margin-top: .3rem; opacity: 0; transition: opacity .15s; }
 .tdm-comment-row:hover .tdm-comment-actions { opacity: 1; }
 
+/* ── Attachment panel ────────────────────────────────────────────────────────── */
+.attachment-panel { /* used as layout root */ }
+.att-dropzone { background: var(--surface); }
+.att-item { background: transparent; border-radius: .5rem; }
+.att-item:hover { background: var(--bg-accent, #f3f4f6); }
+.att-actions { opacity: 0; transition: opacity .15s; }
+.att-item:hover .att-actions { opacity: 1; }
+/* Touch devices: no hover — always show actions */
+@media (hover: none) { .att-actions { opacity: 1; } }
+.att-action-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.75rem; height: 1.75rem;
+    border: none; background: transparent;
+    border-radius: .375rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: .875rem;
+    transition: background .12s, color .12s;
+}
+.att-action-btn:hover { background: var(--surface); color: var(--text-base); }
+
 /* Sidebar meta rows */
 .tdm-meta-row { display: flex; align-items: center; gap: .4rem; padding: .2rem 0; font-size: .78rem; }
 .tdm-meta-icon { font-size: .72rem; color: var(--text-muted); flex-shrink: 0; width: .875rem; text-align: center; }

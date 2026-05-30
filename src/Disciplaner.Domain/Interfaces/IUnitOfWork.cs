@@ -2,6 +2,7 @@ namespace Disciplaner.Domain.Interfaces;
 
 public interface IUnitOfWork
 {
+    IAttachmentRepository Attachments { get; }
     IBoardRepository Boards { get; }
     IColumnRepository Columns { get; }
     ICardRepository Cards { get; }
