@@ -59,6 +59,7 @@
   <data name="Nav.Boards" xml:space="preserve"><value>Tableaux</value></data>
   <data name="Nav.Projects" xml:space="preserve"><value>Projets</value></data>
   <data name="Nav.MyTickets" xml:space="preserve"><value>Mes tickets</value></data>
+  <data name="Nav.Calendar" xml:space="preserve"><value>Calendrier</value></data>
   <data name="Nav.Labels" xml:space="preserve"><value>Étiquettes</value></data>
   <data name="Nav.Admin" xml:space="preserve"><value>Admin</value></data>
   <data name="Nav.Logout" xml:space="preserve"><value>Se déconnecter</value></data>

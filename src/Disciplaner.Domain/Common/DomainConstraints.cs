@@ -73,4 +73,10 @@ public static class DomainConstraints
         public const int ContentTypeMaxLength = 100;
         public const int StoragePathMaxLength = 500;
     }
+
+    public static class CalendarToken
+    {
+        /// <summary>40-char lowercase hex string produced by RandomNumberGenerator (20 bytes).</summary>
+        public const int TokenLength = 40;
+    }
 }

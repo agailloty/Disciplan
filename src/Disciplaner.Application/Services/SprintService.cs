@@ -28,6 +28,19 @@ public sealed class SprintService : ISprintService
         return result.AsReadOnly();
     }
 
+    public async Task<IReadOnlyList<SprintDto>> GetWithDatesForUserAsync(
+        string userId, CancellationToken cancellationToken = default)
+    {
+        var sprints = await _uow.Sprints.GetWithDatesForUserAsync(userId, cancellationToken);
+        var result = new List<SprintDto>(sprints.Count);
+        foreach (var s in sprints)
+        {
+            var count = (await _uow.Tickets.GetBySprintIdAsync(s.Id, cancellationToken)).Count;
+            result.Add(s.ToDto(count, s.Project?.Name, s.Project?.Key));
+        }
+        return result.AsReadOnly();
+    }
+
     public async Task<SprintDetailDto?> GetByIdAsync(
         Guid sprintId, string requestingUserId, CancellationToken cancellationToken = default)
     {

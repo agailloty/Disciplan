@@ -27,6 +27,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
         services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
         services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
+        services.AddScoped<ICalendarTokenRepository, CalendarTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services
@@ -44,6 +45,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ITicketHistoryService, TicketHistoryService>();
         services.AddScoped<IBoardMemberService, BoardMemberService>();
         services.AddScoped<IProjectMemberService, ProjectMemberService>();
+        services.AddScoped<ICalendarService, CalendarService>();
 
         // File storage
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
