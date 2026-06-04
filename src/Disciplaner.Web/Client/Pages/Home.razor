@@ -31,8 +31,13 @@
             <h1 class="dashboard-welcome">@L["Home.Welcome", _displayName ?? string.Empty]</h1>
             <p class="dashboard-date">@DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)</p>
         </div>
+        <button class="btn btn-primary flex items-center gap-1.5" @onclick="() => _showQuickCreate = true">
+            <i class="bi bi-plus-lg"></i> Créer
+        </button>
     </div>
 </div>
+
+<QuickCreateModal Visible="_showQuickCreate" OnClose="() => _showQuickCreate = false" />
 
 @* ── Quick stats (optional) ───────────────────────────────────────────────── *@
 @if (!_dashboardLoading && !_ticketsLoading && Theme.ShowStats)
@@ -334,6 +339,7 @@ else
 
 @code {
     private string? _displayName;
+    private bool _showQuickCreate;
 
     // ── Built-in widget data ───────────────────────────────────────────────────
     private List<TicketDto>? _tickets;

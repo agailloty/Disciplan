@@ -30,6 +30,16 @@ internal sealed class SprintRepository : ISprintRepository
             .OrderBy(s => s.StartDate)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Sprint>> GetWithDatesForUserAsync(string userId, CancellationToken cancellationToken = default)
+        => await _context.Sprints
+            .Include(s => s.Project)
+            .Where(s => s.StartDate != null && s.EndDate != null
+                && _context.Projects
+                    .Where(p => p.Id == s.ProjectId)
+                    .Any(p => p.OwnerId == userId || p.Members.Any(m => m.UserId == userId)))
+            .OrderBy(s => s.StartDate)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(Sprint sprint, CancellationToken cancellationToken = default)
         => await _context.Sprints.AddAsync(sprint, cancellationToken);
 

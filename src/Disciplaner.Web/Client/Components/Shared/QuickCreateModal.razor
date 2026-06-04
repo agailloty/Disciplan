@@ -1,0 +1,543 @@
+@inject ProjectApiClient ProjectApi
+@inject TicketApiClient TicketApi
+@inject BoardApiClient BoardApi
+@inject CardApiClient CardApi
+@inject NavigationManager Nav
+@inject IStringLocalizer<AppResources> L
+@inject AuthenticationStateProvider AuthStateProvider
+
+@using System.Security.Claims
+@using Disciplaner.Application.DTOs.Project
+@using Disciplaner.Application.DTOs.Sprint
+@using Disciplaner.Application.DTOs.Board
+@using Disciplaner.Application.DTOs.Column
+@using Disciplaner.Application.DTOs.Ticket
+@using Disciplaner.Application.DTOs.Card
+@using Disciplaner.Domain.Enums
+
+<Modal Title="" Visible="Visible" OnClose="HandleClose">
+    @* ── Step: pick type ─────────────────────────────────────────────────── *@
+    @if (_step == Step.Pick)
+    {
+        <div class="pb-2">
+            <h2 class="text-base font-semibold mb-1" style="color:var(--text-base)">Créer rapidement</h2>
+            <p class="text-xs mb-5" style="color:var(--text-muted)">Choisissez ce que vous souhaitez créer.</p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button class="qc-type-btn" @onclick='() => SelectType("ticket")'>
+                    <i class="bi bi-ticket-perforated-fill text-2xl mb-2" style="color:#6366f1"></i>
+                    <span class="font-medium text-sm" style="color:var(--text-base)">Ticket</span>
+                    <span class="text-xs mt-0.5" style="color:var(--text-muted)">Dans un projet ou sprint</span>
+                </button>
+                <button class="qc-type-btn" @onclick='() => SelectType("card")'>
+                    <i class="bi bi-kanban-fill text-2xl mb-2" style="color:#10b981"></i>
+                    <span class="font-medium text-sm" style="color:var(--text-base)">Carte</span>
+                    <span class="text-xs mt-0.5" style="color:var(--text-muted)">Dans un board</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    @* ── Step: create ticket ──────────────────────────────────────────────── *@
+    @if (_step == Step.Ticket)
+    {
+        <div class="qc-step-header">
+            <button class="qc-back-btn" @onclick="GoBack" title="Retour">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <i class="bi bi-ticket-perforated-fill" style="color:#6366f1"></i>
+                <span class="font-semibold text-sm" style="color:var(--text-base)">Nouveau ticket</span>
+            </div>
+        </div>
+
+        @if (_loadingMeta)
+        {
+            <div class="py-6"><LoadingSpinner /></div>
+        }
+        else if (_metaError is not null)
+        {
+            <ErrorAlert Message="@_metaError" />
+        }
+        else
+        {
+            <EditForm Model="_ticketForm" OnValidSubmit="SubmitTicketAsync" class="space-y-4 mt-4">
+                <DataAnnotationsValidator />
+
+                @* Project *@
+                <div>
+                    <label class="form-label">Projet <span class="text-red-500">*</span></label>
+                    <select class="form-input" value="@_selectedProjectId"
+                            @onchange="OnProjectChangedAsync">
+                        <option value="">— Sélectionner un projet —</option>
+                        @foreach (var p in _projects)
+                        {
+                            <option value="@p.Id">[@p.Key] @p.Name</option>
+                        }
+                    </select>
+                </div>
+
+                @* Destination: Sprint or Backlog *@
+                @if (_selectedProjectId != Guid.Empty)
+                {
+                    <div>
+                        <label class="form-label">Destination</label>
+                        @if (_loadingSprints)
+                        {
+                            <div class="text-xs py-2" style="color:var(--text-muted)">Chargement des sprints…</div>
+                        }
+                        else
+                        {
+                            <select class="form-input" value="@_selectedSprintIdStr"
+                                    @onchange="OnSprintChanged">
+                                <option value="">Backlog</option>
+                                @foreach (var s in _sprints)
+                                {
+                                    <option value="@s.Id">
+                                        @s.Name
+                                        @(s.Status == SprintStatus.Active ? " (actif)" : " (planifié)")
+                                    </option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                    @* Auto-assign notice *@
+                    @if (_autoAssign)
+                    {
+                        <div class="text-xs px-3 py-2 rounded-lg flex items-center gap-2"
+                             style="background:rgba(99,102,241,.1);color:#4338ca">
+                            <i class="bi bi-person-check-fill shrink-0"></i>
+                            Ce ticket vous sera automatiquement assigné (politique du projet).
+                        </div>
+                    }
+                }
+
+                @* Title *@
+                <div>
+                    <label class="form-label">Titre <span class="text-red-500">*</span></label>
+                    <InputText class="form-input" @bind-Value="_ticketForm.Title" placeholder="Titre du ticket" />
+                    <ValidationMessage For="() => _ticketForm.Title" class="text-xs text-red-500 mt-1" />
+                </div>
+
+                @* Type *@
+                <div>
+                    <label class="form-label">Type</label>
+                    <select class="form-input" @bind="_ticketForm.Type">
+                        @foreach (var t in Enum.GetValues<TicketType>())
+                        {
+                            <option value="@t">@TicketTypeLabel(t)</option>
+                        }
+                    </select>
+                </div>
+
+                @* Priority *@
+                <div>
+                    <label class="form-label">Priorité</label>
+                    <select class="form-input" @bind="_ticketForm.Priority">
+                        @foreach (var p in Enum.GetValues<CardPriority>())
+                        {
+                            <option value="@p">@PriorityLabel(p)</option>
+                        }
+                    </select>
+                </div>
+
+                @if (_submitError is not null)
+                {
+                    <ErrorAlert Message="@_submitError" />
+                }
+
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" class="btn btn-secondary" @onclick="HandleClose">Annuler</button>
+                    <button type="submit" class="btn btn-primary" disabled="@(_busy || _selectedProjectId == Guid.Empty)">
+                        @if (_busy) { <span>…</span> } else { <span>Créer le ticket</span> }
+                    </button>
+                </div>
+            </EditForm>
+        }
+    }
+
+    @* ── Step: create card ────────────────────────────────────────────────── *@
+    @if (_step == Step.Card)
+    {
+        <div class="qc-step-header">
+            <button class="qc-back-btn" @onclick="GoBack" title="Retour">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <i class="bi bi-kanban-fill" style="color:#10b981"></i>
+                <span class="font-semibold text-sm" style="color:var(--text-base)">Nouvelle carte</span>
+            </div>
+        </div>
+
+        @if (_loadingMeta)
+        {
+            <div class="py-6"><LoadingSpinner /></div>
+        }
+        else if (_metaError is not null)
+        {
+            <ErrorAlert Message="@_metaError" />
+        }
+        else
+        {
+            <EditForm Model="_cardForm" OnValidSubmit="SubmitCardAsync" class="space-y-4 mt-4">
+                <DataAnnotationsValidator />
+
+                @* Board *@
+                <div>
+                    <label class="form-label">Board <span class="text-red-500">*</span></label>
+                    <select class="form-input" value="@_selectedBoardId"
+                            @onchange="OnBoardChangedAsync">
+                        <option value="">— Sélectionner un board —</option>
+                        @foreach (var b in _boards)
+                        {
+                            <option value="@b.Id">@b.Name</option>
+                        }
+                    </select>
+                </div>
+
+                @* Column *@
+                @if (_selectedBoardId != Guid.Empty)
+                {
+                    <div>
+                        <label class="form-label">Colonne <span class="text-red-500">*</span></label>
+                        @if (_loadingColumns)
+                        {
+                            <div class="text-xs py-2" style="color:var(--text-muted)">Chargement des colonnes…</div>
+                        }
+                        else
+                        {
+                            <select class="form-input" @bind="_cardForm.ColumnId">
+                                <option value="">— Sélectionner une colonne —</option>
+                                @foreach (var col in _columns)
+                                {
+                                    <option value="@col.Id">@col.Name</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                }
+
+                @* Title *@
+                <div>
+                    <label class="form-label">Titre <span class="text-red-500">*</span></label>
+                    <InputText class="form-input" @bind-Value="_cardForm.Title" placeholder="Titre de la carte" />
+                    <ValidationMessage For="() => _cardForm.Title" class="text-xs text-red-500 mt-1" />
+                </div>
+
+                @* Priority *@
+                <div>
+                    <label class="form-label">Priorité</label>
+                    <select class="form-input" @bind="_cardForm.Priority">
+                        @foreach (var p in Enum.GetValues<CardPriority>())
+                        {
+                            <option value="@p">@PriorityLabel(p)</option>
+                        }
+                    </select>
+                </div>
+
+                @if (_submitError is not null)
+                {
+                    <ErrorAlert Message="@_submitError" />
+                }
+
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" class="btn btn-secondary" @onclick="HandleClose">Annuler</button>
+                    <button type="submit" class="btn btn-primary"
+                            disabled="@(_busy || _selectedBoardId == Guid.Empty || _cardForm.ColumnId == Guid.Empty)">
+                        @if (_busy) { <span>…</span> } else { <span>Créer la carte</span> }
+                    </button>
+                </div>
+            </EditForm>
+        }
+    }
+</Modal>
+
+<style>
+    .qc-type-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem .75rem;
+        border: 1.5px solid var(--border);
+        border-radius: .75rem;
+        background: transparent;
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+        gap: .1rem;
+    }
+    .qc-type-btn:hover {
+        border-color: var(--accent);
+        background: var(--bg-accent, rgba(99,102,241,.05));
+    }
+    .qc-step-header {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin-bottom: .25rem;
+    }
+    .qc-back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: .375rem;
+        border: 1px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: .75rem;
+        transition: background .15s;
+    }
+    .qc-back-btn:hover { background: var(--bg-accent); }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public bool Visible { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnClose { get; set; }
+
+    private enum Step { Pick, Ticket, Card }
+    private Step _step = Step.Pick;
+
+    // ── Meta data ────────────────────────────────────────────────────────────
+    private bool _loadingMeta;
+    private bool _loadingSprints;
+    private bool _loadingColumns;
+    private string? _metaError;
+
+    private List<ProjectSummaryDto> _projects = [];
+    private List<SprintDto> _sprints = [];
+    private List<BoardSummaryDto> _boards = [];
+    private List<ColumnDto> _columns = [];
+
+    private Guid _selectedProjectId;
+    private Guid _selectedBoardId;
+    private string _selectedSprintIdStr = "";
+
+    private ProjectDetailDto? _selectedProject;
+    private bool _autoAssign;
+    private string? _currentUserId;
+
+    // ── Forms ────────────────────────────────────────────────────────────────
+    private TicketFormModel _ticketForm = new();
+    private CardFormModel _cardForm = new();
+    private bool _busy;
+    private string? _submitError;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    private async Task SelectType(string kind)
+    {
+        _submitError = null;
+        _metaError = null;
+        _loadingMeta = true;
+
+        if (kind == "ticket")
+        {
+            _step = Step.Ticket;
+            _ticketForm = new();
+            _selectedProjectId = Guid.Empty;
+            _selectedSprintIdStr = "";
+            _selectedProject = null;
+            _autoAssign = false;
+            _sprints = [];
+
+            // Resolve current user ID (needed for auto-assign)
+            if (_currentUserId is null)
+            {
+                var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+                _currentUserId = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? auth.User.FindFirst("sub")?.Value;
+            }
+
+            try { _projects = await ProjectApi.GetProjectsAsync() ?? []; }
+            catch { _metaError = L["Error.Load"]; }
+        }
+        else
+        {
+            _step = Step.Card;
+            _cardForm = new();
+            _selectedBoardId = Guid.Empty;
+            _columns = [];
+            try { _boards = await BoardApi.GetBoardsAsync() ?? []; }
+            catch { _metaError = L["Error.Load"]; }
+        }
+
+        _loadingMeta = false;
+    }
+
+    private void OnSprintChanged(ChangeEventArgs e)
+        => _selectedSprintIdStr = e.Value?.ToString() ?? string.Empty;
+
+    private async Task OnProjectChangedAsync(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var id))
+        {
+            _selectedProjectId = Guid.Empty;
+            _selectedProject = null;
+            _autoAssign = false;
+            _sprints = [];
+            _selectedSprintIdStr = "";
+            return;
+        }
+
+        _selectedProjectId = id;
+        _selectedSprintIdStr = "";
+        _selectedProject = null;
+        _autoAssign = false;
+        _sprints = [];
+        _loadingSprints = true;
+        StateHasChanged();
+
+        try
+        {
+            _selectedProject = await ProjectApi.GetProjectAsync(id);
+            if (_selectedProject is not null)
+            {
+                // Show Planned + Active sprints; Active first, then by start date
+                _sprints = _selectedProject.Sprints
+                    .Where(s => s.Status != SprintStatus.Closed)
+                    .OrderBy(s => s.Status == SprintStatus.Active ? 0 : 1)
+                    .ThenBy(s => s.StartDate)
+                    .ToList();
+
+                _autoAssign = _selectedProject.DefaultAssigneePolicy == DefaultAssigneePolicy.Creator;
+            }
+        }
+        catch { /* sprint list stays empty */ }
+        finally { _loadingSprints = false; }
+    }
+
+    private async Task OnBoardChangedAsync(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var id)) { _selectedBoardId = Guid.Empty; return; }
+        _selectedBoardId = id;
+        _cardForm.ColumnId = Guid.Empty;
+        _columns = [];
+        _loadingColumns = true;
+        StateHasChanged();
+
+        try
+        {
+            var detail = await BoardApi.GetBoardAsync(id);
+            _columns = detail?.Columns?.ToList() ?? [];
+        }
+        catch { /* empty */ }
+        finally { _loadingColumns = false; }
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+
+    private async Task SubmitTicketAsync()
+    {
+        if (_selectedProjectId == Guid.Empty) return;
+        _busy = true; _submitError = null;
+        try
+        {
+            Guid? sprintId = Guid.TryParse(_selectedSprintIdStr, out var sid) ? sid : null;
+            string? assigneeId = _autoAssign ? _currentUserId : null;
+
+            var request = new CreateTicketRequest(
+                _ticketForm.Title,
+                null,
+                _ticketForm.Type,
+                _ticketForm.Priority,
+                null,
+                null,
+                sprintId,
+                null,
+                assigneeId);
+
+            var ticket = await TicketApi.CreateAsync(_selectedProjectId, request);
+            if (ticket is not null)
+            {
+                await HandleClose();
+                Nav.NavigateTo($"/tickets/{ticket.TicketRef}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _submitError = ex.Message.Length > 120 ? L["Error.Default"].Value : ex.Message;
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task SubmitCardAsync()
+    {
+        if (_cardForm.ColumnId == Guid.Empty) return;
+        _busy = true; _submitError = null;
+        try
+        {
+            var request = new CreateCardRequest(_cardForm.Title, null, _cardForm.Priority);
+            var card = await CardApi.CreateAsync(_cardForm.ColumnId, request);
+            if (card is not null)
+            {
+                await HandleClose();
+                Nav.NavigateTo($"/boards/{_selectedBoardId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _submitError = ex.Message.Length > 120 ? L["Error.Default"].Value : ex.Message;
+        }
+        finally { _busy = false; }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void GoBack()
+    {
+        _step = Step.Pick;
+        _metaError = null;
+        _submitError = null;
+    }
+
+    private async Task HandleClose()
+    {
+        _step = Step.Pick;
+        _metaError = null;
+        _submitError = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private static string TicketTypeLabel(TicketType t) => t switch
+    {
+        TicketType.Story   => "User Story",
+        TicketType.Bug     => "Bug",
+        TicketType.Task    => "Tâche",
+        TicketType.Epic    => "Epic",
+        TicketType.Subtask => "Sous-tâche",
+        _ => t.ToString()
+    };
+
+    private static string PriorityLabel(CardPriority p) => p switch
+    {
+        CardPriority.Critical => "Critique",
+        CardPriority.High     => "Haute",
+        CardPriority.Medium   => "Normale",
+        CardPriority.Low      => "Basse",
+        _ => p.ToString()
+    };
+
+    // ── Form models ───────────────────────────────────────────────────────────
+
+    private sealed class TicketFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Le titre est obligatoire.")]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        public TicketType Type { get; set; } = TicketType.Task;
+        public CardPriority Priority { get; set; } = CardPriority.Medium;
+    }
+
+    private sealed class CardFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Le titre est obligatoire.")]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        public CardPriority Priority { get; set; } = CardPriority.Medium;
+        public Guid ColumnId { get; set; }
+    }
+}

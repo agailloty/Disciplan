@@ -13,6 +13,9 @@ public sealed class SprintApiClient
     public Task<List<SprintDto>?> GetActiveForUserAsync(CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<SprintDto>>("/api/sprints/active", ct);
 
+    public Task<List<SprintDto>?> GetWithDatesAsync(CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<SprintDto>>("/api/sprints/with-dates", ct);
+
     public Task<SprintDetailDto?> GetSprintAsync(Guid id, CancellationToken ct = default)
         => _http.GetFromJsonAsync<SprintDetailDto>($"/api/sprints/{id}", ct);
 

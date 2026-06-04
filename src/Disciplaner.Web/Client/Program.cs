@@ -56,6 +56,7 @@ builder.Services.AddScoped<KanbanDragState>();
 builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<DashboardConfigService>();
+builder.Services.AddScoped<CalendarApiClient>();
 
 // ── Localization ──────────────────────────────────────────────────────────────
 builder.Services.AddLocalization();

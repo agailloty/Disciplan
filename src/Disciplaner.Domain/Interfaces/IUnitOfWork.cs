@@ -16,6 +16,7 @@ public interface IUnitOfWork
     ITicketHistoryRepository TicketHistory { get; }
     IBoardMemberRepository BoardMembers { get; }
     IProjectMemberRepository ProjectMembers { get; }
+    ICalendarTokenRepository CalendarTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

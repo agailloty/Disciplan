@@ -21,6 +21,7 @@ public sealed class UnitOfWork : IUnitOfWork
     public ITicketHistoryRepository TicketHistory { get; }
     public IBoardMemberRepository BoardMembers { get; }
     public IProjectMemberRepository ProjectMembers { get; }
+    public ICalendarTokenRepository CalendarTokens { get; }
 
     public UnitOfWork(
         ApplicationDbContext context,
@@ -37,7 +38,8 @@ public sealed class UnitOfWork : IUnitOfWork
         ISavedViewRepository savedViews,
         ITicketHistoryRepository ticketHistory,
         IBoardMemberRepository boardMembers,
-        IProjectMemberRepository projectMembers)
+        IProjectMemberRepository projectMembers,
+        ICalendarTokenRepository calendarTokens)
     {
         _context = context;
         Attachments = attachments;
@@ -54,6 +56,7 @@ public sealed class UnitOfWork : IUnitOfWork
         TicketHistory = ticketHistory;
         BoardMembers = boardMembers;
         ProjectMembers = projectMembers;
+        CalendarTokens = calendarTokens;
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

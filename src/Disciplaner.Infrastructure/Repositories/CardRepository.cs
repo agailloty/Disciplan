@@ -20,6 +20,14 @@ internal sealed class CardRepository : ICardRepository
             .OrderBy(c => c.Order)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<Card>> GetAssignedToUserWithDueDateAsync(string userId, CancellationToken cancellationToken = default)
+        => await _context.Cards
+            .Include(c => c.Column)
+                .ThenInclude(col => col!.Board)
+            .Where(c => c.AssignedToId == userId && c.DueDate != null)
+            .OrderBy(c => c.DueDate)
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(Card card, CancellationToken cancellationToken = default)
         => await _context.Cards.AddAsync(card, cancellationToken);
 

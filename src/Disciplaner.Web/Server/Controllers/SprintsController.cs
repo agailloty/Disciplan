@@ -25,6 +25,11 @@ public sealed class SprintsController : ControllerBase
     public async Task<IActionResult> GetActive(CancellationToken ct)
         => Ok(await _sprints.GetActiveForUserAsync(UserId, ct));
 
+    [HttpGet("api/sprints/with-dates")]
+    [ProducesResponseType(typeof(IReadOnlyList<SprintDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetWithDates(CancellationToken ct)
+        => Ok(await _sprints.GetWithDatesForUserAsync(UserId, ct));
+
     [HttpGet("api/sprints/{id:guid}")]
     [ProducesResponseType(typeof(SprintDetailDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)

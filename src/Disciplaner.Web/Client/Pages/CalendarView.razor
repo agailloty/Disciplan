@@ -1,0 +1,402 @@
+@page "/calendar"
+@attribute [Authorize]
+@inject TicketApiClient TicketApi
+@inject SprintApiClient SprintApi
+@inject NavigationManager Nav
+
+@using Disciplaner.Application.DTOs.Ticket
+@using Disciplaner.Application.DTOs.Sprint
+@using Disciplaner.Domain.Enums
+
+<PageTitle>Calendrier — Disciplaner</PageTitle>
+
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <h1 class="page-title">
+        <i class="bi bi-calendar3 mr-2" style="color:var(--accent)"></i>Calendrier
+    </h1>
+
+    @* Month navigation *@
+    <div class="flex items-center gap-2">
+        <button class="btn btn-secondary px-3" @onclick="PrevMonth" title="Mois précédent">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="btn btn-secondary px-4 font-medium min-w-40 text-center" @onclick="GoToToday">
+            @_current.ToString("MMMM yyyy", _culture)
+        </button>
+        <button class="btn btn-secondary px-3" @onclick="NextMonth" title="Mois suivant">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+        <button class="btn btn-secondary px-3" @onclick="GoToToday" title="Aujourd'hui">
+            Aujourd'hui
+        </button>
+    </div>
+
+    @* Legend *@
+    <div class="flex items-center gap-3 text-xs" style="color:var(--text-muted)">
+        <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#f59e0b"></span>Ticket (échéance)
+        </span>
+        <span class="flex items-center gap-1">
+            <span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:#6366f1"></span>Sprint
+        </span>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    @* ── Calendar grid ──────────────────────────────────────────────────────── *@
+    <div class="surface overflow-hidden">
+
+        @* Day-of-week header *@
+        <div class="calendar-header-row">
+            @foreach (var name in _dayNames)
+            {
+                <div class="calendar-header-cell">@name</div>
+            }
+        </div>
+
+        @* Weeks *@
+        @foreach (var week in _weeks)
+        {
+            <div class="calendar-week-row">
+                @foreach (var day in week)
+                {
+                    var isToday = day.Date == DateOnly.FromDateTime(DateTime.Today);
+                    var isOtherMonth = !day.IsCurrentMonth;
+
+                    <div class="calendar-day-cell @(isOtherMonth ? "calendar-day-other" : "") @(isToday ? "calendar-day-today" : "")"
+                         @onclick="() => ToggleDayDetail(day)">
+
+                        @* Date number *@
+                        <div class="calendar-day-number @(isToday ? "calendar-day-number-today" : "")">
+                            @day.Date.Day
+                        </div>
+
+                        @* Events (show up to 3, then "+N more") *@
+                        @{
+                            var visible = day.Events.Take(3).ToList();
+                            var extra = day.Events.Count - visible.Count;
+                        }
+                        @foreach (var ev in visible)
+                        {
+                            <div class="calendar-event @(ev.Kind == "sprint" ? "calendar-event-sprint" : "calendar-event-ticket")"
+                                 title="@ev.Title"
+                                 @onclick:stopPropagation="true"
+                                 @onclick="() => Navigate(ev.NavigateTo)">
+                                <i class="bi @ev.Icon shrink-0"></i>
+                                <span class="truncate">@ev.Title</span>
+                                @if (ev.Kind == "sprint" && ev.IsStart)
+                                {
+                                    <span class="calendar-sprint-badge">début</span>
+                                }
+                                @if (ev.Kind == "sprint" && ev.IsEnd)
+                                {
+                                    <span class="calendar-sprint-badge">fin</span>
+                                }
+                            </div>
+                        }
+                        @if (extra > 0)
+                        {
+                            <div class="calendar-event-more">+@extra</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @* ── Selected day detail panel ───────────────────────────────────────────── *@
+    @if (_selectedDay is not null && _selectedDay.Events.Count > 0)
+    {
+        <div class="surface mt-4 p-4">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-semibold" style="color:var(--text-base)">
+                    <i class="bi bi-calendar-day mr-1.5" style="color:var(--accent)"></i>
+                    @_selectedDay.Date.ToString("dddd d MMMM yyyy", _culture)
+                </span>
+                <button class="icon-btn" @onclick="() => _selectedDay = null">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+            <div class="space-y-2">
+                @foreach (var ev in _selectedDay.Events)
+                {
+                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                         style="background:@(ev.Kind == "sprint" ? "rgba(99,102,241,.12)" : "rgba(245,158,11,.12)")"
+                         @onclick="() => Navigate(ev.NavigateTo)">
+                        <i class="bi @ev.Icon" style="color:@(ev.Kind == "sprint" ? "#6366f1" : "#f59e0b")"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium truncate" style="color:var(--text-base)">@ev.Title</p>
+                            @if (!string.IsNullOrEmpty(ev.Subtitle))
+                            {
+                                <p class="text-xs truncate" style="color:var(--text-muted)">@ev.Subtitle</p>
+                            }
+                        </div>
+                        <i class="bi bi-arrow-right text-xs" style="color:var(--text-muted)"></i>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<style>
+    /* ── Calendar grid ───────────────────────────────────────────────────────── */
+    .calendar-header-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        border-bottom: 1px solid var(--border);
+    }
+    .calendar-header-cell {
+        padding: .5rem;
+        text-align: center;
+        font-size: .7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--text-muted);
+    }
+    .calendar-week-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        border-bottom: 1px solid var(--border);
+    }
+    .calendar-week-row:last-child { border-bottom: none; }
+
+    .calendar-day-cell {
+        min-height: 5.5rem;
+        padding: .35rem .4rem;
+        border-right: 1px solid var(--border);
+        cursor: pointer;
+        transition: background .15s;
+        overflow: hidden;
+    }
+    .calendar-day-cell:last-child { border-right: none; }
+    .calendar-day-cell:hover { background: var(--bg-accent, rgba(99,102,241,.05)); }
+
+    .calendar-day-other { opacity: .4; }
+
+    .calendar-day-today { background: rgba(99,102,241,.06); }
+
+    .calendar-day-number {
+        font-size: .75rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: .25rem;
+        width: 1.4rem;
+        text-align: center;
+    }
+    .calendar-day-number-today {
+        background: var(--accent, #6366f1);
+        color: #fff !important;
+        border-radius: 50%;
+        font-weight: 700;
+    }
+
+    /* Events */
+    .calendar-event {
+        display: flex;
+        align-items: center;
+        gap: .2rem;
+        font-size: .65rem;
+        padding: .15rem .3rem;
+        border-radius: .25rem;
+        margin-bottom: .15rem;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        transition: opacity .15s;
+    }
+    .calendar-event:hover { opacity: .8; }
+    .calendar-event-ticket { background: rgba(245,158,11,.2); color: #b45309; }
+    .calendar-event-sprint  { background: rgba(99,102,241,.2);  color: #4338ca; }
+
+    .calendar-sprint-badge {
+        font-size: .55rem;
+        padding: .05rem .25rem;
+        border-radius: .2rem;
+        background: rgba(99,102,241,.3);
+        flex-shrink: 0;
+    }
+    .calendar-event-more {
+        font-size: .6rem;
+        color: var(--text-muted);
+        padding-left: .25rem;
+    }
+
+    @@media (max-width: 640px) {
+        .calendar-day-cell { min-height: 4rem; padding: .2rem; }
+        .calendar-event span:not(.truncate) { display: none; }
+    }
+</style>
+
+@code {
+    private static readonly System.Globalization.CultureInfo _culture = new("fr-FR");
+    private static readonly string[] _dayNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+    private DateOnly _current = DateOnly.FromDateTime(DateTime.Today);
+    private bool _loading = true;
+
+    private List<CalendarDto> _tickets = [];
+    private List<CalendarDto> _sprints = [];
+
+    private List<List<CalendarDayVm>> _weeks = [];
+    private CalendarDayVm? _selectedDay;
+
+    // ── Data model ────────────────────────────────────────────────────────────
+
+    private record CalendarEventVm(
+        Guid Id, string Title, string Subtitle, string Kind,
+        bool IsStart, bool IsEnd,
+        string Icon, string NavigateTo);
+
+    private record CalendarDayVm(DateOnly Date, bool IsCurrentMonth, List<CalendarEventVm> Events);
+
+    // Flat transfer record (avoids re-querying)
+    private record CalendarDto(
+        Guid Id, string Title, string Subtitle, string Kind,
+        DateOnly? SingleDate, DateOnly? RangeStart, DateOnly? RangeEnd,
+        string Icon, string NavigateTo);
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+        BuildGrid();
+        _loading = false;
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var ticketsTask = TicketApi.GetAssignedToMeAsync();
+        var sprintsTask = SprintApi.GetWithDatesAsync();
+        await Task.WhenAll(ticketsTask, sprintsTask);
+
+        _tickets = (ticketsTask.Result ?? [])
+            .Where(t => t.DueDate.HasValue)
+            .Select(t => new CalendarDto(
+                t.Id,
+                $"[{t.ProjectKey}-{t.TicketNumber}] {t.Title}",
+                $"{t.Priority} · {t.Status.Name}",
+                "ticket",
+                DateOnly.FromDateTime(t.DueDate!.Value),
+                null, null,
+                PriorityIcon(t.Priority),
+                $"/tickets/{t.Id}"))
+            .ToList();
+
+        _sprints = (sprintsTask.Result ?? [])
+            .Where(s => s.StartDate.HasValue && s.EndDate.HasValue)
+            .Select(s => new CalendarDto(
+                s.Id,
+                s.Name,
+                s.ProjectName ?? "",
+                "sprint",
+                null,
+                DateOnly.FromDateTime(s.StartDate!.Value),
+                DateOnly.FromDateTime(s.EndDate!.Value),
+                "bi-lightning-charge-fill",
+                $"/sprints/{s.Id}"))
+            .ToList();
+    }
+
+    // ── Grid builder ─────────────────────────────────────────────────────────
+
+    private void BuildGrid()
+    {
+        _selectedDay = null;
+
+        var firstOfMonth = new DateOnly(_current.Year, _current.Month, 1);
+        var lastOfMonth  = firstOfMonth.AddMonths(1).AddDays(-1);
+
+        // Start grid on Monday
+        var gridStart = firstOfMonth.AddDays(-(((int)firstOfMonth.DayOfWeek + 6) % 7));
+        // End grid on Sunday (min 5 weeks → 35 days)
+        var gridEnd = gridStart.AddDays(34);
+        if (gridEnd < lastOfMonth)
+            gridEnd = gridEnd.AddDays(7);
+
+        var allEvents = BuildEventMap(gridStart, gridEnd);
+
+        _weeks = [];
+        var day = gridStart;
+        while (day <= gridEnd)
+        {
+            var week = new List<CalendarDayVm>();
+            for (int i = 0; i < 7; i++)
+            {
+                allEvents.TryGetValue(day, out var events);
+                week.Add(new CalendarDayVm(day, day.Month == _current.Month, events ?? []));
+                day = day.AddDays(1);
+            }
+            _weeks.Add(week);
+        }
+    }
+
+    private Dictionary<DateOnly, List<CalendarEventVm>> BuildEventMap(DateOnly from, DateOnly to)
+    {
+        var map = new Dictionary<DateOnly, List<CalendarEventVm>>();
+
+        void AddEvent(DateOnly date, CalendarEventVm ev)
+        {
+            if (!map.TryGetValue(date, out var list)) map[date] = list = [];
+            list.Add(ev);
+        }
+
+        // Tickets — single day
+        foreach (var t in _tickets)
+        {
+            if (t.SingleDate is { } d && d >= from && d <= to)
+                AddEvent(d, new(t.Id, t.Title, t.Subtitle, "ticket", false, false, t.Icon, t.NavigateTo));
+        }
+
+        // Sprints — range: show on start, end and every day in between
+        foreach (var s in _sprints)
+        {
+            if (s.RangeStart is null || s.RangeEnd is null) continue;
+            var cur = s.RangeStart.Value;
+            var end = s.RangeEnd.Value;
+            while (cur <= end)
+            {
+                if (cur >= from && cur <= to)
+                {
+                    AddEvent(cur, new(s.Id, s.Title, s.Subtitle, "sprint",
+                        IsStart: cur == s.RangeStart,
+                        IsEnd:   cur == s.RangeEnd,
+                        s.Icon, s.NavigateTo));
+                }
+                cur = cur.AddDays(1);
+            }
+        }
+
+        return map;
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    private void PrevMonth() { _current = _current.AddMonths(-1); BuildGrid(); }
+    private void NextMonth() { _current = _current.AddMonths(1); BuildGrid(); }
+    private void GoToToday() { _current = DateOnly.FromDateTime(DateTime.Today); BuildGrid(); }
+
+    private void ToggleDayDetail(CalendarDayVm day)
+    {
+        _selectedDay = _selectedDay?.Date == day.Date ? null : (day.Events.Count > 0 ? day : null);
+    }
+
+    private void Navigate(string url) => Nav.NavigateTo(url);
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static string PriorityIcon(CardPriority p) => p switch
+    {
+        CardPriority.Critical => "bi-exclamation-octagon-fill",
+        CardPriority.High     => "bi-exclamation-circle-fill",
+        CardPriority.Medium   => "bi-dash-circle-fill",
+        _                     => "bi-circle"
+    };
+}
