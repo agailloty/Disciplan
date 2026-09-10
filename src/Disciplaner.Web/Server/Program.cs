@@ -136,3 +136,6 @@ app.MapControllers();
 app.MapFallbackToFile("index.html"); // SPA fallback — all non-API routes → Client
 
 app.Run();
+
+// Expose the entry point to the isolated API integration test host.
+public partial class Program { }

@@ -11,4 +11,7 @@
   <Folder Name="/src/Disciplaner.Web/Server/">
     <Project Path="src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Disciplaner.Tests/Disciplaner.Tests.csproj" />
+  </Folder>
 </Solution>
