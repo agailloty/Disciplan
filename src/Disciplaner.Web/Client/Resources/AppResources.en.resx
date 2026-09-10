@@ -427,4 +427,6 @@
   <data name="Attachment.Error.Delete" xml:space="preserve"><value>Delete error: {0}</value></data>
   <data name="Attachment.Error.Load" xml:space="preserve"><value>Failed to load file: {0}</value></data>
   <data name="Ticket.Comment.Submit" xml:space="preserve"><value>Comment</value></data>
+  <data name="Auth.Headline" xml:space="preserve"><value>From an idea to a job well done.</value></data>
+  <data name="Auth.Introduction" xml:space="preserve"><value>A space to organize your projects, move your team forward and focus on what matters.</value></data>
 </root>

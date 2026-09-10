@@ -10,7 +10,7 @@
         <i class="bi @(_mobileOpen ? "bi-x-lg" : "bi-list")"></i>
     </button>
     <a href="/" class="sidebar-brand-mini">
-        <span class="sidebar-brand-icon">&#9654;</span>
+        <span class="sidebar-brand-icon"><i class="bi bi-intersect"></i></span>
         <span>Disciplaner</span>
     </a>
     <AuthorizeView>
@@ -32,7 +32,7 @@
     @* Brand *@
     <div class="sidebar-brand">
         <a href="/" class="sidebar-brand-link" title="Disciplaner">
-            <span class="sidebar-brand-icon">&#9654;</span>
+            <span class="sidebar-brand-icon"><i class="bi bi-intersect"></i></span>
             @if (!_collapsed)
             {
                 <span class="sidebar-brand-text">Disciplaner</span>
@@ -45,12 +45,14 @@
 
     @* Nav section *@
     <nav class="sidebar-nav">
-        <SidebarLink Href="" Match="NavLinkMatch.All" Icon="bi-house-door-fill" Label="@L["Nav.Home"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
-        <SidebarLink Href="boards" Icon="bi-kanban-fill" Label="@L["Nav.Boards"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
-        <SidebarLink Href="projects" Icon="bi-folder-fill" Label="@L["Nav.Projects"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
-        <SidebarLink Href="my-tickets" Icon="bi-ticket-perforated-fill" Label="@L["Nav.MyTickets"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        @if (!_collapsed) { <div class="sidebar-section-label">@L["Nav.Home"]</div> }
+        <SidebarLink Href="" Match="NavLinkMatch.All" Icon="bi-grid-1x2" Label="@L["Nav.Home"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="boards" Icon="bi-kanban" Label="@L["Nav.Boards"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="projects" Icon="bi-folder2" Label="@L["Nav.Projects"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        <SidebarLink Href="my-tickets" Icon="bi-check2-square" Label="@L["Nav.MyTickets"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
         <SidebarLink Href="calendar" Icon="bi-calendar3" Label="@L["Nav.Calendar"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
-        <SidebarLink Href="labels" Icon="bi-tags-fill" Label="@L["Nav.Labels"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
+        @if (!_collapsed) { <div class="sidebar-section-label sidebar-section-secondary">@L["Nav.Settings"]</div> }
+        <SidebarLink Href="labels" Icon="bi-tags" Label="@L["Nav.Labels"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />
         <AuthorizeView Roles="Admin">
             <Authorized>
                 <SidebarLink Href="admin/users" Icon="bi-people-fill" Label="@L["Nav.Admin"]" Collapsed="_collapsed" OnClick="CloseMobileMenu" />

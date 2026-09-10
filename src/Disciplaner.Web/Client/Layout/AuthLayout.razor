@@ -1,7 +1,13 @@
 @inherits LayoutComponentBase
+@inject IStringLocalizer<AppResources> L
 
-<div class="min-h-screen flex items-start justify-center" style="background:#f6f8fa; padding-top:6rem">
-    <main class="w-full">
+<div class="auth-shell">
+    <aside class="auth-story">
+        <a href="/" class="sidebar-brand-link"><span class="sidebar-brand-icon"><i class="bi bi-intersect"></i></span> Disciplaner</a>
+        <h2>@L["Auth.Headline"]</h2>
+        <p>@L["Auth.Introduction"]</p>
+    </aside>
+    <main class="auth-main">
         @Body
     </main>
 </div>

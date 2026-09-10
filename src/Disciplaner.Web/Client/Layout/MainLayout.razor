@@ -24,7 +24,9 @@
     <NavMenu OnLogout="LogoutAsync" />
     <main class="app-main">
         <header class="app-topbar">
+            <div class="workspace-breadcrumb"><i class="bi bi-grid-1x2"></i><span>Disciplaner</span><span class="breadcrumb-divider">/</span><strong>@L[CurrentSection]</strong></div>
             <div class="app-topbar-right">
+                <button class="btn btn-primary btn-sm" @onclick="() => _showQuickCreate = true"><i class="bi bi-plus-lg"></i> @L["Create"]</button>
                 <a href="/settings" class="topbar-theme-btn" title="@L["Nav.Settings"]">
                     <i class="bi bi-gear-fill"></i>
                 </a>
@@ -40,7 +42,17 @@
     </main>
 </div>
 
+<QuickCreateModal Visible="_showQuickCreate" OnClose="() => _showQuickCreate = false" />
+
 @code {
+    private bool _showQuickCreate;
+    private string CurrentSection => Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].Split('/')[0] switch
+    {
+        "projects" => "Nav.Projects", "boards" => "Nav.Boards",
+        "my-tickets" or "tickets" => "Nav.MyTickets", "calendar" => "Nav.Calendar",
+        "labels" => "Nav.Labels", "settings" => "Nav.Settings", "admin" => "Nav.Admin",
+        "sprints" => "Home.ActiveSprints", _ => "Nav.Home"
+    };
     private bool _updateAvailable;
     private DotNetObjectReference<MainLayout>? _selfRef;
 
@@ -48,6 +60,7 @@
     {
         await Theme.LoadAsync();
         Theme.OnChange += StateHasChanged;
+        Nav.LocationChanged += OnLocationChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -73,9 +86,13 @@
 
     public void Dispose()
     {
+        Nav.LocationChanged -= OnLocationChanged;
         Theme.OnChange -= StateHasChanged;
         _selfRef?.Dispose();
     }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
 
     private async Task ToggleDark()
     {

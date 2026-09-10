@@ -421,4 +421,6 @@
   <data name="Attachment.Error.Delete" xml:space="preserve"><value>Erreur lors de la suppression : {0}</value></data>
   <data name="Attachment.Error.Load" xml:space="preserve"><value>Impossible de charger le fichier : {0}</value></data>
   <data name="Ticket.Comment.Submit" xml:space="preserve"><value>Commenter</value></data>
+  <data name="Auth.Headline" xml:space="preserve"><value>De l’idée à l’accomplissement.</value></data>
+  <data name="Auth.Introduction" xml:space="preserve"><value>Un espace pour organiser vos projets, faire avancer vos équipes et vous concentrer sur l’essentiel.</value></data>
 </root>

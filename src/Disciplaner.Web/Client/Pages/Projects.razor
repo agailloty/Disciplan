@@ -34,12 +34,18 @@ else if (_projects.Count == 0)
 }
 else
 {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @foreach (var project in _projects)
+    <div class="collection-toolbar">
+        <span class="collection-count">@L["Nav.Projects"] <span class="badge badge-gray">@_projects.Count</span></span>
+        <label class="collection-search"><i class="bi bi-search"></i><input aria-label="@L["Nav.Projects"]" placeholder="@L["Nav.Projects"]…" @bind="_search" @bind:event="oninput" /></label>
+    </div>
+    @if (!FilteredProjects.Any()) { <div class="surface collection-empty">0 @L["Nav.Projects"]</div> }
+    <div class="project-grid">
+        @foreach (var project in FilteredProjects)
         {
             var p = project;
-            <div class="surface surface-hover flex flex-col" @onclick="() => NavigateToProject(p.Id)">
+            <a class="surface surface-hover project-card flex flex-col" href="@($"/projects/{p.Id}")">
                 <div class="p-4 flex-1">
+                    <div class="project-mark"><i class="bi bi-folder2"></i><i class="bi bi-arrow-up-right"></i></div>
                     <div class="flex items-center gap-2 mb-2">
                         <span class="badge badge-dark font-mono">@p.Key</span>
                         <h2 class="font-semibold text-gray-900 text-base">@p.Name</h2>
@@ -53,7 +59,7 @@ else
                     <span>@(string.Format(L["Project.TicketCount"], p.TicketCount))</span>
                     <span>@(string.Format(L["Project.SprintCount"], p.SprintCount))</span>
                 </div>
-            </div>
+            </a>
         }
     </div>
 }
@@ -88,6 +94,10 @@ else
 </Modal>
 
 @code {
+    private string _search = "";
+    private IEnumerable<ProjectSummaryDto> FilteredProjects => _projects.Where(p =>
+        p.Name.Contains(_search, StringComparison.CurrentCultureIgnoreCase) ||
+        p.Key.Contains(_search, StringComparison.CurrentCultureIgnoreCase));
     private sealed class ProjectForm
     {
         [System.ComponentModel.DataAnnotations.Required]

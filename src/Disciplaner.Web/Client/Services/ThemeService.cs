@@ -34,7 +34,7 @@ public sealed class ThemeService
         // ── Default ─ GitHub-style blue, trustworthy and familiar
         // Btn: white on #0969da (3:1 UI ok) | Text: #1f2328 on #ffffff 21:1 ✓
         new ThemeDefinition("default", "Default", "🔷",
-            new("#ffffff","#f6f8fa","#f8f9fb","#1f2328","#636c76","#0969da","#0550ae","#d0d7de","#24292f"),
+            new("#f6f7f9","#eef1f5","#ffffff","#202939","#687387","#465bd8","#3548b9","#e4e7ec","#171e30"),
             new("#0d1117","#161b22","#21262d","#e6edf3","#8b949e","#58a6ff","#79c0ff","#30363d","#010409")),
 
         // ── Linear ─ signature indigo, modern SaaS look (à la Linear.app)
