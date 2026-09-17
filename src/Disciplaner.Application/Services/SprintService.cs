@@ -105,7 +105,7 @@ public sealed class SprintService : ISprintService
     {
         var sprint = await _uow.Sprints.GetByIdAsync(sprintId, cancellationToken)
             ?? throw new NotFoundException(nameof(Sprint), sprintId);
-        await EnsureProjectAccessAsync(sprint.ProjectId, requestingUserId, cancellationToken);
+        await ResourceAccess.Project(_uow, sprint.ProjectId, requestingUserId, cancellationToken, manage: true);
 
         sprint.Update(request.Name, request.Goal, request.StartDate, request.EndDate);
         await _uow.Sprints.UpdateAsync(sprint, cancellationToken);
@@ -119,6 +119,8 @@ public sealed class SprintService : ISprintService
         Guid sprintId, string requestingUserId, StartSprintRequest request,
         CancellationToken cancellationToken = default)
     {
+        return await _uow.InTransactionAsync(async () =>
+        {
         var sprint = await _uow.Sprints.GetByIdAsync(sprintId, cancellationToken)
             ?? throw new NotFoundException(nameof(Sprint), sprintId);
 
@@ -133,6 +135,7 @@ public sealed class SprintService : ISprintService
         var updated = await _uow.Sprints.GetByIdAsync(sprintId, cancellationToken)!;
         var count = (await _uow.Tickets.GetBySprintIdAsync(sprintId, cancellationToken)).Count;
         return updated!.ToDto(count);
+        }, cancellationToken);
     }
 
     public async Task<SprintDto> CloseAsync(
@@ -159,7 +162,7 @@ public sealed class SprintService : ISprintService
     {
         var sprint = await _uow.Sprints.GetByIdAsync(sprintId, cancellationToken)
             ?? throw new NotFoundException(nameof(Sprint), sprintId);
-        await EnsureProjectAccessAsync(sprint.ProjectId, requestingUserId, cancellationToken);
+        await ResourceAccess.Project(_uow, sprint.ProjectId, requestingUserId, cancellationToken, manage: true);
 
         // Move sprint tickets back to backlog
         var tickets = await _uow.Tickets.GetBySprintIdAsync(sprintId, cancellationToken);

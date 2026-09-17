@@ -114,7 +114,8 @@ public sealed class UsersController : ControllerBase
     public IActionResult GetProfilePicture(string storagePath)
     {
         // Only allow paths under "profiles/" to prevent path traversal
-        if (!storagePath.StartsWith("profiles/", StringComparison.OrdinalIgnoreCase))
+        if (!storagePath.StartsWith("profiles/", StringComparison.OrdinalIgnoreCase)
+            || storagePath.Contains('\\') || storagePath.Split('/').Any(s => s is ".." or "." or ""))
             return NotFound();
 
         var absolutePath = _fileStorage.GetAbsolutePath(storagePath);

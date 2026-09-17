@@ -30,6 +30,8 @@ public class Sprint
 
     public void Update(string name, string? goal, DateTime? startDate, DateTime? endDate)
     {
+        if (Status == SprintStatus.Closed) throw new ArgumentException("A closed sprint cannot be edited.");
+        ValidateDates(startDate, endDate);
         SetName(name);
         Goal = goal;
         StartDate = startDate;
@@ -39,6 +41,8 @@ public class Sprint
 
     public void Start(DateTime startDate, DateTime endDate)
     {
+        if (Status != SprintStatus.Planned) throw new ArgumentException("Only a planned sprint can start.");
+        ValidateDates(startDate, endDate);
         Status = SprintStatus.Active;
         StartDate = startDate;
         EndDate = endDate;
@@ -47,6 +51,7 @@ public class Sprint
 
     public void Close()
     {
+        if (Status != SprintStatus.Active) throw new ArgumentException("Only an active sprint can close.");
         Status = SprintStatus.Closed;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -56,5 +61,11 @@ public class Sprint
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Sprint name cannot be empty.");
         if (name.Length > DomainConstraints.Sprint.NameMaxLength) throw new ArgumentOutOfRangeException(nameof(name));
         Name = name;
+    }
+
+    private static void ValidateDates(DateTime? start, DateTime? end)
+    {
+        if (start.HasValue != end.HasValue || (start.HasValue && end <= start))
+            throw new ArgumentException("Sprint dates must both be supplied, with end after start.");
     }
 }

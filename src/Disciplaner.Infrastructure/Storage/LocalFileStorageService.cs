@@ -30,8 +30,8 @@ public sealed class LocalFileStorageService : IFileStorageService
         var prefix = idHex[..4];               // first 4 chars for sharding
         var storageFileName = $"{idHex}{extension}";
         var relativePath = $"{context}/{prefix}/{storageFileName}";
-        var absoluteDir = Path.Combine(_options.BasePath, context, prefix);
-        var absolutePath = Path.Combine(absoluteDir, storageFileName);
+        var absolutePath = GetAbsolutePath(relativePath);
+        var absoluteDir = Path.GetDirectoryName(absolutePath)!;
 
         Directory.CreateDirectory(absoluteDir);
 
@@ -53,7 +53,16 @@ public sealed class LocalFileStorageService : IFileStorageService
     }
 
     public string GetAbsolutePath(string storagePath)
-        => Path.Combine(_options.BasePath, storagePath.Replace('/', Path.DirectorySeparatorChar));
+    {
+        if (string.IsNullOrWhiteSpace(storagePath) || Path.IsPathRooted(storagePath)
+            || storagePath.Replace('\\', '/').Split('/').Any(s => s is ".." or "." or ""))
+            throw new ArgumentException("Invalid storage path.");
+        var root = Path.GetFullPath(_options.BasePath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var result = Path.GetFullPath(Path.Combine(root, storagePath.Replace('/', Path.DirectorySeparatorChar)));
+        if (!result.StartsWith(root, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            throw new ArgumentException("Invalid storage path.");
+        return result;
+    }
 
     private static string SanitizeExtension(string extension)
     {

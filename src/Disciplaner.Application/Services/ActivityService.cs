@@ -13,10 +13,9 @@ public sealed class ActivityService : IActivityService
     public async Task<IReadOnlyList<ActivityItemDto>> GetRecentActivityAsync(
         string userId, int limit = 20, CancellationToken cancellationToken = default)
     {
-        var (tickets, comments) = await (
-            _uow.Tickets.GetCreatedByUserAsync(userId, limit, cancellationToken),
-            _uow.Comments.GetByAuthorAsync(userId, limit, cancellationToken)
-        ).WhenAll();
+        // Both repositories share a scoped DbContext: do not run queries concurrently.
+        var tickets = await _uow.Tickets.GetCreatedByUserAsync(userId, limit, cancellationToken);
+        var comments = await _uow.Comments.GetByAuthorAsync(userId, limit, cancellationToken);
 
         var items = new List<ActivityItemDto>(tickets.Count + comments.Count);
 

@@ -54,12 +54,17 @@ public class Ticket
     public void UpdateDescription(string? description) { SetDescription(description); Touch(); }
     public void SetType(TicketType type) { Type = type; Touch(); }
     public void SetPriority(CardPriority priority) { Priority = priority; Touch(); }
-    public void SetStoryPoints(int? points) { StoryPoints = points; Touch(); }
+    public void SetStoryPoints(int? points)
+    {
+        if (points < 0) throw new ArgumentOutOfRangeException(nameof(points));
+        StoryPoints = points; Touch();
+    }
     public void SetDueDate(DateTime? date) { DueDate = date; Touch(); }
     public void Assign(string? userId) { AssigneeId = userId; Touch(); }
 
     public void MoveToStatus(TicketStatus status)
     {
+        if (status.ProjectId != ProjectId) throw new ArgumentException("Status must belong to this project.");
         StatusId = status.Id;
         Status = status;
         Touch();
@@ -67,6 +72,8 @@ public class Ticket
 
     public void MoveToSprint(Sprint? sprint)
     {
+        if (sprint is not null && (sprint.ProjectId != ProjectId || sprint.Status == SprintStatus.Closed))
+            throw new ArgumentException("Sprint must be open and belong to this project.");
         SprintId = sprint?.Id;
         Sprint = sprint;
         Touch();
@@ -81,6 +88,10 @@ public class Ticket
 
     public void SetParent(Ticket? parent)
     {
+        var visited = new HashSet<Guid> { Id };
+        for (var ancestor = parent; ancestor is not null; ancestor = ancestor.ParentTicket)
+            if (ancestor.ProjectId != ProjectId || !visited.Add(ancestor.Id))
+                throw new ArgumentException("Parent must be in this project without a cycle.");
         ParentTicketId = parent?.Id;
         ParentTicket = parent;
         Touch();
@@ -88,6 +99,7 @@ public class Ticket
 
     public void SetParent(Guid? parentTicketId)
     {
+        if (parentTicketId == Id) throw new ArgumentException("Ticket cannot be its own parent.");
         ParentTicketId = parentTicketId;
         ParentTicket = null;
         Touch();

@@ -25,6 +25,7 @@ public sealed class CommentService : ICommentService
         CancellationToken cancellationToken = default)
     {
         var card = await EnsureCardAccessAsync(cardId, authorId, cancellationToken);
+        await ResourceAccess.Card(_uow, cardId, authorId, cancellationToken, write: true);
 
         var comment = Comment.Create(request.Content, authorId, card);
         await _uow.Comments.AddAsync(comment, cancellationToken);
@@ -49,7 +50,7 @@ public sealed class CommentService : ICommentService
     {
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
-        await EnsureProjectAccessAsync(ticket.ProjectId, authorId, cancellationToken);
+        await ResourceAccess.Project(_uow, ticket.ProjectId, authorId, cancellationToken, write: true);
 
         var comment = Comment.CreateForTicket(request.Content, authorId, ticketId);
         await _uow.Comments.AddAsync(comment, cancellationToken);
@@ -74,6 +75,7 @@ public sealed class CommentService : ICommentService
 
         if (comment.AuthorId != requestingUserId)
             throw new UnauthorizedAccessException("Only the author can edit a comment.");
+        await ResourceAccess.Comment(_uow, commentId, requestingUserId, cancellationToken, write: true);
 
         comment.SetContent(request.Content);
         await _uow.Comments.UpdateAsync(comment, cancellationToken);
@@ -89,7 +91,8 @@ public sealed class CommentService : ICommentService
         var comment = await _uow.Comments.GetByIdAsync(commentId, cancellationToken)
             ?? throw new NotFoundException(nameof(Comment), commentId);
 
-        if (!isAdmin && comment.AuthorId != requestingUserId)
+        await ResourceAccess.Comment(_uow, commentId, requestingUserId, cancellationToken, write: true);
+        if (comment.AuthorId != requestingUserId)
             throw new UnauthorizedAccessException("Only the author or an admin can delete a comment.");
 
         // Record history for ticket comments

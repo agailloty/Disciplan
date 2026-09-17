@@ -25,6 +25,7 @@ internal sealed class CardRepository : ICardRepository
             .Include(c => c.Column)
                 .ThenInclude(col => col!.Board)
             .Where(c => c.AssignedToId == userId && c.DueDate != null)
+            .Where(c => c.Column.Board.OwnerId == userId || c.Column.Board.Members.Any(m => m.UserId == userId))
             .OrderBy(c => c.DueDate)
             .ToListAsync(cancellationToken);
 

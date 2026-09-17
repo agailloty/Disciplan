@@ -65,6 +65,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.Zero // no grace period on token expiry
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var users = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                var user = context.Principal is null ? null : await users.GetUserAsync(context.Principal);
+                if (user is null || !user.IsActive) context.Fail("Account is inactive or missing.");
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -103,7 +112,7 @@ if (corsOrigins?.Length > 0)
 }
 
 // ── Controllers + Swagger ─────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<Disciplaner.Web.Server.ApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

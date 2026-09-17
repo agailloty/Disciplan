@@ -349,6 +349,7 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("_nextTicketNumber")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(1)
@@ -551,11 +552,12 @@ namespace Disciplaner.Infrastructure.Data.Migrations
 
                     b.HasIndex("ParentTicketId");
 
-                    b.HasIndex("ProjectId");
-
                     b.HasIndex("SprintId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("ProjectId", "TicketNumber")
+                        .IsUnique();
 
                     b.ToTable("Tickets");
                 });

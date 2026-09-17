@@ -19,11 +19,11 @@ internal sealed class LabelRepository : ILabelRepository
     public async Task<Label?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => await _context.Labels.FindAsync([id], cancellationToken);
 
-    public async Task<Label?> GetByIdWithItemsAsync(Guid id, CancellationToken cancellationToken = default)
-        => await _context.Labels
-            .Include(l => l.Tickets).ThenInclude(t => t.Project)
-            .Include(l => l.Tickets).ThenInclude(t => t.Status)
-            .Include(l => l.Boards)
+    public async Task<Label?> GetByIdWithItemsAsync(Guid id, string userId, CancellationToken cancellationToken = default)
+        => await _context.Labels.AsNoTracking()
+            .Include(l => l.Tickets.Where(t => t.Project.OwnerId == userId || t.Project.Members.Any(m => m.UserId == userId))).ThenInclude(t => t.Project)
+            .Include(l => l.Tickets.Where(t => t.Project.OwnerId == userId || t.Project.Members.Any(m => m.UserId == userId))).ThenInclude(t => t.Status)
+            .Include(l => l.Boards.Where(b => b.OwnerId == userId || b.Members.Any(m => m.UserId == userId))).ThenInclude(b => b.Columns)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
     public async Task AddAsync(Label label, CancellationToken cancellationToken = default)

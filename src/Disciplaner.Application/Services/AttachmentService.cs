@@ -52,7 +52,7 @@ public sealed class AttachmentService : IAttachmentService
         Guid ticketId, string uploadedById, UploadFileRequest file,
         CancellationToken cancellationToken = default)
     {
-        await EnsureTicketAccessAsync(ticketId, uploadedById, cancellationToken);
+        await ResourceAccess.Ticket(_uow, ticketId, uploadedById, cancellationToken, write: true);
         ValidateFile(file);
 
         var storagePath = await _storage.SaveAsync(file.Content, file.OriginalFileName, "tickets", cancellationToken);
@@ -77,7 +77,7 @@ public sealed class AttachmentService : IAttachmentService
         Guid commentId, string uploadedById, UploadFileRequest file,
         CancellationToken cancellationToken = default)
     {
-        await EnsureCommentAccessAsync(commentId, uploadedById, cancellationToken);
+        await ResourceAccess.Comment(_uow, commentId, uploadedById, cancellationToken, write: true);
         ValidateFile(file);
 
         var storagePath = await _storage.SaveAsync(file.Content, file.OriginalFileName, "comments", cancellationToken);
@@ -106,7 +106,7 @@ public sealed class AttachmentService : IAttachmentService
         Guid boardId, string uploadedById, UploadFileRequest file,
         CancellationToken cancellationToken = default)
     {
-        await EnsureBoardAccessAsync(boardId, uploadedById, cancellationToken);
+        await ResourceAccess.Board(_uow, boardId, uploadedById, cancellationToken, write: true);
         ValidateFile(file);
 
         var storagePath = await _storage.SaveAsync(file.Content, file.OriginalFileName, "boards", cancellationToken);
@@ -135,6 +135,7 @@ public sealed class AttachmentService : IAttachmentService
             await EnsureBoardAccessAsync(attachment.BoardId.Value, requestingUserId, cancellationToken);
 
         var absolutePath = _storage.GetAbsolutePath(attachment.StoragePath);
+        await ResourceAccess.Attachment(_uow, attachment, requestingUserId, cancellationToken);
         return new AttachmentFileInfo(absolutePath, attachment.ContentType, attachment.FileName);
     }
 
@@ -147,12 +148,13 @@ public sealed class AttachmentService : IAttachmentService
         var attachment = await _uow.Attachments.GetByIdAsync(attachmentId, cancellationToken)
             ?? throw new NotFoundException(nameof(Attachment), attachmentId);
 
-        if (!isAdmin && attachment.UploadedById != requestingUserId)
+        await ResourceAccess.Attachment(_uow, attachment, requestingUserId, cancellationToken, write: true);
+        if (attachment.UploadedById != requestingUserId)
             throw new ForbiddenException($"User '{requestingUserId}' cannot delete this attachment.");
 
-        await _storage.DeleteAsync(attachment.StoragePath, cancellationToken);
         await _uow.Attachments.DeleteAsync(attachment, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+        await _storage.DeleteAsync(attachment.StoragePath, cancellationToken);
     }
 
     // ── Validation ────────────────────────────────────────────────────────────

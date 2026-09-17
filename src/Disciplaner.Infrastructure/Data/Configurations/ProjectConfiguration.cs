@@ -41,6 +41,7 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property<int>("_nextTicketNumber")
             .HasColumnName("NextTicketNumber")
             .HasDefaultValue(1)
+            .IsConcurrencyToken()
             .IsRequired()
             .UsePropertyAccessMode(PropertyAccessMode.Field);
 

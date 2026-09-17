@@ -13,6 +13,7 @@ public interface ITicketRepository
     Task<IReadOnlyList<Ticket>> GetAssignedToUserAsync(string userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetCreatedByUserAsync(string userId, int limit, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Ticket>> GetFilteredAsync(
+        string requestingUserId,
         Guid? projectId,
         Guid? statusId,
         Guid? sprintId,

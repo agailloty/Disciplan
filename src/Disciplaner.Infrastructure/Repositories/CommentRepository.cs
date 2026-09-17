@@ -29,6 +29,8 @@ internal sealed class CommentRepository : ICommentRepository
     public async Task<IReadOnlyList<Comment>> GetByAuthorAsync(string authorId, int limit, CancellationToken cancellationToken = default)
         => await _context.Comments
             .Where(c => c.AuthorId == authorId)
+            .Where(c => (c.Ticket != null && (c.Ticket.Project.OwnerId == authorId || c.Ticket.Project.Members.Any(m => m.UserId == authorId)))
+                || (c.Card != null && (c.Card.Column.Board.OwnerId == authorId || c.Card.Column.Board.Members.Any(m => m.UserId == authorId))))
             .Include(c => c.Ticket)
                 .ThenInclude(t => t!.Project)
             .Include(c => c.Card)

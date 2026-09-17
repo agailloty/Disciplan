@@ -53,22 +53,17 @@ public sealed class CalendarService : ICalendarService
     {
         var calToken = await _uow.CalendarTokens.GetByTokenAsync(token, cancellationToken);
         if (calToken is null) return null;
+        var subscriber = await _uow.Users.GetByIdAsync(calToken.UserId, cancellationToken);
+        if (subscriber is null || !subscriber.IsActive) return null;
 
         calToken.RecordAccess();
         await _uow.CalendarTokens.UpdateAsync(calToken, cancellationToken);
 
         var userId = calToken.UserId;
 
-        // Load data in parallel
-        var ticketsTask = _uow.Tickets.GetAssignedToUserAsync(userId, cancellationToken);
-        var cardsTask = _uow.Cards.GetAssignedToUserWithDueDateAsync(userId, cancellationToken);
-        var sprintsTask = _uow.Sprints.GetWithDatesForUserAsync(userId, cancellationToken);
-
-        await Task.WhenAll(ticketsTask, cardsTask, sprintsTask);
-
-        var tickets = ticketsTask.Result;
-        var cards = cardsTask.Result;
-        var sprints = sprintsTask.Result;
+        var tickets = await _uow.Tickets.GetAssignedToUserAsync(userId, cancellationToken);
+        var cards = await _uow.Cards.GetAssignedToUserWithDueDateAsync(userId, cancellationToken);
+        var sprints = await _uow.Sprints.GetWithDatesForUserAsync(userId, cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);
 

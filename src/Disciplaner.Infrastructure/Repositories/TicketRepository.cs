@@ -37,13 +37,13 @@ internal sealed class TicketRepository : ITicketRepository
 
     public async Task<IReadOnlyList<Ticket>> GetAssignedToUserAsync(string userId, CancellationToken cancellationToken = default)
         => await IncludeDetails(_context.Tickets)
-            .Where(t => t.AssigneeId == userId)
+            .Where(t => t.AssigneeId == userId && (t.Project.OwnerId == userId || t.Project.Members.Any(m => m.UserId == userId)))
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Ticket>> GetCreatedByUserAsync(string userId, int limit, CancellationToken cancellationToken = default)
         => await IncludeDetails(_context.Tickets)
-            .Where(t => t.ReporterId == userId)
+            .Where(t => t.ReporterId == userId && (t.Project.OwnerId == userId || t.Project.Members.Any(m => m.UserId == userId)))
             .OrderByDescending(t => t.CreatedAt)
             .Take(limit)
             .ToListAsync(cancellationToken);
@@ -52,6 +52,7 @@ internal sealed class TicketRepository : ITicketRepository
         => await _context.Tickets.AddAsync(ticket, cancellationToken);
 
     public async Task<IReadOnlyList<Ticket>> GetFilteredAsync(
+        string requestingUserId,
         Guid? projectId,
         Guid? statusId,
         Guid? sprintId,
@@ -62,7 +63,8 @@ internal sealed class TicketRepository : ITicketRepository
         string? reporterId,
         CancellationToken cancellationToken = default)
     {
-        var query = IncludeDetails(_context.Tickets);
+        var query = IncludeDetails(_context.Tickets).Where(t =>
+            t.Project.OwnerId == requestingUserId || t.Project.Members.Any(m => m.UserId == requestingUserId));
 
         if (projectId.HasValue)     query = query.Where(t => t.ProjectId == projectId.Value);
         if (statusId.HasValue)      query = query.Where(t => t.StatusId == statusId.Value);

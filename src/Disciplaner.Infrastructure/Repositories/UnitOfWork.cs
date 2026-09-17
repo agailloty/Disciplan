@@ -1,5 +1,6 @@
 using Disciplaner.Domain.Interfaces;
 using Disciplaner.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Disciplaner.Infrastructure.Repositories;
 
@@ -61,4 +62,23 @@ public sealed class UnitOfWork : IUnitOfWork
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => _context.SaveChangesAsync(cancellationToken);
+
+    public async Task<T> InTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        // SQLite's immediate transaction serializes writers before the aggregate is read.
+        if (_context.Database.CurrentTransaction is not null) return await action();
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var result = await action();
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(CancellationToken.None);
+            _context.ChangeTracker.Clear();
+            throw;
+        }
+    }
 }

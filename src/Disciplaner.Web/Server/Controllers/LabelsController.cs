@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Disciplaner.Application.DTOs.Label;
 using Disciplaner.Application.Exceptions;
 using Disciplaner.Application.Interfaces;
@@ -12,6 +13,7 @@ namespace Disciplaner.Web.Server.Controllers;
 public sealed class LabelsController : ControllerBase
 {
     private readonly ILabelService _labels;
+    private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     public LabelsController(ILabelService labels) => _labels = labels;
 
@@ -34,11 +36,12 @@ public sealed class LabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetItems(Guid id, CancellationToken ct)
     {
-        var result = await _labels.GetItemsByIdAsync(id, ct);
+        var result = await _labels.GetItemsByIdAsync(id, UserId, ct);
         return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(LabelDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create(CreateLabelRequest request, CancellationToken ct)
     {
@@ -47,6 +50,7 @@ public sealed class LabelsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(LabelDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, UpdateLabelRequest request, CancellationToken ct)
@@ -56,6 +60,7 @@ public sealed class LabelsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
@@ -70,7 +75,7 @@ public sealed class LabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> AttachTicket(Guid labelId, Guid ticketId, CancellationToken ct)
     {
-        await _labels.AttachToTicketAsync(labelId, ticketId, ct);
+        await _labels.AttachToTicketAsync(labelId, ticketId, UserId, ct);
         return NoContent();
     }
 
@@ -78,7 +83,7 @@ public sealed class LabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DetachTicket(Guid labelId, Guid ticketId, CancellationToken ct)
     {
-        await _labels.DetachFromTicketAsync(labelId, ticketId, ct);
+        await _labels.DetachFromTicketAsync(labelId, ticketId, UserId, ct);
         return NoContent();
     }
 
@@ -88,7 +93,7 @@ public sealed class LabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> AttachBoard(Guid labelId, Guid boardId, CancellationToken ct)
     {
-        await _labels.AttachToBoardAsync(labelId, boardId, ct);
+        await _labels.AttachToBoardAsync(labelId, boardId, UserId, ct);
         return NoContent();
     }
 
@@ -96,7 +101,7 @@ public sealed class LabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DetachBoard(Guid labelId, Guid boardId, CancellationToken ct)
     {
-        await _labels.DetachFromBoardAsync(labelId, boardId, ct);
+        await _labels.DetachFromBoardAsync(labelId, boardId, UserId, ct);
         return NoContent();
     }
 }

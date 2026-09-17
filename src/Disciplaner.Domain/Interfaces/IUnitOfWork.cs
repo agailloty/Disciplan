@@ -19,4 +19,5 @@ public interface IUnitOfWork
     ICalendarTokenRepository CalendarTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<T> InTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
 }

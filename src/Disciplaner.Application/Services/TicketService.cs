@@ -61,9 +61,12 @@ public sealed class TicketService : ITicketService
         Guid projectId, string requestingUserId, CreateTicketRequest request,
         CancellationToken cancellationToken = default)
     {
+        return await _uow.InTransactionAsync(async () =>
+        {
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), projectId);
         EnsureWrite(project, requestingUserId);
+        await ValidateRelationsAsync(project, request.SprintId, request.ParentTicketId, request.AssigneeId, cancellationToken);
 
         var defaultStatus = project.GetDefaultStatus();
         var ticketNumber = project.ConsumeNextTicketNumber();
@@ -105,6 +108,7 @@ public sealed class TicketService : ITicketService
         await _uow.SaveChangesAsync(cancellationToken);
 
         return await ToDtoAsync(ticket, cancellationToken);
+        }, cancellationToken);
     }
 
     public async Task<TicketDto> UpdateAsync(
@@ -114,6 +118,10 @@ public sealed class TicketService : ITicketService
         var ticket = await _uow.Tickets.GetByIdAsync(ticketId, cancellationToken)
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
         await EnsureProjectWriteAsync(ticket.ProjectId, requestingUserId, cancellationToken);
+
+        var project = await _uow.Projects.GetByIdWithMembersAsync(ticket.ProjectId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Project), ticket.ProjectId);
+        await ValidateAssigneeAsync(project, request.AssigneeId, cancellationToken);
 
         var actorName = await GetActorNameAsync(requestingUserId, cancellationToken);
         var history   = new List<TicketHistory>();
@@ -138,11 +146,8 @@ public sealed class TicketService : ITicketService
         ticket.SetType(request.Type);
         ticket.SetPriority(request.Priority);
 
-        if (request.StoryPoints.HasValue)
-            ticket.SetStoryPoints(request.StoryPoints.Value);
-
-        if (request.DueDate.HasValue)
-            ticket.SetDueDate(request.DueDate.Value);
+        ticket.SetStoryPoints(request.StoryPoints);
+        ticket.SetDueDate(request.DueDate);
 
         ticket.Assign(request.AssigneeId);
 
@@ -190,7 +195,13 @@ public sealed class TicketService : ITicketService
             ?? throw new NotFoundException(nameof(Ticket), ticketId);
         await EnsureProjectWriteAsync(ticket.ProjectId, requestingUserId, cancellationToken);
 
+        await ValidateSprintAsync(ticket.ProjectId, request.SprintId, cancellationToken);
+        var previous = ticket.SprintId;
+
         ticket.MoveToSprint(request.SprintId);
+        if (previous != request.SprintId)
+            await _uow.TicketHistory.AddAsync(TicketHistory.Record(ticket.Id, "sprint_changed", requestingUserId,
+                await GetActorNameAsync(requestingUserId, cancellationToken), previous?.ToString(), request.SprintId?.ToString()), cancellationToken);
         await _uow.Tickets.UpdateAsync(ticket, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
@@ -237,6 +248,36 @@ public sealed class TicketService : ITicketService
         var reporter = await _uow.Users.GetByIdAsync(t.ReporterId, ct);
         var assignee = t.AssigneeId is not null ? await _uow.Users.GetByIdAsync(t.AssigneeId, ct) : null;
         return ToDto(t, reporter?.DisplayName ?? t.ReporterId, assignee?.DisplayName);
+    }
+
+    private async Task ValidateSprintAsync(Guid projectId, Guid? sprintId, CancellationToken ct)
+    {
+        if (sprintId is not Guid id) return;
+        var sprint = await _uow.Sprints.GetByIdAsync(id, ct);
+        if (sprint is null || sprint.ProjectId != projectId || sprint.Status == Domain.Enums.SprintStatus.Closed)
+            throw new ArgumentException("Sprint must be open and belong to this project.");
+    }
+
+    private async Task ValidateAssigneeAsync(Project project, string? assignee, CancellationToken ct)
+    {
+        if (assignee is null) return;
+        var user = await _uow.Users.GetByIdAsync(assignee, ct);
+        if (user is null || !user.IsActive || !project.CanWrite(assignee))
+            throw new ArgumentException("Assignee must be an active contributor to this project.");
+    }
+
+    private async Task ValidateRelationsAsync(Project project, Guid? sprint, Guid? parentId, string? assignee, CancellationToken ct)
+    {
+        await ValidateSprintAsync(project.Id, sprint, ct);
+        await ValidateAssigneeAsync(project, assignee, ct);
+        var visited = new HashSet<Guid>();
+        while (parentId is Guid id)
+        {
+            if (!visited.Add(id)) throw new ArgumentException("Parent hierarchy contains a cycle.");
+            var parent = await _uow.Tickets.GetByIdAsync(id, ct);
+            if (parent is null || parent.ProjectId != project.Id) throw new ArgumentException("Parent must belong to this project.");
+            parentId = parent.ParentTicketId;
+        }
     }
 
     private static void EnsureAccess(Project project, string userId)

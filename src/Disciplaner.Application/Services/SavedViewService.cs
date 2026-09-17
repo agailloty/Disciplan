@@ -98,6 +98,7 @@ public sealed class SavedViewService : ISavedViewService
         var reporterId = view.OnlyReportedByMe ? userId : null;
 
         var tickets = await _uow.Tickets.GetFilteredAsync(
+            userId,
             view.ProjectId,
             view.StatusId,
             view.SprintId,

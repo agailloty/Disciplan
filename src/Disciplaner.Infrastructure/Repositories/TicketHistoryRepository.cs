@@ -23,7 +23,7 @@ internal sealed class TicketHistoryRepository : ITicketHistoryRepository
         => await _context.TicketHistories
             .Include(h => h.Ticket)
                 .ThenInclude(t => t.Project)
-            .Where(h => h.ActorId == actorId)
+            .Where(h => h.ActorId == actorId && (h.Ticket.Project.OwnerId == actorId || h.Ticket.Project.Members.Any(m => m.UserId == actorId)))
             .OrderByDescending(h => h.OccurredAt)
             .Take(limit)
             .ToListAsync(cancellationToken);

@@ -26,9 +26,9 @@ public sealed class LabelService : ILabelService
         return label?.ToDto();
     }
 
-    public async Task<LabelItemsDto?> GetItemsByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<LabelItemsDto?> GetItemsByIdAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
-        var label = await _uow.Labels.GetByIdWithItemsAsync(id, cancellationToken);
+        var label = await _uow.Labels.GetByIdWithItemsAsync(id, userId, cancellationToken);
         if (label is null) return null;
 
         var tickets = label.Tickets.Select(t => new TicketSummaryDto(
@@ -83,26 +83,30 @@ public sealed class LabelService : ILabelService
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task AttachToTicketAsync(Guid labelId, Guid ticketId, CancellationToken cancellationToken = default)
+    public async Task AttachToTicketAsync(Guid labelId, Guid ticketId, string userId, CancellationToken cancellationToken = default)
     {
+        await ResourceAccess.Ticket(_uow, ticketId, userId, cancellationToken, write: true);
         await _uow.Labels.AttachToTicketAsync(labelId, ticketId, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DetachFromTicketAsync(Guid labelId, Guid ticketId, CancellationToken cancellationToken = default)
+    public async Task DetachFromTicketAsync(Guid labelId, Guid ticketId, string userId, CancellationToken cancellationToken = default)
     {
+        await ResourceAccess.Ticket(_uow, ticketId, userId, cancellationToken, write: true);
         await _uow.Labels.DetachFromTicketAsync(labelId, ticketId, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task AttachToBoardAsync(Guid labelId, Guid boardId, CancellationToken cancellationToken = default)
+    public async Task AttachToBoardAsync(Guid labelId, Guid boardId, string userId, CancellationToken cancellationToken = default)
     {
+        await ResourceAccess.Board(_uow, boardId, userId, cancellationToken, write: true);
         await _uow.Labels.AttachToBoardAsync(labelId, boardId, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DetachFromBoardAsync(Guid labelId, Guid boardId, CancellationToken cancellationToken = default)
+    public async Task DetachFromBoardAsync(Guid labelId, Guid boardId, string userId, CancellationToken cancellationToken = default)
     {
+        await ResourceAccess.Board(_uow, boardId, userId, cancellationToken, write: true);
         await _uow.Labels.DetachFromBoardAsync(labelId, boardId, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
     }

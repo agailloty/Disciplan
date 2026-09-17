@@ -14,9 +14,11 @@
             <p class="text-sm text-gray-400 mt-0.5">@string.Format(L["Label.Count"].Value, _labels.Count)</p>
         }
     </div>
+    <AuthorizeView Roles="Admin">
     <button class="btn btn-primary btn-sm" @onclick="ShowCreate">
         <i class="bi bi-plus"></i> @L["Label.CreateTitle"]
     </button>
+    </AuthorizeView>
 </div>
 
 @if (_loading)
@@ -34,7 +36,7 @@ else if (_labels is not null)
         <div class="text-center py-20 text-gray-400">
             <i class="bi bi-tags" style="font-size:2.5rem"></i>
             <p class="mt-3 text-sm">@L["Label.Empty"]</p>
-            <button class="btn btn-primary mt-4" @onclick="ShowCreate">@L["Label.CreateFirst"]</button>
+            <AuthorizeView Roles="Admin"><button class="btn btn-primary mt-4" @onclick="ShowCreate">@L["Label.CreateFirst"]</button></AuthorizeView>
         </div>
     }
     else
@@ -51,8 +53,10 @@ else if (_labels is not null)
                         @l.Name
                     </button>
                     <span class="text-xs text-gray-400">@l.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                    <AuthorizeView Roles="Admin">
                     <button class="btn-icon" title="@L["Edit"]" @onclick="() => ShowEdit(l)"><i class="bi bi-pencil text-xs"></i></button>
                     <button class="btn-icon btn-icon-danger" title="@L["Delete"]" @onclick="() => ShowDelete(l)"><i class="bi bi-trash text-xs"></i></button>
+                    </AuthorizeView>
                 </div>
             }
         </div>
