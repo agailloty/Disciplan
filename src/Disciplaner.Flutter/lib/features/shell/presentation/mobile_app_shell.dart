@@ -7,8 +7,10 @@ import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/activity/presentation/activity_drawer.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/search/presentation/command_palette_modal.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_create_ticket_sheet.dart';
 
 class MobileAppShell extends ConsumerWidget {
@@ -27,6 +29,13 @@ class MobileAppShell extends ConsumerWidget {
       if (current) {
         ref.read(quickCreateTicketOpenProvider.notifier).set(false);
         MobileCreateTicketSheet.show(context);
+      }
+    });
+
+    ref.listen<bool>(commandPaletteOpenProvider, (prev, current) {
+      if (current) {
+        ref.read(commandPaletteOpenProvider.notifier).set(false);
+        CommandPaletteModal.show(context);
       }
     });
 
@@ -81,6 +90,13 @@ class MobileAppShell extends ConsumerWidget {
                 ),
                 Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none_outlined, size: 20),
+                      tooltip: 'Activité récente',
+                      onPressed: () {
+                        ActivityDrawer.show(context);
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.search, size: 20),
                       onPressed: () {

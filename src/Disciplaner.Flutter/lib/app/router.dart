@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/auth_providers.dart';
@@ -8,11 +7,12 @@ import '../features/auth/presentation/setup_screen.dart';
 import '../features/kanban/presentation/kanban_adaptive_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
-import '../features/shell/presentation/shell_placeholders.dart';
 import '../features/sprints/presentation/cycles_overview_screen.dart';
 import '../features/tickets/presentation/my_tasks_view.dart';
 import '../features/tickets/presentation/project_list_view.dart';
 import '../features/tickets/presentation/ticket_detail_screen.dart';
+import '../features/calendar/presentation/team_calendar_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -82,19 +82,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/calendar',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Calendrier d\'Équipe',
-              subtitle: 'Jalons de sprint et flux de synchronisation iCal.',
-              icon: Icons.calendar_today,
-            ),
+            builder: (context, state) => const TeamCalendarScreen(),
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Paramètres & Administration',
-              subtitle: 'Configuration du profil, membres et serveur Homelab.',
-              icon: Icons.settings,
-            ),
+            builder: (context, state) => const SettingsScreen(),
           ),
         ],
       ),

@@ -11,8 +11,10 @@ import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/activity/presentation/activity_drawer.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/search/presentation/command_palette_modal.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
 
 class DesktopAppShell extends ConsumerWidget {
@@ -31,6 +33,13 @@ class DesktopAppShell extends ConsumerWidget {
       if (current) {
         ref.read(quickCreateTicketOpenProvider.notifier).set(false);
         DesktopCreateTicketDialog.show(context);
+      }
+    });
+
+    ref.listen<bool>(commandPaletteOpenProvider, (prev, current) {
+      if (current) {
+        ref.read(commandPaletteOpenProvider.notifier).set(false);
+        CommandPaletteModal.show(context);
       }
     });
 
@@ -297,6 +306,14 @@ class DesktopAppShell extends ConsumerWidget {
                 isActive: false,
                 onTap: () {
                   ref.read(commandPaletteOpenProvider.notifier).toggle();
+                },
+              ),
+              _buildActivityItem(
+                icon: Icons.notifications_none_outlined,
+                tooltip: 'Activité récente',
+                isActive: false,
+                onTap: () {
+                  ActivityDrawer.show(context);
                 },
               ),
             ],

@@ -499,3 +499,52 @@ class AdminUserDto extends Equatable {
   @override
   List<Object?> get props => [id, displayName, email, isActive, createdAt, roles];
 }
+
+class InvitationDto extends Equatable {
+  final String id;
+  final String token;
+  final String email;
+  final String invitedByUserId;
+  final DateTime createdAt;
+  final DateTime expiresAt;
+  final bool isUsed;
+
+  const InvitationDto({
+    required this.id,
+    required this.token,
+    required this.email,
+    required this.invitedByUserId,
+    required this.createdAt,
+    required this.expiresAt,
+    required this.isUsed,
+  });
+
+  factory InvitationDto.fromJson(Map<String, dynamic> json) {
+    return InvitationDto(
+      id: json['id']?.toString() ?? '',
+      token: json['token'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      invitedByUserId: json['invitedByUserId']?.toString() ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'].toString())
+          : DateTime.now(),
+      expiresAt: json['expiresAt'] != null
+          ? DateTime.parse(json['expiresAt'].toString())
+          : DateTime.now().add(const Duration(days: 7)),
+      isUsed: json['isUsed'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'token': token,
+        'email': email,
+        'invitedByUserId': invitedByUserId,
+        'createdAt': createdAt.toIso8601String(),
+        'expiresAt': expiresAt.toIso8601String(),
+        'isUsed': isUsed,
+      };
+
+  @override
+  List<Object?> get props => [id, token, email, invitedByUserId, createdAt, expiresAt, isUsed];
+}

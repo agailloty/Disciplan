@@ -14,6 +14,11 @@ final tokenStorageProvider = Provider<TokenStorage>((ref) {
   return TokenStorage();
 });
 
+final homelabServerUrlProvider = Provider<String>((ref) {
+  final storage = ref.watch(serverConfigStorageProvider);
+  return storage.getBaseUrl();
+});
+
 final dioClientProvider = Provider<DioClient>((ref) {
   final serverStorage = ref.watch(serverConfigStorageProvider);
   final tokenStorage = ref.watch(tokenStorageProvider);
@@ -150,6 +155,21 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (e) {
       state = AuthUnauthenticated(errorMessage: e.toString());
       rethrow;
+    }
+  }
+
+  Future<void> updateDisplayNameLocal(String displayName) async {
+    if (state is AuthAuthenticated) {
+      final current = (state as AuthAuthenticated).session;
+      final updated = AuthResponse(
+        token: current.token,
+        email: current.email,
+        displayName: displayName,
+        roles: current.roles,
+        expiresAt: current.expiresAt,
+      );
+      await _tokenStorage.saveSession(updated);
+      state = AuthAuthenticated(updated);
     }
   }
 
