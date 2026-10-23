@@ -5,6 +5,7 @@ import '../features/auth/presentation/auth_providers.dart';
 import '../features/auth/presentation/auth_state.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/setup_screen.dart';
+import '../features/kanban/presentation/kanban_adaptive_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
 import '../features/shell/presentation/shell_placeholders.dart';
@@ -65,11 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/kanban',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Tableau Kanban',
-              subtitle: 'Gestion visuelle en colonnes du sprint en cours.',
-              icon: Icons.view_kanban,
-            ),
+            builder: (context, state) => const KanbanAdaptiveScreen(),
           ),
           GoRoute(
             path: '/cycles',
