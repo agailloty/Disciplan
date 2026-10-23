@@ -2623,4 +2623,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get landingFooter =>
       'Self-hosted · One single API for web, mobile and desktop.';
+
+  @override
+  String get setupServerTitle => 'Server configuration';
+
+  @override
+  String get setupServerSubtitle =>
+      'Point the app to another Disciplan API server. The web build uses its own origin by default.';
 }

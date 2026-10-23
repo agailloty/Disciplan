@@ -7,6 +7,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
@@ -469,7 +470,13 @@ class _MobileTicketDetailSheetState
             IconButton(
               icon: const Icon(Icons.share, size: 18),
               onPressed: () {
-                Clipboard.setData(ClipboardData(text: ticket.ticketRef));
+                final baseUrl =
+                    ref.read(serverConfigStorageProvider).getBaseUrl();
+                Clipboard.setData(
+                  ClipboardData(
+                    text: buildTicketShareUrl(baseUrl, ticket.ticketRef),
+                  ),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     behavior: SnackBarBehavior.floating,

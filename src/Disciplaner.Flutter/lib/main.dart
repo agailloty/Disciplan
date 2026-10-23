@@ -5,6 +5,7 @@ import 'app/router.dart';
 import 'app/theme/neo_theme.dart';
 import 'core/l10n/locale_providers.dart';
 import 'core/storage/server_config_storage.dart';
+import 'core/storage/token_storage.dart';
 import 'features/auth/presentation/auth_providers.dart';
 import 'l10n/app_localizations.dart';
 
@@ -13,11 +14,15 @@ void main() async {
   await initializeDateFormatting('fr_FR', null);
   await initializeDateFormatting('en_US', null);
   final serverStorage = await ServerConfigStorage.create();
+  // Session persistée (localStorage sur le web) : un rechargement de page ne
+  // doit pas forcer une nouvelle authentification.
+  final tokenStorage = await TokenStorage.create();
 
   runApp(
     ProviderScope(
       overrides: [
         serverConfigStorageProvider.overrideWithValue(serverStorage),
+        tokenStorageProvider.overrideWithValue(tokenStorage),
       ],
       child: const DisciplanApp(),
     ),

@@ -26,29 +26,12 @@ class TicketDetailScreen extends ConsumerWidget {
         data: (ticket) {
           final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
           if (isDesktop) {
-            return Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 800),
-                margin: const EdgeInsets.all(NeoSpacing.spaceLg),
-                decoration: BoxDecoration(
-                  color: NeoColors.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x0F000000),
-                      blurRadius: 24,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: SplitInspectorPanel(
-                    ticketId: ticket.id,
-                    onClose: () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-              ),
+            // Page desktop pleine largeur : le panneau passe en mode
+            // autonome (deux colonnes : contenu + propriétés).
+            return SplitInspectorPanel(
+              ticketId: ticket.id,
+              standalone: true,
+              onClose: () => Navigator.of(context).maybePop(),
             );
           } else {
             return MobileTicketDetailSheet(ticketId: ticket.id);

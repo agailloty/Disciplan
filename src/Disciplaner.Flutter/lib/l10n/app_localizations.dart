@@ -4825,6 +4825,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.'**
   String get landingFooter;
+
+  /// No description provided for @setupServerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration du serveur'**
+  String get setupServerTitle;
+
+  /// No description provided for @setupServerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pointer l\'application vers un autre serveur API Disciplan. Le build web utilise par défaut sa propre origine.'**
+  String get setupServerSubtitle;
 }
 
 class _AppLocalizationsDelegate

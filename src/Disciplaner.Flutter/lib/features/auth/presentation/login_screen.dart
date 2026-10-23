@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
@@ -202,7 +203,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: NeoSpacing.spaceLg),
-                const HomelabServerCard(),
+                // Sur le web, l'application est servie par le conteneur
+                // Docker (même origine que l'API) : la saisie de l'URL du
+                // serveur reste disponible sur desktop / mobile, ou via la
+                // route isolée /setup-server.
+                if (!kIsWeb) const HomelabServerCard(),
               ],
             ),
           ),

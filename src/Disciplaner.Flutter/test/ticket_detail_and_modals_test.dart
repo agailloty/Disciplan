@@ -4,6 +4,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/ticket_detail_screen.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_create_ticket_sheet.dart';
@@ -225,6 +226,40 @@ void main() {
       expect(find.text('Historique'), findsOneWidget);
       expect(find.text('Clara D.'), findsOneWidget);
       expect(find.text('Gabarits Clear Channel validés avec la régie.'), findsOneWidget);
+    });
+  });
+
+  group('TicketDetailScreen Desktop Page Test', () {
+    testWidgets('TicketDetailScreen renders a two-column standalone desktop layout', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      await tester.binding.setSurfaceSize(const Size(1400, 900));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ticketByRefProvider('DISC-14').overrideWith((ref) async => sampleTicket),
+            ticketDetailProvider('ticket-14').overrideWith((ref) async => sampleTicket),
+            ticketCommentsProvider('ticket-14').overrideWith((ref) async => sampleComments),
+            ticketAttachmentsProvider('ticket-14').overrideWith((ref) async => sampleAttachments),
+            ticketHistoryProvider('ticket-14').overrideWith((ref) async => sampleHistory),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
+            theme: NeoTheme.lightTheme,
+            home: const TicketDetailScreen(ticketRef: 'DISC-14'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Page desktop : titre, propriétés (colonne latérale) et activité
+      // (colonne principale) sont visibles simultanément, sans défilement.
+      expect(find.text('Déclinaison affichage urbain 4x3 & abribus'), findsOneWidget);
+      expect(find.text('Priorité'), findsWidgets);
+      expect(find.text('Commentaires'), findsOneWidget);
     });
   });
 

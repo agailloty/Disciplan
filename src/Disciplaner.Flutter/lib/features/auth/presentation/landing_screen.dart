@@ -23,6 +23,8 @@ class LandingScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final authState = ref.watch(authNotifierProvider);
     final isAuthenticated = authState is AuthAuthenticated;
+    // Première installation : le CTA mène à la création du compte admin.
+    final needsSetup = authState is AuthNeedsInitialSetup;
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -73,8 +75,11 @@ class LandingScreen extends ConsumerWidget {
                         ? l10n.landingOpenApp
                         : l10n.landingCtaLogin,
                     icon: const Icon(Icons.arrow_forward),
-                    onPressed: () =>
-                        context.go(isAuthenticated ? '/dashboard' : '/login'),
+                    onPressed: () => context.go(
+                      isAuthenticated
+                          ? '/dashboard'
+                          : (needsSetup ? '/setup' : '/login'),
+                    ),
                   ),
                   const SizedBox(height: NeoSpacing.spaceXs),
                   Text(

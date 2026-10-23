@@ -2639,4 +2639,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get landingFooter =>
       'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.';
+
+  @override
+  String get setupServerTitle => 'Configuration du serveur';
+
+  @override
+  String get setupServerSubtitle =>
+      'Pointer l\'application vers un autre serveur API Disciplan. Le build web utilise par défaut sa propre origine.';
 }

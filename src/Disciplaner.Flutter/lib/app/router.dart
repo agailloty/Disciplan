@@ -5,6 +5,7 @@ import '../features/auth/presentation/auth_state.dart';
 import '../features/auth/presentation/landing_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/setup_screen.dart';
+import '../features/auth/presentation/setup_server_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/kanban/presentation/kanban_adaptive_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
@@ -23,8 +24,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     redirect: (context, state) {
       final loc = state.matchedLocation;
+      // Page publique isolée : aucun état d'authentification requis.
+      if (loc == '/setup-server') return null;
       if (authState is AuthNeedsInitialSetup) {
-        if (loc != '/setup') return '/setup';
+        // La page d'accueil reste visible ; seule l'installation crée le
+        // premier compte administrateur.
+        if (loc != '/' && loc != '/setup') return '/setup';
         return null;
       }
       if (authState is AuthUnauthenticated || authState is AuthUnconfiguredServer) {
@@ -50,6 +55,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/setup',
         builder: (context, state) => const SetupScreen(),
+      ),
+      GoRoute(
+        path: '/setup-server',
+        builder: (context, state) => const SetupServerScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => AdaptiveAppShell(

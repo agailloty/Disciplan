@@ -1458,5 +1458,7 @@
   "landingFeatureKanbanDescription": "Tableaux drag & drop, vues sauvegardées et métriques de cycle.",
   "landingFeatureCalendarTitle": "Calendrier d'équipe",
   "landingFeatureCalendarDescription": "Roadmap mensuelle des sprints et de vos échéances, flux iCal privé.",
-  "landingFooter": "Auto-hébergé · Une API unique pour le web, le mobile et le desktop."
+  "landingFooter": "Auto-hébergé · Une API unique pour le web, le mobile et le desktop.",
+  "setupServerTitle": "Configuration du serveur",
+  "setupServerSubtitle": "Pointer l'application vers un autre serveur API Disciplan. Le build web utilise par défaut sa propre origine."
 }

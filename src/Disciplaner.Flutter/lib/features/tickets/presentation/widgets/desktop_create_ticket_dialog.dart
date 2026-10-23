@@ -60,6 +60,7 @@ class _DesktopCreateTicketDialogState
   DateTime? _dueDate;
   String? _assigneeId;
   String? _assigneeName;
+  bool _assigneeTouched = false;
   String? _sprintId;
   bool _createMore = false;
   bool _isLoading = false;
@@ -91,7 +92,7 @@ class _DesktopCreateTicketDialogState
     }
   }
 
-  Future<void> _handleSubmit(String projectId) async {
+  Future<void> _handleSubmit(String projectId, String? assigneeId) async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       setState(() => _errorMessage = context.l10n.ticketsTitleRequired);
@@ -116,7 +117,7 @@ class _DesktopCreateTicketDialogState
           type: _type,
           priority: _priority,
           dueDate: _dueDate,
-          assigneeId: _assigneeId,
+          assigneeId: assigneeId,
           sprintId: _sprintId,
         ),
       );
@@ -165,6 +166,19 @@ class _DesktopCreateTicketDialogState
           currentUserDisplayName: currentSession?.displayName,
         ) ??
         const [];
+    // Politique du projet : assigner le créateur par défaut tant que
+    // l'utilisateur n'a pas explicitement touché le champ assigné.
+    final policyDefaultAssignee = (!_assigneeTouched &&
+            _assigneeId == null &&
+            (projectDetail?.defaultAssigneePolicy ?? DefaultAssigneePolicy.none) ==
+                DefaultAssigneePolicy.creator &&
+            currentSession != null)
+        ? assignableMembers
+            .where((m) => m.userId == currentSession.userId)
+            .firstOrNull
+        : null;
+    final effectiveAssigneeId = _assigneeId ?? policyDefaultAssignee?.userId;
+    final effectiveAssigneeName = _assigneeName ?? policyDefaultAssignee?.displayName;
     final sprintsAsync = projectId.isNotEmpty
         ? ref.watch(projectSprintsProvider(projectId))
         : const AsyncValue.data(<SprintDto>[]);
@@ -333,6 +347,7 @@ class _DesktopCreateTicketDialogState
                       ),
                       onSelected: (userId) {
                         setState(() {
+                          _assigneeTouched = true;
                           if (userId == '__UNASSIGNED__') {
                             _assigneeId = null;
                             _assigneeName = null;
@@ -373,12 +388,15 @@ class _DesktopCreateTicketDialogState
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            UserAvatar(name: _assigneeName ?? l10n.ticketNoAssignee, size: 18),
+                            UserAvatar(
+                              name: effectiveAssigneeName ?? l10n.ticketNoAssignee,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
                             Text(
-                              _assigneeName ?? l10n.ticketsAssign,
+                              effectiveAssigneeName ?? l10n.ticketsAssign,
                               style: NeoTypography.bodySm.copyWith(
-                                color: _assigneeName != null
+                                color: effectiveAssigneeName != null
                                     ? NeoColors.onSurface
                                     : NeoColors.muted,
                               ),
@@ -520,7 +538,7 @@ class _DesktopCreateTicketDialogState
                         label: l10n.ticketsCreateTask,
                         isLoading: _isLoading,
                         onPressed: projectId.isNotEmpty
-                            ? () => _handleSubmit(projectId)
+                            ? () => _handleSubmit(projectId, effectiveAssigneeId)
                             : null,
                       ),
                     ],

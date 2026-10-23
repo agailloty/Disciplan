@@ -7,6 +7,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
@@ -25,10 +26,17 @@ class SplitInspectorPanel extends ConsumerStatefulWidget {
   final String ticketId;
   final VoidCallback? onClose;
 
+  /// Mode page autonome (route `/tickets/:ref`) : le panneau occupe toute la
+  /// zone de travail avec une mise en page desktop à deux colonnes (contenu
+  /// principal + barre de propriétés). Le mode par défaut reste un
+  /// inspecteur latéral compact utilisé dans les vues kanban / liste.
+  final bool standalone;
+
   const SplitInspectorPanel({
     super.key,
     required this.ticketId,
     this.onClose,
+    this.standalone = false,
   });
 
   @override
@@ -244,6 +252,44 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     final ticketAsync = ref.watch(ticketDetailProvider(widget.ticketId));
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final body = ticketAsync.when(
+      data: (ticket) => _buildContent(context, ticket),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: NeoColors.primary, strokeWidth: 2),
+      ),
+      error: (err, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(NeoSpacing.spaceMd),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: NeoColors.error, size: 36),
+              const SizedBox(height: NeoSpacing.spaceSm),
+              Text(l10n.ticketsLoadTicketFailed, style: NeoTypography.headlineSm),
+              const SizedBox(height: NeoSpacing.spaceXs),
+              Text(err.toString(), style: NeoTypography.bodySm, textAlign: TextAlign.center),
+              const SizedBox(height: NeoSpacing.spaceMd),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(ticketDetailProvider(widget.ticketId)),
+                child: Text(l10n.attachmentRetry),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (widget.standalone) {
+      return Container(
+        color: NeoColors.surface,
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1360),
+          child: body,
+        ),
+      );
+    }
+
     return Container(
       width: NeoSpacing.inspectorWidth(screenWidth),
       decoration: const BoxDecoration(
@@ -259,32 +305,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           ),
         ],
       ),
-      child: ticketAsync.when(
-        data: (ticket) => _buildContent(context, ticket),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: NeoColors.primary, strokeWidth: 2),
-        ),
-        error: (err, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(NeoSpacing.spaceMd),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error_outline, color: NeoColors.error, size: 36),
-                const SizedBox(height: NeoSpacing.spaceSm),
-                Text(l10n.ticketsLoadTicketFailed, style: NeoTypography.headlineSm),
-                const SizedBox(height: NeoSpacing.spaceXs),
-                Text(err.toString(), style: NeoTypography.bodySm, textAlign: TextAlign.center),
-                const SizedBox(height: NeoSpacing.spaceMd),
-                ElevatedButton(
-                  onPressed: () => ref.invalidate(ticketDetailProvider(widget.ticketId)),
-                  child: Text(l10n.attachmentRetry),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      child: body,
     );
   }
 
@@ -306,55 +327,129 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           const Divider(height: 1, color: NeoColors.surfaceContainerHigh),
 
         // Scrollable Body
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(NeoSpacing.spaceMd),
-            children: [
-              // Title
-              Text(
-                ticket.title,
-                style: NeoTypography.headlineLg.copyWith(fontSize: 20),
-              ),
-              const SizedBox(height: NeoSpacing.spaceSm),
-
-              // Description
-              if (ticket.description != null && ticket.description!.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(NeoSpacing.spaceSm),
-                  decoration: BoxDecoration(
-                    color: NeoColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    ticket.description!,
-                    style: NeoTypography.bodyMd.copyWith(color: NeoColors.onSurfaceVariant),
-                  ),
-                ),
-              const SizedBox(height: NeoSpacing.spaceMd),
-
-              // Key Properties (interactive)
-              _buildPropertiesSection(ticket, project),
-              const SizedBox(height: NeoSpacing.spaceMd),
-
-              // Labels
-              _buildLabelsSection(ticket),
-              const SizedBox(height: NeoSpacing.spaceMd),
-
-              // Subtasks / Livrables (real child tickets only)
-              _buildSubtasksSection(ticket, project),
-              const SizedBox(height: NeoSpacing.spaceMd),
-
-              // Attachments
-              _buildAttachmentsSection(ticket),
-              const SizedBox(height: NeoSpacing.spaceMd),
-
-              // Activity tabs (Comments / History)
-              _buildActivityTabs(ticket),
-            ],
-          ),
-        ),
+        Expanded(child: _buildBody(ticket, project)),
       ],
     );
+  }
+
+  /// Corps défilant du panneau : liste compacte en mode inspecteur latéral,
+  /// mise en page desktop à deux colonnes (contenu + propriétés) en mode
+  /// page autonome.
+  Widget _buildBody(TicketDto ticket, ProjectDetailDto? project) {
+    if (!widget.standalone) {
+      return ListView(
+        padding: const EdgeInsets.all(NeoSpacing.spaceMd),
+        children: _buildBodySections(ticket, project),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final twoColumns = constraints.maxWidth >= 960;
+        return ListView(
+          padding: twoColumns
+              ? const EdgeInsets.all(NeoSpacing.spaceLg)
+              : NeoSpacing.responsivePagePadding(constraints.maxWidth),
+          children: [
+            if (twoColumns)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _buildMainSections(ticket, project),
+                    ),
+                  ),
+                  const SizedBox(width: NeoSpacing.spaceLg),
+                  SizedBox(
+                    width: 340,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _buildMetaSections(ticket, project),
+                    ),
+                  ),
+                ],
+              )
+            else
+              ..._buildBodySections(ticket, project),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildBodySections(TicketDto ticket, ProjectDetailDto? project) {
+    return [
+      ..._buildMainHeaderSections(ticket),
+      const SizedBox(height: NeoSpacing.spaceMd),
+      _buildPropertiesSection(ticket, project),
+      const SizedBox(height: NeoSpacing.spaceMd),
+      _buildLabelsSection(ticket),
+      const SizedBox(height: NeoSpacing.spaceMd),
+      ..._buildMainFooterSections(ticket, project),
+    ];
+  }
+
+  List<Widget> _buildMainSections(TicketDto ticket, ProjectDetailDto? project) {
+    return [
+      ..._buildMainHeaderSections(ticket),
+      const SizedBox(height: NeoSpacing.spaceMd),
+      ..._buildMainFooterSections(ticket, project),
+    ];
+  }
+
+  List<Widget> _buildMainHeaderSections(TicketDto ticket) {
+    return [
+      // Title
+      Text(
+        ticket.title,
+        style: NeoTypography.headlineLg.copyWith(fontSize: 20),
+      ),
+      const SizedBox(height: NeoSpacing.spaceSm),
+
+      // Description
+      if (ticket.description != null && ticket.description!.isNotEmpty)
+        Container(
+          padding: const EdgeInsets.all(NeoSpacing.spaceSm),
+          decoration: BoxDecoration(
+            color: NeoColors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            ticket.description!,
+            style: NeoTypography.bodyMd.copyWith(color: NeoColors.onSurfaceVariant),
+          ),
+        ),
+    ];
+  }
+
+  List<Widget> _buildMainFooterSections(TicketDto ticket, ProjectDetailDto? project) {
+    return [
+      // Subtasks / Livrables (real child tickets only)
+      _buildSubtasksSection(ticket, project),
+      const SizedBox(height: NeoSpacing.spaceMd),
+
+      // Attachments
+      _buildAttachmentsSection(ticket),
+      const SizedBox(height: NeoSpacing.spaceMd),
+
+      // Activity tabs (Comments / History)
+      _buildActivityTabs(ticket),
+    ];
+  }
+
+  List<Widget> _buildMetaSections(TicketDto ticket, ProjectDetailDto? project) {
+    return [
+      // Key Properties (interactive)
+      _buildPropertiesSection(ticket, project),
+      const SizedBox(height: NeoSpacing.spaceMd),
+
+      // Labels
+      _buildLabelsSection(ticket),
+    ];
   }
 
   Widget _buildHeader(TicketDto ticket, ProjectDetailDto? project) {
@@ -456,10 +551,13 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                 icon: const Icon(Icons.share_outlined, size: 18),
                 tooltip: l10n.ticketsCopyLink,
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: ticket.ticketRef));
+                  final baseUrl = ref.read(serverConfigStorageProvider).getBaseUrl();
+                  Clipboard.setData(
+                    ClipboardData(text: buildTicketShareUrl(baseUrl, ticket.ticketRef)),
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(l10n.ticketsRefCopied),
+                      content: Text(l10n.ticketsTicketLinkCopied),
                       duration: const Duration(seconds: 1),
                     ),
                   );

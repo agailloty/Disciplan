@@ -58,6 +58,7 @@ class _MobileCreateTicketSheetState
   DateTime? _dueDate;
   String? _assigneeId;
   String? _assigneeName;
+  bool _assigneeTouched = false;
   String? _selectedProjectId;
   String? _selectedSprintId;
   bool _createMore = false;
@@ -103,6 +104,29 @@ class _MobileCreateTicketSheetState
       _errorMessage = null;
     });
 
+    // Politique du projet : assigner le créateur par défaut tant que
+    // l'utilisateur n'a pas explicitement touché le champ assigné.
+    var assigneeId = _assigneeId;
+    if (!_assigneeTouched && assigneeId == null) {
+      final projectDetail =
+          ref.read(projectDetailByIdProvider(projectId)).value;
+      final authState = ref.read(authNotifierProvider);
+      final session = authState is AuthAuthenticated ? authState.session : null;
+      if ((projectDetail?.defaultAssigneePolicy ??
+                  DefaultAssigneePolicy.none) ==
+              DefaultAssigneePolicy.creator &&
+          session != null) {
+        final members = projectDetail!.assignableMembers(
+          currentUserId: session.userId,
+          currentUserDisplayName: session.displayName,
+        );
+        assigneeId = members
+            .where((m) => m.userId == session.userId)
+            .firstOrNull
+            ?.userId;
+      }
+    }
+
     try {
       final repo = ref.read(ticketRepositoryProvider);
       await repo.createTicket(
@@ -115,7 +139,7 @@ class _MobileCreateTicketSheetState
           type: TicketType.task,
           priority: _priority,
           sprintId: _selectedSprintId,
-          assigneeId: _assigneeId,
+          assigneeId: assigneeId,
           dueDate: _dueDate,
         ),
       );
@@ -187,6 +211,19 @@ class _MobileCreateTicketSheetState
           currentUserDisplayName: currentSession?.displayName,
         ) ??
         const <MemberDto>[];
+    // Politique du projet : afficher le créateur comme assigné par défaut.
+    final policyDefaultAssignee = (!_assigneeTouched &&
+            _assigneeId == null &&
+            (projectDetail?.defaultAssigneePolicy ??
+                    DefaultAssigneePolicy.none) ==
+                DefaultAssigneePolicy.creator &&
+            currentSession != null)
+        ? assignableMembers
+            .where((m) => m.userId == currentSession.userId)
+            .firstOrNull
+        : null;
+    final effectiveAssigneeName =
+        _assigneeName ?? policyDefaultAssignee?.displayName;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
@@ -474,6 +511,7 @@ class _MobileCreateTicketSheetState
                         action: PopupMenuButton<String>(
                           onSelected: (userId) {
                             setState(() {
+                              _assigneeTouched = true;
                               if (userId == '__UNASSIGNED__') {
                                 _assigneeId = null;
                                 _assigneeName = null;
@@ -513,12 +551,12 @@ class _MobileCreateTicketSheetState
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (_assigneeName != null) ...[
-                                  UserAvatar(name: _assigneeName!, size: 18),
+                                if (effectiveAssigneeName != null) ...[
+                                  UserAvatar(name: effectiveAssigneeName, size: 18),
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      _assigneeName!,
+                                      effectiveAssigneeName,
                                       overflow: TextOverflow.ellipsis,
                                       style: NeoTypography.headlineSm.copyWith(fontSize: 13),
                                     ),

@@ -787,5 +787,7 @@
   "landingFeatureKanbanDescription": "Drag & drop boards, saved views and cycle metrics.",
   "landingFeatureCalendarTitle": "Team calendar",
   "landingFeatureCalendarDescription": "Monthly sprint roadmap and deadlines, with a private iCal feed.",
-  "landingFooter": "Self-hosted · One single API for web, mobile and desktop."
+  "landingFooter": "Self-hosted · One single API for web, mobile and desktop.",
+  "setupServerTitle": "Server configuration",
+  "setupServerSubtitle": "Point the app to another Disciplan API server. The web build uses its own origin by default."
 }

@@ -4,6 +4,7 @@ using Disciplaner.Application.DTOs.TicketStatus;
 using Disciplaner.Application.Exceptions;
 using Disciplaner.Application.Interfaces;
 using Disciplaner.Domain.Entities;
+using Disciplaner.Domain.Enums;
 using Disciplaner.Domain.Interfaces;
 
 namespace Disciplaner.Application.Services;
@@ -68,6 +69,15 @@ public sealed class TicketService : ITicketService
         EnsureWrite(project, requestingUserId);
         await ValidateRelationsAsync(project, request.SprintId, request.ParentTicketId, request.AssigneeId, cancellationToken);
 
+        // Politique d'assignation par défaut du projet : à défaut d'assigné
+        // explicite, le créateur reprend le ticket quand la politique l'exige.
+        var assigneeId = request.AssigneeId;
+        if (string.IsNullOrWhiteSpace(assigneeId) &&
+            project.DefaultAssigneePolicy == DefaultAssigneePolicy.Creator)
+        {
+            assigneeId = requestingUserId;
+        }
+
         var defaultStatus = project.GetDefaultStatus();
         var ticketNumber = project.ConsumeNextTicketNumber();
 
@@ -88,8 +98,8 @@ public sealed class TicketService : ITicketService
         if (request.DueDate.HasValue)
             ticket.SetDueDate(request.DueDate.Value);
 
-        if (!string.IsNullOrWhiteSpace(request.AssigneeId))
-            ticket.Assign(request.AssigneeId);
+        if (!string.IsNullOrWhiteSpace(assigneeId))
+            ticket.Assign(assigneeId);
 
         if (request.SprintId.HasValue)
             ticket.MoveToSprint(request.SprintId.Value);
