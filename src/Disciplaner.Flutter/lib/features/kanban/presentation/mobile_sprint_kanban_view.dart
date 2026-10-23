@@ -9,6 +9,7 @@ import 'package:disciplaner_flutter/features/sprints/presentation/sprint_provide
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_ticket_detail_sheet.dart';
 import 'kanban_providers.dart';
 import 'widgets/kanban_ticket_card.dart';
 
@@ -188,6 +189,7 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
                     child: KanbanTicketCard(
                       ticket: ticket,
                       availableStatuses: kState.statuses,
+                      onTap: () => MobileTicketDetailSheet.show(context, ticket.id),
                       onMoveToStatus: (targetId) {
                         ref
                             .read(kanbanStateProvider(widget.sprint.id).notifier)

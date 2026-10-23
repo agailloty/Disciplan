@@ -171,3 +171,58 @@ final sprintTicketsProvider =
   final repo = ref.watch(ticketRepositoryProvider);
   return await repo.getBySprint(sprintId);
 });
+
+// Currently selected ticket for Split Inspector / Detail View
+class SelectedTicketDetailIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void select(String? id) => state = id;
+  void clear() => state = null;
+}
+
+final selectedTicketDetailIdProvider =
+    NotifierProvider<SelectedTicketDetailIdNotifier, String?>(
+  SelectedTicketDetailIdNotifier.new,
+);
+
+// Ticket Detail provider
+final ticketDetailProvider =
+    FutureProvider.family.autoDispose<TicketDto, String>((ref, ticketId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getById(ticketId);
+});
+
+// Ticket Comments provider
+final ticketCommentsProvider =
+    FutureProvider.family.autoDispose<List<CommentDto>, String>((ref, ticketId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getComments(ticketId);
+});
+
+// Ticket Attachments provider
+final ticketAttachmentsProvider =
+    FutureProvider.family.autoDispose<List<AttachmentDto>, String>((ref, ticketId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getAttachments(ticketId);
+});
+
+// Ticket History / Audit provider
+final ticketHistoryProvider =
+    FutureProvider.family.autoDispose<List<TicketHistoryEntryDto>, String>((ref, ticketId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getHistory(ticketId);
+});
+
+// Ticket by Ref provider (e.g. "DISC-14" or ID)
+final ticketByRefProvider =
+    FutureProvider.family.autoDispose<TicketDto, String>((ref, refString) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  final parts = refString.split('-');
+  if (parts.length >= 2) {
+    final key = parts[0];
+    final number = int.tryParse(parts[1]) ?? 0;
+    return await repo.getByRef(key, number);
+  }
+  return await repo.getById(refString);
+});

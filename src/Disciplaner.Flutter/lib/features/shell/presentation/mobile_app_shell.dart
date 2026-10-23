@@ -9,6 +9,7 @@ import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_create_ticket_sheet.dart';
 
 class MobileAppShell extends ConsumerWidget {
   final Widget child;
@@ -22,6 +23,13 @@ class MobileAppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<bool>(quickCreateTicketOpenProvider, (prev, current) {
+      if (current) {
+        ref.read(quickCreateTicketOpenProvider.notifier).set(false);
+        MobileCreateTicketSheet.show(context);
+      }
+    });
+
     final authState = ref.watch(authNotifierProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
 
@@ -100,7 +108,7 @@ class MobileAppShell extends ConsumerWidget {
         elevation: 2,
         child: const Icon(Icons.add, size: 20),
         onPressed: () {
-          ref.read(quickCreateTicketOpenProvider.notifier).toggle();
+          MobileCreateTicketSheet.show(context);
         },
       ),
       bottomNavigationBar: Container(

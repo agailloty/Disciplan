@@ -7,8 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ticket_providers.dart';
 import 'widgets/dense_ticket_row.dart';
+import 'widgets/mobile_ticket_detail_sheet.dart';
 import 'widgets/multi_select_action_bar.dart';
 import 'widgets/save_view_modal.dart';
+import 'widgets/split_inspector_panel.dart';
 
 class MyTasksView extends ConsumerStatefulWidget {
   const MyTasksView({super.key});
@@ -25,10 +27,10 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     final tasksAsync = ref.watch(myTasksProvider);
     final selectedIds = ref.watch(selectedTicketIdsProvider);
     final savedViewsAsync = ref.watch(savedViewsListProvider);
+    final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
 
-    return Scaffold(
-      backgroundColor: NeoColors.surfaceContainerLowest,
-      body: Stack(
+    final mainStack = Stack(
         children: [
           tasksAsync.when(
             loading: () => const Center(
@@ -291,6 +293,15 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 return DenseTicketRow(
                                   ticket: ticket,
                                   isSelected: selectedIds.contains(ticket.id),
+                                  onTap: () {
+                                    if (isDesktop) {
+                                      ref
+                                          .read(selectedTicketDetailIdProvider.notifier)
+                                          .select(ticket.id);
+                                    } else {
+                                      MobileTicketDetailSheet.show(context, ticket.id);
+                                    }
+                                  },
                                   onSelectedChanged: (val) {
                                     ref
                                         .read(selectedTicketIdsProvider.notifier)
@@ -335,6 +346,20 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                   .batchDelete(selectedIds);
             },
           ),
+        ],
+      );
+
+    return Scaffold(
+      backgroundColor: NeoColors.surfaceContainerLowest,
+      body: Row(
+        children: [
+          Expanded(child: mainStack),
+          if (selectedDetailId != null && isDesktop)
+            SplitInspectorPanel(
+              ticketId: selectedDetailId,
+              onClose: () =>
+                  ref.read(selectedTicketDetailIdProvider.notifier).clear(),
+            ),
         ],
       ),
     );

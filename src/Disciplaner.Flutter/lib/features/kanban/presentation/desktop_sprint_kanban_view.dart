@@ -12,6 +12,8 @@ import 'package:disciplaner_flutter/features/sprints/presentation/widgets/sprint
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/split_inspector_panel.dart';
 import 'kanban_providers.dart';
 import 'widgets/kanban_ticket_card.dart';
 
@@ -46,10 +48,9 @@ class _DesktopSprintKanbanViewState
 
     final currentUserId =
         authState is AuthAuthenticated ? authState.session.email : null;
+    final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
 
-    return Scaffold(
-      backgroundColor: NeoColors.surfaceContainerLowest,
-      body: ListView(
+    final kanbanBody = ListView(
         padding: const EdgeInsets.all(NeoSpacing.spaceLg),
         children: [
           // 1. Sprint Metrics Header
@@ -196,6 +197,20 @@ class _DesktopSprintKanbanViewState
             },
           ),
         ],
+      );
+
+    return Scaffold(
+      backgroundColor: NeoColors.surfaceContainerLowest,
+      body: Row(
+        children: [
+          Expanded(child: kanbanBody),
+          if (selectedDetailId != null)
+            SplitInspectorPanel(
+              ticketId: selectedDetailId,
+              onClose: () =>
+                  ref.read(selectedTicketDetailIdProvider.notifier).clear(),
+            ),
+        ],
       ),
     );
   }
@@ -323,6 +338,11 @@ class _DesktopSprintKanbanViewState
                             child: KanbanTicketCard(
                               ticket: ticket,
                               availableStatuses: allStatuses,
+                              onTap: () {
+                                ref
+                                    .read(selectedTicketDetailIdProvider.notifier)
+                                    .select(ticket.id);
+                              },
                               onMoveToStatus: (targetId) {
                                 ref
                                     .read(kanbanStateProvider(widget.sprint.id).notifier)

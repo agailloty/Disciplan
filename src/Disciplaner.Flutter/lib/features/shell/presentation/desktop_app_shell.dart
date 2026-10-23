@@ -13,6 +13,7 @@ import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.da
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
 
 class DesktopAppShell extends ConsumerWidget {
   final Widget child;
@@ -26,6 +27,13 @@ class DesktopAppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<bool>(quickCreateTicketOpenProvider, (prev, current) {
+      if (current) {
+        ref.read(quickCreateTicketOpenProvider.notifier).set(false);
+        DesktopCreateTicketDialog.show(context);
+      }
+    });
+
     final authState = ref.watch(authNotifierProvider);
     final isSidebarCollapsed = ref.watch(sidebarCollapsedProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
@@ -198,7 +206,7 @@ class DesktopAppShell extends ConsumerWidget {
                 isDense: true,
                 icon: const Icon(Icons.add, size: 14),
                 onPressed: () {
-                  ref.read(quickCreateTicketOpenProvider.notifier).toggle();
+                  DesktopCreateTicketDialog.show(context);
                 },
               ),
               const SizedBox(width: NeoSpacing.spaceSm),

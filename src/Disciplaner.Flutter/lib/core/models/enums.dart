@@ -27,6 +27,19 @@ enum CardPriority {
   }
 
   int toJson() => value;
+
+  String get label {
+    switch (this) {
+      case CardPriority.low:
+        return 'Basse';
+      case CardPriority.medium:
+        return 'Moyenne';
+      case CardPriority.high:
+        return 'Haute';
+      case CardPriority.critical:
+        return 'Urgente';
+    }
+  }
 }
 
 enum StatusCategory {
@@ -54,6 +67,17 @@ enum StatusCategory {
   }
 
   int toJson() => value;
+
+  String get label {
+    switch (this) {
+      case StatusCategory.backlog:
+        return 'À faire';
+      case StatusCategory.inProgress:
+        return 'En cours';
+      case StatusCategory.done:
+        return 'Terminé';
+    }
+  }
 }
 
 enum SprintStatus {

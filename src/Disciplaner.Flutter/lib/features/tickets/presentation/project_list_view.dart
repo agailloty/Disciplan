@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ticket_providers.dart';
 import 'widgets/dense_ticket_row.dart';
+import 'widgets/mobile_ticket_detail_sheet.dart';
 import 'widgets/multi_select_action_bar.dart';
+import 'widgets/split_inspector_panel.dart';
 
 class ProjectListView extends ConsumerStatefulWidget {
   final String projectId;
@@ -75,114 +77,131 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
   Widget build(BuildContext context) {
     final ticketsAsync = ref.watch(projectBacklogProvider(widget.projectId));
     final selectedIds = ref.watch(selectedTicketIdsProvider);
+    final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
 
-    return Scaffold(
-      backgroundColor: NeoColors.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          ticketsAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: NeoColors.primary),
-            ),
-            error: (err, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 40, color: NeoColors.error),
-                  const SizedBox(height: NeoSpacing.spaceSm),
-                  Text('Erreur de chargement: $err', style: NeoTypography.bodyMd),
-                  const SizedBox(height: NeoSpacing.spaceMd),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref.invalidate(projectBacklogProvider(widget.projectId));
-                    },
-                    child: const Text('Réessayer'),
-                  ),
-                ],
-              ),
-            ),
-            data: (tickets) {
-              if (tickets.isEmpty) {
-                return _buildEmptyState();
-              }
-
-              final inProgress = tickets
-                  .where((t) => t.status.category == StatusCategory.inProgress)
-                  .toList();
-              final backlog = tickets
-                  .where((t) => t.status.category == StatusCategory.backlog)
-                  .toList();
-              final done = tickets
-                  .where((t) => t.status.category == StatusCategory.done)
-                  .toList();
-
-              return ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: NeoSpacing.spaceLg,
-                  vertical: NeoSpacing.spaceLg,
-                ),
-                children: [
-                  _buildSection(
-                    title: 'En cours',
-                    icon: Icons.timelapse_outlined,
-                    iconColor: NeoColors.statusAmber,
-                    category: StatusCategory.inProgress,
-                    tickets: inProgress,
-                    selectedIds: selectedIds,
-                  ),
-                  const SizedBox(height: NeoSpacing.spaceLg),
-                  _buildSection(
-                    title: 'À faire',
-                    icon: Icons.radio_button_unchecked,
-                    iconColor: NeoColors.muted,
-                    category: StatusCategory.backlog,
-                    tickets: backlog,
-                    selectedIds: selectedIds,
-                  ),
-                  const SizedBox(height: NeoSpacing.spaceLg),
-                  _buildSection(
-                    title: 'Terminé',
-                    icon: Icons.check_circle_outline,
-                    iconColor: NeoColors.emerald,
-                    category: StatusCategory.done,
-                    tickets: done,
-                    selectedIds: selectedIds,
-                  ),
-                  const SizedBox(height: 80), // Space for floating bar
-                ],
-              );
-            },
+    final mainContent = Stack(
+      children: [
+        ticketsAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: NeoColors.primary),
           ),
+          error: (err, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 40, color: NeoColors.error),
+                const SizedBox(height: NeoSpacing.spaceSm),
+                Text('Erreur de chargement: $err', style: NeoTypography.bodyMd),
+                const SizedBox(height: NeoSpacing.spaceMd),
+                ElevatedButton(
+                  onPressed: () {
+                    ref.invalidate(projectBacklogProvider(widget.projectId));
+                  },
+                  child: const Text('Réessayer'),
+                ),
+              ],
+            ),
+          ),
+          data: (tickets) {
+            if (tickets.isEmpty) {
+              return _buildEmptyState();
+            }
 
-          // Floating batch actions bar
-          MultiSelectActionBar(
-            selectedCount: selectedIds.length,
-            onClear: () =>
-                ref.read(selectedTicketIdsProvider.notifier).clear(),
-            onStatusSelect: (category) async {
-              final project = ref.read(currentProjectDetailProvider).value;
-              final targetStatus = project?.statuses.firstWhere(
-                (s) => s.category == category,
-                orElse: () => project.statuses.first,
-              );
-              if (targetStatus != null) {
-                final repo = ref.read(ticketRepositoryProvider);
-                for (final id in selectedIds) {
-                  await repo.changeStatus(id, targetStatus.id);
-                }
-                ref.read(selectedTicketIdsProvider.notifier).clear();
-                ref.invalidate(projectBacklogProvider(widget.projectId));
-              }
-            },
-            onDelete: () async {
+            final inProgress = tickets
+                .where((t) => t.status.category == StatusCategory.inProgress)
+                .toList();
+            final backlog = tickets
+                .where((t) => t.status.category == StatusCategory.backlog)
+                .toList();
+            final done = tickets
+                .where((t) => t.status.category == StatusCategory.done)
+                .toList();
+
+            return ListView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: NeoSpacing.spaceLg,
+                vertical: NeoSpacing.spaceLg,
+              ),
+              children: [
+                _buildSection(
+                  title: 'En cours',
+                  icon: Icons.timelapse_outlined,
+                  iconColor: NeoColors.statusAmber,
+                  category: StatusCategory.inProgress,
+                  tickets: inProgress,
+                  selectedIds: selectedIds,
+                  isDesktop: isDesktop,
+                ),
+                const SizedBox(height: NeoSpacing.spaceLg),
+                _buildSection(
+                  title: 'À faire',
+                  icon: Icons.radio_button_unchecked,
+                  iconColor: NeoColors.muted,
+                  category: StatusCategory.backlog,
+                  tickets: backlog,
+                  selectedIds: selectedIds,
+                  isDesktop: isDesktop,
+                ),
+                const SizedBox(height: NeoSpacing.spaceLg),
+                _buildSection(
+                  title: 'Terminé',
+                  icon: Icons.check_circle_outline,
+                  iconColor: NeoColors.emerald,
+                  category: StatusCategory.done,
+                  tickets: done,
+                  selectedIds: selectedIds,
+                  isDesktop: isDesktop,
+                ),
+                const SizedBox(height: 80), // Space for floating bar
+              ],
+            );
+          },
+        ),
+
+        // Floating batch actions bar
+        MultiSelectActionBar(
+          selectedCount: selectedIds.length,
+          onClear: () =>
+              ref.read(selectedTicketIdsProvider.notifier).clear(),
+          onStatusSelect: (category) async {
+            final project = ref.read(currentProjectDetailProvider).value;
+            final targetStatus = project?.statuses.firstWhere(
+              (s) => s.category == category,
+              orElse: () => project.statuses.first,
+            );
+            if (targetStatus != null) {
               final repo = ref.read(ticketRepositoryProvider);
               for (final id in selectedIds) {
-                await repo.deleteTicket(id);
+                await repo.changeStatus(id, targetStatus.id);
               }
               ref.read(selectedTicketIdsProvider.notifier).clear();
               ref.invalidate(projectBacklogProvider(widget.projectId));
-            },
-          ),
+            }
+          },
+          onDelete: () async {
+            final repo = ref.read(ticketRepositoryProvider);
+            for (final id in selectedIds) {
+              await repo.deleteTicket(id);
+            }
+            ref.read(selectedTicketIdsProvider.notifier).clear();
+            ref.invalidate(projectBacklogProvider(widget.projectId));
+          },
+        ),
+      ],
+    );
+
+    return Scaffold(
+      backgroundColor: NeoColors.surfaceContainerLowest,
+      body: Row(
+        children: [
+          Expanded(child: mainContent),
+          if (selectedDetailId != null && isDesktop)
+            SplitInspectorPanel(
+              ticketId: selectedDetailId,
+              onClose: () =>
+                  ref.read(selectedTicketDetailIdProvider.notifier).clear(),
+            ),
         ],
       ),
     );
@@ -229,6 +248,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
     required StatusCategory category,
     required List<TicketDto> tickets,
     required Set<String> selectedIds,
+    required bool isDesktop,
   }) {
     final isExpanded = _expandedSections[category] ?? true;
 
@@ -321,6 +341,15 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                 (ticket) => DenseTicketRow(
                   ticket: ticket,
                   isSelected: selectedIds.contains(ticket.id),
+                  onTap: () {
+                    if (isDesktop) {
+                      ref
+                          .read(selectedTicketDetailIdProvider.notifier)
+                          .select(ticket.id);
+                    } else {
+                      MobileTicketDetailSheet.show(context, ticket.id);
+                    }
+                  },
                   onSelectedChanged: (val) {
                     ref
                         .read(selectedTicketIdsProvider.notifier)

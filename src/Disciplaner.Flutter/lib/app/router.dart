@@ -12,6 +12,7 @@ import '../features/shell/presentation/shell_placeholders.dart';
 import '../features/sprints/presentation/cycles_overview_screen.dart';
 import '../features/tickets/presentation/my_tasks_view.dart';
 import '../features/tickets/presentation/project_list_view.dart';
+import '../features/tickets/presentation/ticket_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -71,6 +72,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/cycles',
             builder: (context, state) => const CyclesOverviewScreen(),
+          ),
+          GoRoute(
+            path: '/tickets/:ref',
+            builder: (context, state) {
+              final ref = state.pathParameters['ref'] ?? '';
+              return TicketDetailScreen(ticketRef: ref);
+            },
           ),
           GoRoute(
             path: '/calendar',

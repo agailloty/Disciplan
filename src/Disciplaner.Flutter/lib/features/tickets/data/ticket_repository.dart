@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../core/models/collaboration_models.dart';
 import '../../../core/models/ticket_models.dart';
 import '../../../core/network/dio_client.dart';
 
@@ -112,6 +113,87 @@ class TicketRepository {
   Future<void> deleteTicket(String ticketId) async {
     try {
       await _dio.delete('/api/tickets/$ticketId');
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  // Comments
+  Future<List<CommentDto>> getComments(String ticketId) async {
+    try {
+      final response = await _dio.get('/api/tickets/$ticketId/comments');
+      return (response.data as List<dynamic>)
+          .map((e) => CommentDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  Future<CommentDto> addComment(String ticketId, String content) async {
+    try {
+      final response = await _dio.post(
+        '/api/tickets/$ticketId/comments',
+        data: {'content': content},
+      );
+      return CommentDto.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  Future<void> deleteComment(String commentId) async {
+    try {
+      await _dio.delete('/api/comments/$commentId');
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  // Attachments
+  Future<List<AttachmentDto>> getAttachments(String ticketId) async {
+    try {
+      final response = await _dio.get('/api/tickets/$ticketId/attachments');
+      return (response.data as List<dynamic>)
+          .map((e) => AttachmentDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  Future<void> deleteAttachment(String attachmentId) async {
+    try {
+      await _dio.delete('/api/attachments/$attachmentId');
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  // History / Audit entries
+  Future<List<TicketHistoryEntryDto>> getHistory(String ticketId) async {
+    try {
+      final response = await _dio.get('/api/tickets/$ticketId/history');
+      return (response.data as List<dynamic>)
+          .map((e) => TicketHistoryEntryDto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  // Labels
+  Future<void> addLabel(String ticketId, String labelId) async {
+    try {
+      await _dio.post('/api/tickets/$ticketId/labels/$labelId');
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  Future<void> removeLabel(String ticketId, String labelId) async {
+    try {
+      await _dio.delete('/api/tickets/$ticketId/labels/$labelId');
     } catch (e) {
       throw DioClient.handleError(e);
     }
