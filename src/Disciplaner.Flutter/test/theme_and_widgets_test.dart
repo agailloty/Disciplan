@@ -7,6 +7,7 @@ import 'package:disciplaner_flutter/core/widgets/neo_text_field.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart';
 import 'package:disciplaner_flutter/core/widgets/status_badge.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/shell/presentation/shell_placeholders.dart';
 import 'package:disciplaner_flutter/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,20 +65,23 @@ void main() {
     expect(clicked, isTrue);
   });
 
-  testWidgets('Renders DisciplanShowcaseScreen directly', (WidgetTester tester) async {
+  testWidgets('Renders ShellPlaceholderView directly', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
-          home: DisciplanShowcaseScreen(userName: 'Alexandre'),
+      const MaterialApp(
+        home: Scaffold(
+          body: ShellPlaceholderView(
+            title: 'Explorateur de Projets',
+            subtitle: 'Navigation dans les projets.',
+            icon: Icons.folder,
+          ),
         ),
       ),
     );
-    expect(find.text('Disciplan Neo-Linear'), findsOneWidget);
-    expect(find.text('Disciplan Connecté'), findsOneWidget);
-    expect(find.text('Se déconnecter'), findsOneWidget);
+    expect(find.text('Explorateur de Projets'), findsOneWidget);
+    expect(find.text('Navigation dans les projets.'), findsOneWidget);
   });
 
-  testWidgets('Renders DisciplanApp login on initial run', (WidgetTester tester) async {
+  testWidgets('Renders DisciplanApp login on initial unauthenticated run', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: DisciplanApp()));
     await tester.pumpAndSettle();
 
