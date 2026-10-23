@@ -8,6 +8,8 @@ import '../features/auth/presentation/setup_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
 import '../features/shell/presentation/shell_placeholders.dart';
+import '../features/tickets/presentation/my_tasks_view.dart';
+import '../features/tickets/presentation/project_list_view.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
@@ -50,12 +52,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProjectsAdaptiveScreen(),
           ),
           GoRoute(
+            path: '/projects/:id/list',
+            builder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return ProjectListView(projectId: id);
+            },
+          ),
+          GoRoute(
             path: '/my-tasks',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Mes Tâches',
-              subtitle: 'Vue compacte des tickets assignés et rapportés.',
-              icon: Icons.checklist,
-            ),
+            builder: (context, state) => const MyTasksView(),
           ),
           GoRoute(
             path: '/kanban',

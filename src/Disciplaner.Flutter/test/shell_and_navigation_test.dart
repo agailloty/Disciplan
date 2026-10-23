@@ -19,6 +19,7 @@ import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/features/projects/data/project_repository.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
 
 final testAuthSession = AuthResponse(
   token: 'jwt_valid_test',
@@ -143,6 +144,7 @@ void main() {
         serverConfigStorageProvider.overrideWithValue(serverStorage),
         tokenStorageProvider.overrideWithValue(tokenStorage),
         projectRepositoryProvider.overrideWithValue(FakeShellProjectRepo()),
+        projectBacklogProvider.overrideWith((ref, id) async => []),
         authNotifierProvider.overrideWith(AuthenticatedMockAuthNotifier.new),
       ],
       child: Consumer(
