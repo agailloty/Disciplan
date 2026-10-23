@@ -1,10 +1,11 @@
 # Disciplaner
 
-Disciplaner is a self-hostable project management application inspired by Jira and Linear, built with **Blazor WebAssembly** (client) and **ASP.NET Core 10** (API + host). Data is persisted in a **SQLite** database. The UI is styled with **Tailwind CSS** and **Bootstrap Icons** and is available in **French** (default) and **English**.
+Disciplaner is a self-hostable project management application inspired by Jira and Linear, powered by a robust **ASP.NET Core 10** REST API backend and a **modern multiplatform Flutter client** (Web, Desktop Windows/macOS/Linux, and Mobile Android/iOS) alongside a legacy Blazor WebAssembly frontend. Data is persisted in a **SQLite** database. The Flutter client implements the **Neo-Linear** design system with a clean, high-density keyboard-first UX.
 
 ## Table of Contents
 
 - [Architecture](#architecture)
+- [Multiplatform Flutter Client](#multiplatform-flutter-client)
 - [Features](#features)
 - [Quick Start with Docker](#quick-start-with-docker)
 - [Environment Variables](#environment-variables)
@@ -21,11 +22,26 @@ Disciplaner.Domain          ← Entities, business rules, value objects, domain 
 Disciplaner.Application     ← Services, DTOs, mappings (MediatR-free CQRS-lite)
 Disciplaner.Infrastructure  ← EF Core + SQLite, ASP.NET Core Identity, repositories
 Disciplaner.Web/
-  Client/                   ← Blazor WebAssembly SPA (Tailwind CSS, Bootstrap Icons)
-  Server/                   ← ASP.NET Core (REST API + static WASM host)
+  Client/                   ← Legacy Blazor WebAssembly SPA (Tailwind CSS, Bootstrap Icons)
+  Server/                   ← ASP.NET Core 10 (REST API + static host)
+src/Disciplaner.Flutter/    ← Modern Multiplatform Flutter client (Web, Desktop & Mobile)
 ```
 
-The application is a **hosted Blazor WASM** project: the server serves both the REST API and the compiled client-side SPA. On first startup EF Core migrations are applied automatically. If no admin seed credentials are supplied, the application enters **setup mode** and exposes a `/setup` wizard to create the first administrator account.
+The application is powered by an ASP.NET Core 10 REST API and consumed seamlessly by the new Flutter client (`src/Disciplaner.Flutter`). On first startup EF Core migrations are applied automatically. If no admin seed credentials are supplied, the application enters **setup mode** and exposes a `/setup` wizard to create the first administrator account.
+
+---
+
+## Multiplatform Flutter Client
+
+The unified Flutter client is located in `src/Disciplaner.Flutter/`. It features:
+- **Neo-Linear Design System**: High-density typography (*Plus Jakarta Sans* / *JetBrains Mono*), minimal borders, subtle shadows and warm cream tones (`#FDFBF7` / `#1A1917` / `#E5A800`).
+- **Adaptive Shell**: Responsive switching between desktop sidebar layout (VS Code style activity bar) and mobile ergonomics with bottom navigation.
+- **Speed & Shortcuts**: Global Command Palette (`⌘K` / `Ctrl+K`), quick ticket creation modal (`C`), sidebar collapse (`⌘B` / `Ctrl+B`).
+- **Interactive Kanban**: Drag & drop multiplatform board with cycle filters and real-time WIP metrics.
+- **Team Calendar & iCal**: Monthly sprint roadmap, ticket deadlines, and private iCal feed subscription (`/ical/{token}`).
+- **Administration & Homelab**: Server base URL discovery, invitation link generation (7 days), and account management.
+
+For full development, compilation commands, and Homelab reverse-proxy guides, see [Flutter Client Documentation](docs/flutter-migration/README.md).
 
 ---
 
