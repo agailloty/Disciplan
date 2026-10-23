@@ -6,7 +6,7 @@ Ce document détaille l'architecture, les commandes de développement, la compil
 
 ## 1. Vue d'Ensemble & Architecture
 
-Le client Flutter a été conçu pour remplacer l'ancienne interface Blazor WebAssembly par une application ultra-réactive multiplateforme (Web, Desktop Windows/macOS/Linux, et Mobile Android/iOS) adoptant fidèlement le design system **Neo-Linear** (palette crème `#FDFBF7`, noir carbone `#1A1917`, accents ambrés `#E5A800` et typographies *Plus Jakarta Sans* / *JetBrains Mono*).
+Le client Flutter est l'interface unique de Disciplaner : il a remplacé l'ancienne interface Blazor WebAssembly (retirée du dépôt) par une application ultra-réactive multiplateforme (Web, Desktop Windows/macOS/Linux, et Mobile Android/iOS) adoptant fidèlement le design system **Neo-Linear** (palette crème `#FDFBF7`, noir carbone `#1A1917`, accents ambrés `#E5A800` et typographies *Plus Jakarta Sans* / *JetBrains Mono*).
 
 ### Arborescence du Code (`src/Disciplaner.Flutter`)
 
@@ -19,7 +19,7 @@ src/Disciplaner.Flutter/
 │   ├── core/
 │   │   ├── models/                    ← DTOs sérialisés (Auth, Projets, Tickets, Sprints, Kanban, etc.)
 │   │   ├── network/                   ← Client HTTP Dio (intercepteurs Bearer JWT et gestion d'erreurs)
-│   │   ├── shortcuts/                 ← Raccourcis clavier globaux (C, ⌘K / Ctrl+K, ⌘B / Ctrl+B)
+│   │   ├── shortcuts/                 ← Raccourcis clavier globaux (C, ⌘K / Ctrl+K)
 │   │   ├── storage/                   ← Persistance locale SharedPreferences (URL serveur Homelab et tokens)
 │   │   └── widgets/                   ← Composants atomiques réutilisables (KbdChip, StatusBadge, etc.)
 │   └── features/
@@ -32,7 +32,7 @@ src/Disciplaner.Flutter/
 │       ├── settings/                  ← Profil, URL Homelab, vues sauvegardées et administration des comptes
 │       ├── shell/                     ← Shell adaptatif responsive (DesktopAppShell & MobileAppShell)
 │       ├── sprints/                   ← Cycles, feuille de route et planification de sprint
-│       └── tickets/                   ← Liste dense, Mes Tâches, création modale et Split Inspector
+│       └── tickets/                   ← Liste dense des tickets, création modale et Split Inspector
 └── test/                              ← Suite complète de tests unitaires, widgets et E2E
 ```
 
@@ -54,7 +54,7 @@ flutter pub get
 # Analyse statique (0 erreur requise)
 flutter analyze
 
-# Exécution de la suite de tests complète (42 tests)
+# Exécution de la suite de tests complète (45 tests)
 flutter test
 
 # Lancement local (Web Chrome avec hot reload)
@@ -80,6 +80,11 @@ flutter run -d windows
 ## 3. Guide de Déploiement Homelab & Configuration Réseau
 
 L'application Flutter communique avec le serveur API .NET 10 via HTTP REST. L'URL du serveur est configurable dynamiquement au premier lancement de l'application ou à tout moment dans l'onglet **Paramètres**.
+
+Deux modes d'hébergement sont possibles pour le web :
+
+- **Origine distincte** : la SPA est servie par un serveur statique (nginx) et l'API doit autoriser son origine via `Cors__Origins__0` (voir ci-dessous).
+- **Origine unique** : le résultat de `flutter build web --release` est copié dans le dossier `wwwroot` du serveur API (`dotnet publish ... --output` puis copie de `build/web` dans `publish/wwwroot`). Le serveur sert la SPA et redirige les liens profonds vers `index.html` ; aucune configuration CORS n'est nécessaire.
 
 ### Configuration CORS sur l'API .NET 10
 

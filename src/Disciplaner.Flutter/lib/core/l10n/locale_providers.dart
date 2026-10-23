@@ -8,7 +8,7 @@ import '../../../l10n/app_localizations.dart';
 /// Persists and exposes the locale chosen by the user.
 ///
 /// Falls back to the system locale when it is supported, otherwise French
-/// (the default language of the application, as in the Blazor client).
+/// (the default language of the application).
 class LocaleController extends Notifier<Locale> {
   static const _storageKey = 'app.locale';
 

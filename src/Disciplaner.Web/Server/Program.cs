@@ -93,14 +93,14 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Configured via Cors:Origins in appsettings / env vars (CORS__ORIGINS__0=https://…).
-// In development, falls back to the Blazor WASM dev-server addresses.
-// In a production hosted-WASM deployment the client is same-origin, so CORS is
-// not needed for the SPA — set Cors:Origins only when an external client (mobile
-// app, another frontend) also consumes the API.
+// In development, falls back to the typical local dev-server addresses.
+// Set Cors:Origins when an external client (mobile app, a Flutter web build
+// hosted on another origin) consumes the API; a Flutter web build copied into
+// wwwroot is same-origin and needs no CORS.
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
 if (corsOrigins is null && builder.Environment.IsDevelopment())
-    corsOrigins = ["http://localhost:5027", "https://localhost:7250",
-                   "http://localhost:5000", "https://localhost:5001"];
+    corsOrigins = ["http://localhost:5000", "https://localhost:5001",
+                   "http://localhost:5027", "https://localhost:7250"];
 
 if (corsOrigins?.Length > 0)
 {
@@ -137,12 +137,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 if (corsOrigins?.Length > 0)
     app.UseCors();
-app.UseBlazorFrameworkFiles();   // serve _framework/ files from Client WASM
-app.UseStaticFiles();            // serve wwwroot of both Server and Client
+app.UseStaticFiles();            // serve wwwroot (e.g. a Flutter web build copied in)
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapFallbackToFile("index.html"); // SPA fallback — all non-API routes → Client
+app.MapFallbackToFile("index.html"); // SPA fallback — deep links of the hosted Flutter web client
 
 app.Run();
 

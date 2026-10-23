@@ -3,12 +3,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Disciplaner.Application\Disciplaner.Application.csproj" />
     <ProjectReference Include="..\..\Disciplaner.Infrastructure\Disciplaner.Infrastructure.csproj" />
-    <ProjectReference Include="..\Client\Disciplaner.Web.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
