@@ -308,12 +308,12 @@ class UpdateTicketRequest extends Equatable {
 
   Map<String, dynamic> toJson() => {
         'title': title,
-        if (description != null) 'description': description,
+        'description': description,
         'type': type.toJson(),
         'priority': priority.toJson(),
-        if (storyPoints != null) 'storyPoints': storyPoints,
-        if (dueDate != null) 'dueDate': dueDate?.toIso8601String(),
-        if (assigneeId != null) 'assigneeId': assigneeId,
+        'storyPoints': storyPoints,
+        'dueDate': dueDate?.toIso8601String(),
+        'assigneeId': assigneeId,
       };
 
   @override

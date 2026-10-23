@@ -7,6 +7,8 @@ import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -112,7 +114,6 @@ class _MobileCreateTicketSheetState
           priority: _priority,
           sprintId: _selectedSprintId,
           assigneeId: _assigneeId,
-          storyPoints: 3,
           dueDate: _dueDate,
         ),
       );
@@ -166,10 +167,23 @@ class _MobileCreateTicketSheetState
     final projects = projectsAsync.asData?.value ?? <ProjectSummaryDto>[];
 
     final effectiveProjectId = _selectedProjectId ??
+        ref.watch(selectedProjectIdProvider) ??
         (projects.isNotEmpty ? projects.first.id : null);
 
     final selectedProject = projects.where((p) => p.id == effectiveProjectId).firstOrNull ??
         (projects.isNotEmpty ? projects.first : null);
+
+    final projectDetail = effectiveProjectId != null
+        ? ref.watch(projectDetailByIdProvider(effectiveProjectId)).value
+        : null;
+    final authState = ref.watch(authNotifierProvider);
+    final currentSession =
+        authState is AuthAuthenticated ? authState.session : null;
+    final assignableMembers = projectDetail?.assignableMembers(
+          currentUserId: currentSession?.userId,
+          currentUserDisplayName: currentSession?.displayName,
+        ) ??
+        const <MemberDto>[];
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
@@ -454,18 +468,39 @@ class _MobileCreateTicketSheetState
                       _buildMetaRow(
                         icon: Icons.person_outline,
                         label: 'Assigné à',
-                        action: InkWell(
-                          onTap: () {
+                        action: PopupMenuButton<String>(
+                          onSelected: (userId) {
                             setState(() {
-                              if (_assigneeName == null) {
-                                _assigneeName = 'Alexandre M.';
-                                _assigneeId = 'me';
-                              } else {
-                                _assigneeName = null;
+                              if (userId == '__UNASSIGNED__') {
                                 _assigneeId = null;
+                                _assigneeName = null;
+                              } else {
+                                final m = assignableMembers.firstWhere(
+                                  (member) => member.userId == userId,
+                                );
+                                _assigneeId = m.userId;
+                                _assigneeName = m.displayName;
                               }
                             });
                           },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: '__UNASSIGNED__',
+                              child: Text('Non assigné'),
+                            ),
+                            ...assignableMembers.map(
+                              (m) => PopupMenuItem(
+                                value: m.userId,
+                                child: Row(
+                                  children: [
+                                    UserAvatar(name: m.displayName, size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(m.displayName),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
@@ -478,18 +513,24 @@ class _MobileCreateTicketSheetState
                                 if (_assigneeName != null) ...[
                                   UserAvatar(name: _assigneeName!, size: 18),
                                   const SizedBox(width: 6),
-                                  Text(
-                                    'Moi ($_assigneeName)',
-                                    style: NeoTypography.headlineSm.copyWith(fontSize: 13),
+                                  Flexible(
+                                    child: Text(
+                                      _assigneeName!,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: NeoTypography.headlineSm.copyWith(fontSize: 13),
+                                    ),
                                   ),
                                 ] else ...[
                                   const Icon(Icons.person_add_outlined, size: 15, color: NeoColors.muted),
                                   const SizedBox(width: 6),
-                                  Text(
-                                    'Non assigné',
-                                    style: NeoTypography.headlineSm.copyWith(
-                                      fontSize: 13,
-                                      color: NeoColors.muted,
+                                  Flexible(
+                                    child: Text(
+                                      'Non assigné',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: NeoTypography.headlineSm.copyWith(
+                                        fontSize: 13,
+                                        color: NeoColors.muted,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -508,7 +549,11 @@ class _MobileCreateTicketSheetState
                         label: 'Projet',
                         action: PopupMenuButton<String>(
                           initialValue: effectiveProjectId,
-                          onSelected: (id) => setState(() => _selectedProjectId = id),
+                          onSelected: (id) => setState(() {
+                            _selectedProjectId = id;
+                            _assigneeId = null;
+                            _assigneeName = null;
+                          }),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
@@ -518,9 +563,12 @@ class _MobileCreateTicketSheetState
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  selectedProject?.name ?? 'Sélectionner',
-                                  style: NeoTypography.headlineSm.copyWith(fontSize: 13),
+                                Flexible(
+                                  child: Text(
+                                    selectedProject?.name ?? 'Sélectionner',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: NeoTypography.headlineSm.copyWith(fontSize: 13),
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
                                 const Icon(Icons.expand_more, size: 16, color: NeoColors.onSurfaceVariant),
@@ -560,11 +608,19 @@ class _MobileCreateTicketSheetState
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  _dueDate != null
-                                      ? DateFormat('dd MMM yyyy').format(_dueDate!)
-                                      : 'Cette semaine',
-                                  style: NeoTypography.headlineSm.copyWith(fontSize: 13),
+                                Flexible(
+                                  child: Text(
+                                    _dueDate != null
+                                        ? DateFormat('dd MMM yyyy').format(_dueDate!)
+                                        : 'Aucune',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: NeoTypography.headlineSm.copyWith(
+                                      fontSize: 13,
+                                      color: _dueDate != null
+                                          ? NeoColors.onSurface
+                                          : NeoColors.muted,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
                                 const Icon(Icons.expand_more, size: 16, color: NeoColors.onSurfaceVariant),
@@ -575,28 +631,6 @@ class _MobileCreateTicketSheetState
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: NeoSpacing.spaceMd),
-
-                // Enrichment shortcuts
-                Text(
-                  "RACCOURCIS D'ENRICHISSEMENT",
-                  style: NeoTypography.labelSm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: NeoColors.onSurfaceVariant,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: NeoSpacing.spaceXs),
-                Row(
-                  children: [
-                    _buildShortcutButton(Icons.add_task, 'Sous-tâche'),
-                    const SizedBox(width: NeoSpacing.spaceXs),
-                    _buildShortcutButton(Icons.attach_file, 'Fichier'),
-                    const SizedBox(width: NeoSpacing.spaceXs),
-                    _buildShortcutButton(Icons.link, 'Figma / Doc'),
-                  ],
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceMd),
@@ -659,6 +693,7 @@ class _MobileCreateTicketSheetState
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 18, color: NeoColors.onSurfaceVariant),
               const SizedBox(width: NeoSpacing.spaceSm),
@@ -668,43 +703,9 @@ class _MobileCreateTicketSheetState
               ),
             ],
           ),
-          action,
+          const SizedBox(width: NeoSpacing.spaceSm),
+          Flexible(child: action),
         ],
-      ),
-    );
-  }
-
-  Widget _buildShortcutButton(IconData icon, String label) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: NeoSpacing.spaceSm,
-            horizontal: NeoSpacing.spaceXs,
-          ),
-          decoration: BoxDecoration(
-            color: NeoColors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: NeoColors.borderWhisper),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20, color: NeoColors.primary),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: NeoTypography.labelSm.copyWith(
-                  color: NeoColors.onSurfaceVariant,
-                  fontSize: 11,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

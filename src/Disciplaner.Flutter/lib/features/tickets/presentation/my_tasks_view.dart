@@ -2,11 +2,14 @@ import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
+import 'package:disciplaner_flutter/core/models/project_models.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'ticket_providers.dart';
 import 'widgets/dense_ticket_row.dart';
 import 'widgets/mobile_ticket_detail_sheet.dart';
@@ -27,6 +30,8 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(myTasksProvider);
+    final projectsAsync = ref.watch(projectsListProvider);
+    final allProjects = projectsAsync.asData?.value ?? const <ProjectSummaryDto>[];
     final selectedIds = ref.watch(selectedTicketIdsProvider);
     final savedViewsAsync = ref.watch(savedViewsListProvider);
     final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
@@ -194,14 +199,25 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                     ),
                     const SizedBox(height: NeoSpacing.spaceLg),
 
-                    // 1.5 Quick Workspace Navigation Hub (Kanban, Backlog, Cycles)
+                    // 1.2 Quick Workspace Navigation Hub (Kanban, Backlog, Cycles)
                     _buildQuickNavigationHub(
                       context,
+                      currentProjectName: currentProject?.name,
+                      currentProjectKey: currentProject?.key,
                       activeSprintName: activeSprint?.name,
                       backlogCount: backlogCount,
                       isDesktop: isDesktop,
                     ),
-                    const SizedBox(height: NeoSpacing.spaceLg),
+                    const SizedBox(height: NeoSpacing.spaceMd),
+
+                    // 1.5 Explicit Multi-Project Overview Section
+                    _buildAllProjectsDashboardSection(
+                      context,
+                      projects: allProjects,
+                      activeProjectId: currentProject?.id,
+                      isDesktop: isDesktop,
+                    ),
+                    const SizedBox(height: NeoSpacing.spaceMd),
 
                     // 2. Interactive Metric Counters Cards (Click to filter)
                     LayoutBuilder(
@@ -531,16 +547,327 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     );
   }
 
+  Widget _buildAllProjectsDashboardSection(
+    BuildContext context, {
+    required List<ProjectSummaryDto> projects,
+    required String? activeProjectId,
+    required bool isDesktop,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: NeoSpacing.spaceMd,
+        vertical: NeoSpacing.spaceSm + 2,
+      ),
+      decoration: BoxDecoration(
+        color: NeoColors.surfaceContainerLowest,
+        borderRadius: NeoSpacing.roundedLg,
+        border: Border.all(color: NeoColors.borderWhisper),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: NeoSpacing.spaceSm,
+            runSpacing: NeoSpacing.spaceXs,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: NeoColors.kineticAmber.withValues(alpha: 0.16),
+                      borderRadius: NeoSpacing.roundedSm,
+                    ),
+                    child: const Icon(
+                      Icons.folder_copy_outlined,
+                      size: 15,
+                      color: NeoColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: NeoSpacing.spaceSm),
+                  Text(
+                    'MES PROJETS — ESPACES ENCAPSULÉS',
+                    style: NeoTypography.labelSm.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                      color: NeoColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: NeoColors.surfaceContainerHigh,
+                      borderRadius: NeoSpacing.roundedFull,
+                    ),
+                    child: Text(
+                      '${projects.length}',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: NeoColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => context.go('/projects'),
+                    icon: const Icon(Icons.grid_view_rounded, size: 15),
+                    label: const Text('Portefeuille complet'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: NeoColors.secondary,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  OutlinedButton.icon(
+                    onPressed: () => CreateProjectModal.show(context),
+                    icon: const Icon(Icons.add, size: 15),
+                    label: const Text('Nouveau projet'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: NeoColors.onSurface,
+                      visualDensity: VisualDensity.compact,
+                      side: const BorderSide(color: NeoColors.borderWhisper),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: NeoSpacing.roundedSm,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (projects.isNotEmpty) ...[
+            const SizedBox(height: NeoSpacing.spaceSm),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (!isDesktop) {
+                  return Column(
+                    children: [
+                      for (var i = 0; i < projects.length; i++) ...[
+                        if (i > 0) const SizedBox(height: NeoSpacing.spaceSm),
+                        _buildProjectDashboardTile(
+                          context,
+                          project: projects[i],
+                          isActive: projects[i].id == activeProjectId,
+                        ),
+                      ],
+                    ],
+                  );
+                }
+
+                final cols = constraints.maxWidth >= 960
+                    ? 3
+                    : (constraints.maxWidth >= 620 ? 2 : 1);
+                final gap = NeoSpacing.spaceSm;
+                final width = (constraints.maxWidth - gap * (cols - 1)) / cols;
+
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: projects.map((project) {
+                    return SizedBox(
+                      width: width,
+                      child: _buildProjectDashboardTile(
+                        context,
+                        project: project,
+                        isActive: project.id == activeProjectId,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectDashboardTile(
+    BuildContext context, {
+    required ProjectSummaryDto project,
+    required bool isActive,
+  }) {
+    return InkWell(
+      onTap: () {
+        ref.read(selectedProjectIdProvider.notifier).select(project.id);
+      },
+      borderRadius: NeoSpacing.roundedMd,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.all(NeoSpacing.spaceMd),
+        decoration: BoxDecoration(
+          color: isActive
+              ? NeoColors.kineticAmber.withValues(alpha: 0.06)
+              : NeoColors.surfaceContainerLow,
+          borderRadius: NeoSpacing.roundedMd,
+          border: Border.all(
+            color: isActive ? NeoColors.primary : NeoColors.borderWhisper,
+            width: isActive ? 1.5 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? NeoColors.kineticAmber.withValues(alpha: 0.22)
+                        : NeoColors.surfaceContainerLowest,
+                    borderRadius: NeoSpacing.roundedSm,
+                    border: Border.all(
+                      color: isActive
+                          ? NeoColors.kineticAmber
+                          : NeoColors.borderWhisper,
+                    ),
+                  ),
+                  child: Text(
+                    project.key,
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: NeoColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    project.name,
+                    style: NeoTypography.labelMd.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: NeoColors.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isActive)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: NeoColors.emerald.withValues(alpha: 0.14),
+                      borderRadius: NeoSpacing.roundedFull,
+                    ),
+                    child: Text(
+                      'ACTIF',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: NeoColors.emerald,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${project.ticketCount} tickets • ${project.sprintCount} sprints • ${project.isOwner ? "Propriétaire" : "Membre"}',
+              style: NeoTypography.labelSm.copyWith(
+                color: NeoColors.muted,
+                fontSize: 11,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: NeoSpacing.spaceSm),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _buildProjectJumpPill(
+                  icon: Icons.inbox_outlined,
+                  label: 'Backlog',
+                  onTap: () {
+                    ref.read(selectedProjectIdProvider.notifier).select(project.id);
+                    context.go('/backlog');
+                  },
+                ),
+                _buildProjectJumpPill(
+                  icon: Icons.view_kanban_outlined,
+                  label: 'Kanban',
+                  onTap: () {
+                    ref.read(selectedProjectIdProvider.notifier).select(project.id);
+                    context.go('/kanban');
+                  },
+                ),
+                _buildProjectJumpPill(
+                  icon: Icons.autorenew_rounded,
+                  label: 'Cycles',
+                  onTap: () {
+                    ref.read(selectedProjectIdProvider.notifier).select(project.id);
+                    context.go('/cycles');
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProjectJumpPill({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: NeoSpacing.roundedSm,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: NeoColors.surfaceContainerLowest,
+          borderRadius: NeoSpacing.roundedSm,
+          border: Border.all(color: NeoColors.borderWhisper),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: NeoColors.secondary),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: NeoTypography.labelSm.copyWith(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: NeoColors.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildQuickNavigationHub(
     BuildContext context, {
+    required String? currentProjectName,
+    required String? currentProjectKey,
     required String? activeSprintName,
     required int? backlogCount,
     required bool isDesktop,
   }) {
+    final prefix = currentProjectKey != null ? '[$currentProjectKey] ' : '';
     final cards = [
       _buildNavShortcutCard(
         icon: Icons.view_kanban_rounded,
-        title: 'Tableau Kanban',
+        title: '${prefix}Tableau Kanban',
         subtitle: activeSprintName != null
             ? 'Sprint actif : $activeSprintName'
             : 'Voir les colonnes du sprint',
@@ -549,7 +876,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
       ),
       _buildNavShortcutCard(
         icon: Icons.inventory_2_outlined,
-        title: 'Backlog du Projet',
+        title: '${prefix}Backlog du Projet',
         subtitle: backlogCount != null
             ? '$backlogCount ticket(s) hors sprint à planifier'
             : 'Lister et prioriser le backlog',
@@ -558,8 +885,10 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
       ),
       _buildNavShortcutCard(
         icon: Icons.autorenew_rounded,
-        title: 'Cycles & Sprints',
-        subtitle: 'Planifier, démarrer ou clôturer un sprint',
+        title: '${prefix}Cycles & Sprints',
+        subtitle: currentProjectName != null
+            ? 'Cycles de $currentProjectName'
+            : 'Planifier, démarrer ou clôturer un sprint',
         accentColor: NeoColors.emerald,
         onTap: () => context.go('/cycles'),
       ),

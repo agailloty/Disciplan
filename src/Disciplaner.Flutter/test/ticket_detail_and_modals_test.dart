@@ -170,9 +170,8 @@ void main() {
       expect(find.text('Annuler'), findsOneWidget);
       expect(find.text('Créer'), findsOneWidget);
       expect(find.text('MÉTADONNÉES RAPIDES'), findsOneWidget);
-      expect(find.text('RACCOURCIS D\'ENRICHISSEMENT'), findsOneWidget);
-      expect(find.text('Sous-tâche'), findsOneWidget);
-      expect(find.text('Fichier'), findsOneWidget);
+      expect(find.text('Assigné à'), findsOneWidget);
+      expect(find.text('Projet'), findsOneWidget);
 
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
       await tester.pumpAndSettle();
@@ -206,7 +205,6 @@ void main() {
       expect(find.text('DISC-14'), findsOneWidget);
       expect(find.text('Déclinaison affichage urbain 4x3 & abribus'), findsOneWidget);
       expect(find.text('Adaptation des visuels clés pour le déploiement national.'), findsOneWidget);
-      expect(find.text('5 pts'), findsOneWidget);
       expect(find.text('Sous-tâches & Livrables'), findsOneWidget);
       expect(find.text('Pièces jointes'), findsOneWidget);
       expect(find.text('maquette_urbaine_v1.fig'), findsOneWidget);
@@ -251,11 +249,11 @@ void main() {
 
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
       await tester.pumpAndSettle();
-      expect(find.text('Livrables requis'), findsOneWidget);
+      expect(find.text('Sous-tâches'), findsOneWidget);
 
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
       await tester.pumpAndSettle();
-      expect(find.text('Fichier de travail'), findsOneWidget);
+      expect(find.text('Pièces jointes'), findsOneWidget);
 
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
       await tester.pumpAndSettle();

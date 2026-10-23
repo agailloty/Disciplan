@@ -269,15 +269,16 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Projets & Équipes'), findsOneWidget);
-      expect(find.text('Tous'), findsOneWidget);
-      expect(find.text('En cours'), findsOneWidget);
-      expect(find.text('Favoris'), findsOneWidget);
+      expect(find.text('Tous mes Projets'), findsOneWidget);
+      expect(find.text('Tous mes projets'), findsOneWidget);
+      expect(find.text('Propriétaire'), findsWidgets);
+      expect(find.text('Membre d\'équipe'), findsOneWidget);
 
       // Card
       expect(find.text('CAMP'), findsOneWidget);
       expect(find.text('Campagne Marque 2025'), findsOneWidget);
-      expect(find.text('18 tickets • 4 sprints'), findsOneWidget);
+      expect(find.text('18 tickets'), findsOneWidget);
+      expect(find.text('4 sprints'), findsOneWidget);
     });
   });
 }

@@ -24,9 +24,12 @@ class QuickCreateTicketOpenNotifier extends Notifier<bool> {
 }
 
 class UiScaleNotifier extends Notifier<double> {
+  static const double minScale = 0.50;
+  static const double maxScale = 2.00;
+
   @override
   double build() => 1.0;
-  void setScale(double scale) => state = scale.clamp(0.85, 1.25);
+  void setScale(double scale) => state = scale.clamp(minScale, maxScale);
   void increase() => setScale(state + 0.05);
   void decrease() => setScale(state - 0.05);
   void reset() => state = 1.0;

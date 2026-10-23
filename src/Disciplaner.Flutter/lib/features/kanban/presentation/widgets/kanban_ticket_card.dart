@@ -182,25 +182,6 @@ class KanbanTicketCard extends StatelessWidget {
 
                   Row(
                     children: [
-                      // Story points
-                      if (ticket.storyPoints != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: NeoColors.surfaceContainerLow,
-                            borderRadius: NeoSpacing.roundedSm,
-                          ),
-                          child: Text(
-                            '${ticket.storyPoints} pts',
-                            style: NeoTypography.codeSm.copyWith(
-                              fontSize: 10,
-                              color: NeoColors.muted,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: NeoSpacing.spaceSm),
-                      ],
-
                       // Assignee
                       UserAvatar(
                         name: ticket.assigneeName ?? '?',

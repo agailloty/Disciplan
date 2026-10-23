@@ -178,26 +178,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                 const SizedBox(width: NeoSpacing.spaceXs),
               ],
 
-              // 6. Story Points Chip (if any)
-              if (ticket.storyPoints != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: NeoColors.surfaceContainerHigh,
-                    borderRadius: NeoSpacing.roundedSm,
-                  ),
-                  child: Text(
-                    '${ticket.storyPoints} pts',
-                    style: NeoTypography.codeSm.copyWith(
-                      fontSize: 10,
-                      color: NeoColors.muted,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: NeoSpacing.spaceSm),
-              ],
-
-              // 7. Due Date (if any)
+              // 6. Due Date (if any)
               if (ticket.dueDate != null) ...[
                 Row(
                   mainAxisSize: MainAxisSize.min,

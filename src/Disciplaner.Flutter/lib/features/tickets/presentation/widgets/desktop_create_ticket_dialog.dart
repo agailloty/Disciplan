@@ -2,13 +2,14 @@ import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
-import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,6 @@ class _DesktopCreateTicketDialogState
     extends ConsumerState<DesktopCreateTicketDialog> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _storyPointsController = TextEditingController(text: '3');
 
   final TicketType _type = TicketType.task;
   CardPriority _priority = CardPriority.medium;
@@ -73,7 +73,6 @@ class _DesktopCreateTicketDialogState
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _storyPointsController.dispose();
     super.dispose();
   }
 
@@ -104,7 +103,6 @@ class _DesktopCreateTicketDialogState
 
     try {
       final repo = ref.read(ticketRepositoryProvider);
-      final pts = int.tryParse(_storyPointsController.text.trim());
 
       await repo.createTicket(
         projectId,
@@ -115,7 +113,6 @@ class _DesktopCreateTicketDialogState
               : _descriptionController.text.trim(),
           type: _type,
           priority: _priority,
-          storyPoints: pts,
           dueDate: _dueDate,
           assigneeId: _assigneeId,
           sprintId: _sprintId,
@@ -154,6 +151,17 @@ class _DesktopCreateTicketDialogState
   Widget build(BuildContext context) {
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     final projectId = widget.initialProjectId ?? currentProject?.id ?? '';
+    final projectDetail = projectId.isNotEmpty
+        ? (ref.watch(projectDetailByIdProvider(projectId)).value ?? currentProject)
+        : currentProject;
+    final authState = ref.watch(authNotifierProvider);
+    final currentSession =
+        authState is AuthAuthenticated ? authState.session : null;
+    final assignableMembers = projectDetail?.assignableMembers(
+          currentUserId: currentSession?.userId,
+          currentUserDisplayName: currentSession?.displayName,
+        ) ??
+        const [];
     final sprintsAsync = projectId.isNotEmpty
         ? ref.watch(projectSprintsProvider(projectId))
         : const AsyncValue.data(<SprintDto>[]);
@@ -313,29 +321,45 @@ class _DesktopCreateTicketDialogState
                   ),
 
                   // Assignee selector
-                  if (currentProject != null)
-                    PopupMenuButton<MemberDto>(
+                  if (assignableMembers.isNotEmpty)
+                    PopupMenuButton<String>(
                       tooltip: 'Assigner à',
                       shape: RoundedRectangleBorder(
                         borderRadius: NeoSpacing.roundedMd,
                         side: const BorderSide(color: NeoColors.borderWhisper),
                       ),
-                      onSelected: (m) => setState(() {
-                        _assigneeId = m.userId;
-                        _assigneeName = m.displayName;
-                      }),
-                      itemBuilder: (context) => currentProject.members.map((m) {
-                        return PopupMenuItem(
-                          value: m,
-                          child: Row(
-                            children: [
-                              UserAvatar(name: m.displayName, size: 20),
-                              const SizedBox(width: 8),
-                              Text(m.displayName, style: NeoTypography.bodySm),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                      onSelected: (userId) {
+                        setState(() {
+                          if (userId == '__UNASSIGNED__') {
+                            _assigneeId = null;
+                            _assigneeName = null;
+                          } else {
+                            final m = assignableMembers.firstWhere(
+                              (member) => member.userId == userId,
+                            );
+                            _assigneeId = m.userId;
+                            _assigneeName = m.displayName;
+                          }
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: '__UNASSIGNED__',
+                          child: Text('Non assigné'),
+                        ),
+                        ...assignableMembers.map((m) {
+                          return PopupMenuItem(
+                            value: m.userId,
+                            child: Row(
+                              children: [
+                                UserAvatar(name: m.displayName, size: 20),
+                                const SizedBox(width: 8),
+                                Text(m.displayName, style: NeoTypography.bodySm),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
@@ -364,16 +388,18 @@ class _DesktopCreateTicketDialogState
                   // Sprint / Cycle selector
                   sprintsAsync.when(
                     data: (sprints) {
-                      return PopupMenuButton<String?>(
+                      return PopupMenuButton<String>(
                         tooltip: 'Sprint',
                         shape: RoundedRectangleBorder(
                           borderRadius: NeoSpacing.roundedMd,
                           side: const BorderSide(color: NeoColors.borderWhisper),
                         ),
-                        onSelected: (sId) => setState(() => _sprintId = sId),
+                        onSelected: (sId) => setState(
+                          () => _sprintId = sId == '__BACKLOG__' ? null : sId,
+                        ),
                         itemBuilder: (context) => [
                           const PopupMenuItem(
-                            value: null,
+                            value: '__BACKLOG__',
                             child: Text('Backlog (sans sprint)'),
                           ),
                           ...sprints.map((s) => PopupMenuItem(
@@ -394,8 +420,12 @@ class _DesktopCreateTicketDialogState
                               const Icon(Icons.timelapse, size: 14, color: NeoColors.muted),
                               const SizedBox(width: 6),
                               Text(
-                                _sprintId != null
-                                    ? (sprints.firstWhere((s) => s.id == _sprintId, orElse: () => sprints.first).name)
+                                _sprintId != null && sprints.isNotEmpty
+                                    ? (sprints
+                                        .where((s) => s.id == _sprintId)
+                                        .map((s) => s.name)
+                                        .firstOrNull ??
+                                        'Backlog')
                                     : 'Backlog',
                                 style: NeoTypography.bodySm,
                               ),
@@ -446,37 +476,6 @@ class _DesktopCreateTicketDialogState
                           ),
                         ],
                       ),
-                    ),
-                  ),
-
-                  // Story Points
-                  Container(
-                    width: 80,
-                    height: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: NeoColors.surfaceContainerLow,
-                      borderRadius: NeoSpacing.roundedFull,
-                      border: Border.all(color: NeoColors.borderWhisper),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.speed, size: 14, color: NeoColors.muted),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: TextField(
-                            controller: _storyPointsController,
-                            keyboardType: TextInputType.number,
-                            style: GoogleFonts.jetBrainsMono(fontSize: 11, fontWeight: FontWeight.w700),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              hintText: 'pts',
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],

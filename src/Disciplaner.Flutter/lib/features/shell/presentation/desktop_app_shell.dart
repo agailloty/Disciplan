@@ -294,12 +294,32 @@ class DesktopAppShell extends ConsumerWidget {
                   borderRadius: NeoSpacing.roundedMd,
                   side: const BorderSide(color: NeoColors.borderWhisper),
                 ),
-                onSelected: (scale) => ref.read(uiScaleProvider.notifier).setScale(scale),
+                onSelected: (scale) {
+                  if (scale == -1.0) {
+                    _showCustomScaleDialog(context, ref, uiScale);
+                  } else {
+                    ref.read(uiScaleProvider.notifier).setScale(scale);
+                  }
+                },
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 0.9, child: Text('Compact (90%)')),
                   const PopupMenuItem(value: 1.0, child: Text('Standard (100%)')),
                   const PopupMenuItem(value: 1.1, child: Text('Confort (110%)')),
                   const PopupMenuItem(value: 1.2, child: Text('Grand écran (120%)')),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: -1.0,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.tune, size: 15, color: NeoColors.secondary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Facteur personnalisé (${(uiScale * 100).round()}%)...',
+                          style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
@@ -403,6 +423,12 @@ class DesktopAppShell extends ConsumerWidget {
                 onTap: () => context.go('/my-tasks'),
               ),
               _buildActivityItem(
+                icon: Icons.folder_copy_outlined,
+                tooltip: 'Tous mes Projets',
+                isActive: currentRoute == '/projects',
+                onTap: () => context.go('/projects'),
+              ),
+              _buildActivityItem(
                 icon: Icons.view_kanban_outlined,
                 tooltip: 'Tableau Kanban des Sprints',
                 isActive: currentRoute.startsWith('/kanban'),
@@ -411,9 +437,9 @@ class DesktopAppShell extends ConsumerWidget {
               _buildActivityItem(
                 icon: Icons.inbox_outlined,
                 tooltip: 'Backlog & Tickets du projet',
-                isActive: currentRoute.startsWith('/projects') ||
-                    currentRoute.startsWith('/backlog'),
-                onTap: () => context.go('/projects'),
+                isActive: currentRoute.startsWith('/backlog') ||
+                    currentRoute.startsWith('/projects/'),
+                onTap: () => context.go('/backlog'),
               ),
               _buildActivityItem(
                 icon: Icons.timelapse_outlined,
@@ -702,12 +728,21 @@ class DesktopAppShell extends ConsumerWidget {
                 _buildSidebarSectionHeader('ESPACE PERSONNEL'),
                 _buildSidebarItem(
                   context,
-                  title: 'Mes Tâches',
-                  subtitle: 'Tickets en cours & assignés',
+                  title: 'Dashboard & Mes Tâches',
+                  subtitle: 'Vue globale & tickets assignés',
                   icon: Icons.dashboard_customize_outlined,
                   isSelected: currentRoute == '/my-tasks',
                   badge: myActiveCount > 0 ? '$myActiveCount' : null,
                   onTap: () => context.go('/my-tasks'),
+                ),
+                _buildSidebarItem(
+                  context,
+                  title: 'Tous mes Projets',
+                  subtitle: 'Portefeuille & espaces projets',
+                  icon: Icons.folder_copy_outlined,
+                  isSelected: currentRoute == '/projects',
+                  badge: projects.isNotEmpty ? '${projects.length}' : null,
+                  onTap: () => context.go('/projects'),
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceSm),
@@ -726,16 +761,8 @@ class DesktopAppShell extends ConsumerWidget {
                   title: 'Vue Liste',
                   subtitle: 'Backlog & tickets du projet',
                   icon: Icons.format_list_bulleted,
-                  isSelected: currentRoute == '/projects',
-                  badge: backlogCount != null ? '$backlogCount' : null,
-                  onTap: () => context.go('/projects'),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: 'Backlog général',
-                  subtitle: 'Tickets hors sprint à planifier',
-                  icon: Icons.inbox_outlined,
-                  isSelected: currentRoute == '/backlog',
+                  isSelected: currentRoute == '/backlog' ||
+                      currentRoute.startsWith('/projects/'),
                   badge: backlogCount != null ? '$backlogCount' : null,
                   onTap: () => context.go('/backlog'),
                 ),
@@ -928,6 +955,127 @@ class DesktopAppShell extends ConsumerWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showCustomScaleDialog(
+    BuildContext context,
+    WidgetRef ref,
+    double initialScale,
+  ) {
+    final controller = TextEditingController(
+      text: '${(initialScale * 100).round()}',
+    );
+    double tempScale = initialScale;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: NeoColors.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: NeoSpacing.roundedLg,
+            side: const BorderSide(color: NeoColors.borderWhisper),
+          ),
+          title: Text(
+            'Facteur de mise à l\'échelle personnalisé',
+            style: NeoTypography.headlineSm,
+          ),
+          content: SizedBox(
+            width: 360,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Choisissez un facteur entre 50% et 200% (ou utilisez les préréglages 90%, 100%, 110%, 120%).',
+                  style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
+                ),
+                const SizedBox(height: NeoSpacing.spaceMd),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Slider(
+                        value: tempScale.clamp(0.50, 2.00),
+                        min: 0.50,
+                        max: 2.00,
+                        divisions: 30,
+                        activeColor: NeoColors.primary,
+                        label: '${(tempScale * 100).round()}%',
+                        onChanged: (val) {
+                          setDialogState(() {
+                            tempScale = val;
+                            controller.text = '${(val * 100).round()}';
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: controller,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          suffixText: '%',
+                          border: OutlineInputBorder(
+                            borderRadius: NeoSpacing.roundedSm,
+                          ),
+                        ),
+                        onChanged: (val) {
+                          final parsed = double.tryParse(
+                            val.replaceAll('%', '').trim(),
+                          );
+                          if (parsed != null) {
+                            setDialogState(() {
+                              tempScale = (parsed / 100.0).clamp(0.50, 2.00);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                ref.read(uiScaleProvider.notifier).reset();
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('100% (Défaut)'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: NeoColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                final parsed = double.tryParse(
+                  controller.text.replaceAll('%', '').trim(),
+                );
+                final finalScale = parsed != null
+                    ? (parsed / 100.0).clamp(0.50, 2.00)
+                    : tempScale;
+                ref.read(uiScaleProvider.notifier).setScale(finalScale);
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Appliquer'),
+            ),
+          ],
         ),
       ),
     );

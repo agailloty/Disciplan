@@ -18,7 +18,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/projects',
+    initialLocation: '/my-tasks',
     redirect: (context, state) {
       final loc = state.matchedLocation;
       if (authState is AuthNeedsInitialSetup) {
@@ -30,7 +30,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
       if (authState is AuthAuthenticated) {
-        if (loc == '/login' || loc == '/setup' || loc == '/') return '/projects';
+        if (loc == '/login' || loc == '/setup' || loc == '/') return '/my-tasks';
         return null;
       }
       return null;
@@ -52,11 +52,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/projects',
-            builder: (context, state) => const ProjectsAdaptiveScreen(),
+            builder: (context, state) => const ProjectsAdaptiveScreen(
+              showAllProjectsOverview: true,
+            ),
           ),
           GoRoute(
             path: '/backlog',
-            builder: (context, state) => const ProjectsAdaptiveScreen(),
+            builder: (context, state) => const ProjectsAdaptiveScreen(
+              showAllProjectsOverview: false,
+            ),
           ),
           GoRoute(
             path: '/projects/:id/list',

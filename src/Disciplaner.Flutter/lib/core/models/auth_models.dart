@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 class AuthResponse extends Equatable {
@@ -14,6 +15,24 @@ class AuthResponse extends Equatable {
     required this.roles,
     required this.expiresAt,
   });
+
+  /// Extracts the user ID (`sub` claim) from the JWT token if present.
+  String? get userId {
+    if (token.isEmpty) return null;
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final normalized = base64Url.normalize(parts[1]);
+      final payload = utf8.decode(base64Url.decode(normalized));
+      final map = jsonDecode(payload) as Map<String, dynamic>;
+      return (map['sub'] ??
+              map['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ??
+              map['nameid'])
+          ?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(

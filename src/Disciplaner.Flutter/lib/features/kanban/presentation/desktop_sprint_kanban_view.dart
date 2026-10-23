@@ -52,7 +52,7 @@ class _DesktopSprintKanbanViewState
     final authState = ref.watch(authNotifierProvider);
 
     final currentUserId =
-        authState is AuthAuthenticated ? authState.session.email : null;
+        authState is AuthAuthenticated ? authState.session.userId : null;
     final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
     final screenSize = MediaQuery.of(context).size;
     // Automatically collapse metrics header on very short viewports unless toggled

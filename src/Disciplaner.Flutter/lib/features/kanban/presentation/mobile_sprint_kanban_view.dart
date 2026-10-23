@@ -36,7 +36,7 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
     final authState = ref.watch(authNotifierProvider);
 
     final currentUserId =
-        authState is AuthAuthenticated ? authState.session.email : null;
+        authState is AuthAuthenticated ? authState.session.userId : null;
     final metrics = metricsAsync.value;
 
     return Scaffold(

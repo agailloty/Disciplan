@@ -214,6 +214,25 @@ final ticketHistoryProvider =
   return await repo.getHistory(ticketId);
 });
 
+// Ticket Subtasks provider (real child tickets where parentTicketId == parent.id)
+final ticketSubtasksProvider = FutureProvider.family
+    .autoDispose<List<TicketDto>, TicketDto>((ref, parent) async {
+  final backlog =
+      await ref.watch(projectBacklogProvider(parent.projectId).future);
+  final sprintTickets = parent.sprintId != null
+      ? await ref.watch(sprintTicketsProvider(parent.sprintId!).future)
+      : const <TicketDto>[];
+
+  final seen = <String>{};
+  final subtasks = <TicketDto>[];
+  for (final t in [...backlog, ...sprintTickets]) {
+    if (t.parentTicketId == parent.id && seen.add(t.id)) {
+      subtasks.add(t);
+    }
+  }
+  return subtasks;
+});
+
 // Ticket by Ref provider (e.g. "DISC-14" or ID)
 final ticketByRefProvider =
     FutureProvider.family.autoDispose<TicketDto, String>((ref, refString) async {

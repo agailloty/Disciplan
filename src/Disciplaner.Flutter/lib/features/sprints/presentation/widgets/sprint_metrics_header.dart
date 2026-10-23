@@ -247,12 +247,12 @@ class SprintMetricsHeader extends ConsumerWidget {
                           sublabel: '(${m.completionPercentage.toInt()}%)',
                         ),
 
-                        // Story points
+                        // Remaining tickets
                         _buildMetricChip(
-                          icon: Icons.speed,
+                          icon: Icons.pending_actions_outlined,
                           iconColor: NeoColors.secondary,
-                          label: '${m.completedPoints}/${m.totalPoints} pts',
-                          sublabel: 'vélocité',
+                          label: '${m.totalTickets - m.closedTickets} restantes',
+                          sublabel: 'en cours / à faire',
                         ),
 
                         // Contributors

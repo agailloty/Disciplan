@@ -2,10 +2,17 @@ import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
+import 'package:disciplaner_flutter/core/models/project_models.dart';
+import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/kanban/presentation/kanban_providers.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,15 +43,14 @@ class MobileTicketDetailSheet extends ConsumerStatefulWidget {
 
 class _MobileTicketDetailSheetState
     extends ConsumerState<MobileTicketDetailSheet> {
+  static const String _unassignedSentinel = '__UNASSIGNED__';
+  static const String _backlogSprintSentinel = '__BACKLOG__';
+
   final _commentController = TextEditingController();
+  final _subtaskController = TextEditingController();
   bool _isAddingComment = false;
-  final List<bool> _subtasksDone = [true, true, false, false];
-  final List<String> _subtaskTitles = [
-    'Gabarits 4x3 JCDecaux & Clear Channel',
-    'Déclinaison abribus 120x176 cm',
-    'Validation colorimétrique avec l\'imprimeur',
-    'Export des fichiers haute définition',
-  ];
+  bool _isAddingSubtask = false;
+  bool _isUpdatingTicket = false;
 
   TicketPriority _mapPriority(CardPriority p) {
     switch (p) {
@@ -62,7 +68,151 @@ class _MobileTicketDetailSheetState
   @override
   void dispose() {
     _commentController.dispose();
+    _subtaskController.dispose();
     super.dispose();
+  }
+
+  void _invalidateTicketViews(TicketDto ticket, {String? previousSprintId}) {
+    ref.invalidate(ticketDetailProvider(widget.ticketId));
+    ref.invalidate(ticketHistoryProvider(widget.ticketId));
+    ref.invalidate(projectBacklogProvider(ticket.projectId));
+    if (ticket.sprintId != null) {
+      ref.invalidate(sprintTicketsProvider(ticket.sprintId!));
+      ref.invalidate(kanbanStateProvider(ticket.sprintId!));
+      ref.invalidate(sprintMetricsProvider(ticket.sprintId!));
+    }
+    if (previousSprintId != null && previousSprintId != ticket.sprintId) {
+      ref.invalidate(sprintTicketsProvider(previousSprintId));
+      ref.invalidate(kanbanStateProvider(previousSprintId));
+      ref.invalidate(sprintMetricsProvider(previousSprintId));
+    }
+    ref.read(myTasksProvider.notifier).refresh();
+  }
+
+  Future<void> _updateTicketFields(
+    TicketDto ticket, {
+    CardPriority? priority,
+    String? assigneeId,
+    bool updateAssignee = false,
+    DateTime? dueDate,
+    bool updateDueDate = false,
+  }) async {
+    setState(() => _isUpdatingTicket = true);
+    try {
+      final repo = ref.read(ticketRepositoryProvider);
+      await repo.updateTicket(
+        ticket.id,
+        UpdateTicketRequest(
+          title: ticket.title,
+          description: ticket.description,
+          type: ticket.type,
+          priority: priority ?? ticket.priority,
+          storyPoints: null,
+          dueDate: updateDueDate ? dueDate : ticket.dueDate,
+          assigneeId: updateAssignee ? assigneeId : ticket.assigneeId,
+        ),
+      );
+      _invalidateTicketViews(ticket);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de mise à jour : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingTicket = false);
+    }
+  }
+
+  Future<void> _changeStatus(TicketDto ticket, String statusId) async {
+    setState(() => _isUpdatingTicket = true);
+    try {
+      await ref.read(ticketRepositoryProvider).changeStatus(ticket.id, statusId);
+      _invalidateTicketViews(ticket);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur changement de statut : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingTicket = false);
+    }
+  }
+
+  Future<void> _changeSprint(TicketDto ticket, String? targetSprintId) async {
+    final prevSprint = ticket.sprintId;
+    setState(() => _isUpdatingTicket = true);
+    try {
+      await ref.read(ticketRepositoryProvider).moveToSprint(ticket.id, targetSprintId);
+      _invalidateTicketViews(ticket, previousSprintId: prevSprint);
+      ref.invalidate(projectSprintsProvider(ticket.projectId));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur changement de sprint : $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingTicket = false);
+    }
+  }
+
+  Future<void> _addSubtask(TicketDto ticket) async {
+    final text = _subtaskController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _isAddingSubtask = true);
+    try {
+      final repo = ref.read(ticketRepositoryProvider);
+      await repo.createTicket(
+        ticket.projectId,
+        CreateTicketRequest(
+          title: text,
+          parentTicketId: ticket.id,
+          sprintId: ticket.sprintId,
+          type: TicketType.subtask,
+          priority: ticket.priority,
+        ),
+      );
+      _subtaskController.clear();
+      _invalidateTicketViews(ticket);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur ajout sous-tâche: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAddingSubtask = false);
+    }
+  }
+
+  Future<void> _toggleSubtaskDone(
+    TicketDto parentTicket,
+    TicketDto subtask,
+    ProjectDetailDto? project,
+  ) async {
+    if (project == null || project.statuses.isEmpty) return;
+    final isCurrentlyDone = subtask.status.category == StatusCategory.done;
+    final targetCategory =
+        isCurrentlyDone ? StatusCategory.backlog : StatusCategory.done;
+    final targetStatus = project.statuses.firstWhere(
+      (s) => s.category == targetCategory,
+      orElse: () => project.statuses.first,
+    );
+    try {
+      await ref
+          .read(ticketRepositoryProvider)
+          .changeStatus(subtask.id, targetStatus.id);
+      _invalidateTicketViews(parentTicket);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur mise à jour sous-tâche: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _postComment() async {
@@ -138,13 +288,16 @@ class _MobileTicketDetailSheetState
                   'Détail Ticket',
                   style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert, size: 20),
-                  onPressed: () {},
-                ),
+                const SizedBox(width: 40),
               ],
             ),
           ),
+          if (_isUpdatingTicket)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              color: NeoColors.primary,
+              backgroundColor: NeoColors.surfaceContainerHigh,
+            ),
 
           Expanded(
             child: ticketAsync.when(
@@ -178,8 +331,32 @@ class _MobileTicketDetailSheetState
   }
 
   Widget _buildDetail(BuildContext context, TicketDto ticket) {
-    final doneCount = _subtasksDone.where((d) => d).length;
-    final totalCount = _subtasksDone.length;
+    final project = ref.watch(projectDetailByIdProvider(ticket.projectId)).value ??
+        ref.watch(currentProjectDetailProvider).value;
+    final statuses = project?.statuses ?? const <TicketStatusDto>[];
+
+    final authState = ref.watch(authNotifierProvider);
+    final session = authState is AuthAuthenticated ? authState.session : null;
+    final members = project?.assignableMembers(
+          currentUserId: session?.userId,
+          currentUserDisplayName: session?.displayName,
+          currentUserEmail: session?.email,
+        ) ??
+        const <MemberDto>[];
+
+    final sprints = ref
+            .watch(projectSprintsProvider(ticket.projectId))
+            .asData
+            ?.value
+            .where((s) => s.status != SprintStatus.closed)
+            .toList() ??
+        const <SprintDto>[];
+
+    final subtasksAsync = ref.watch(ticketSubtasksProvider(ticket));
+    final subtasks = subtasksAsync.asData?.value ?? const <TicketDto>[];
+    final doneCount =
+        subtasks.where((t) => t.status.category == StatusCategory.done).length;
+    final totalCount = subtasks.length;
     final progress = totalCount > 0 ? doneCount / totalCount : 0.0;
 
     return ListView(
@@ -198,55 +375,80 @@ class _MobileTicketDetailSheetState
                 runSpacing: NeoSpacing.spaceXs,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  // Status Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: NeoColors.secondaryContainer.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            color: NeoColors.secondary,
-                            shape: BoxShape.circle,
+                  // Interactive Status Pill
+                  PopupMenuButton<String>(
+                    enabled: statuses.isNotEmpty,
+                    onSelected: (sId) => _changeStatus(ticket, sId),
+                    itemBuilder: (context) => statuses
+                        .map(
+                          (s) => PopupMenuItem<String>(
+                            value: s.id,
+                            child: Text(s.name),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          ticket.status.name,
-                          style: NeoTypography.headlineSm.copyWith(
-                            fontSize: 13,
-                            color: NeoColors.secondary,
+                        )
+                        .toList(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: NeoColors.secondaryContainer.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: NeoColors.secondary,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            ticket.status.name,
+                            style: NeoTypography.headlineSm.copyWith(
+                              fontSize: 13,
+                              color: NeoColors.secondary,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.arrow_drop_down, size: 15, color: NeoColors.secondary),
+                        ],
+                      ),
                     ),
                   ),
-                  // Priority Chip
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: NeoColors.surfaceContainer,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        PriorityIcon(priority: _mapPriority(ticket.priority), size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          ticket.priority.label.toUpperCase(),
-                          style: NeoTypography.labelSm.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 10,
+                  // Interactive Priority Chip
+                  PopupMenuButton<CardPriority>(
+                    onSelected: (p) => _updateTicketFields(ticket, priority: p),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: CardPriority.low, child: Text('Basse')),
+                      const PopupMenuItem(value: CardPriority.medium, child: Text('Moyenne')),
+                      const PopupMenuItem(value: CardPriority.high, child: Text('Haute')),
+                      const PopupMenuItem(value: CardPriority.critical, child: Text('Critique')),
+                    ],
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: NeoColors.surfaceContainer,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PriorityIcon(priority: _mapPriority(ticket.priority), size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            ticket.priority.label.toUpperCase(),
+                            style: NeoTypography.labelSm.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 2),
+                          const Icon(Icons.arrow_drop_down, size: 14, color: NeoColors.muted),
+                        ],
+                      ),
                     ),
                   ),
                   // Ticket ID
@@ -260,27 +462,18 @@ class _MobileTicketDetailSheetState
                 ],
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.share, size: 18),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: ticket.ticketRef));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        content: Text('Lien du ticket copié'),
-                        duration: Duration(milliseconds: 1500),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.bookmark_border, size: 18),
-                  onPressed: () {},
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.share, size: 18),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: ticket.ticketRef));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text('Lien du ticket copié'),
+                    duration: Duration(milliseconds: 1500),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -299,7 +492,7 @@ class _MobileTicketDetailSheetState
 
         const SizedBox(height: NeoSpacing.spaceMd),
 
-        // Key Properties 2x2 Grid
+        // Key Properties 2x2 Grid (interactive)
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
@@ -308,30 +501,93 @@ class _MobileTicketDetailSheetState
           crossAxisSpacing: NeoSpacing.spaceXs,
           mainAxisSpacing: NeoSpacing.spaceXs,
           children: [
-            // Assignee
-            _buildPropCard(
-              avatar: ticket.assigneeName != null
-                  ? UserAvatar(name: ticket.assigneeName!, size: 30)
-                  : const CircleAvatar(
-                      radius: 15,
-                      backgroundColor: NeoColors.surfaceContainerHigh,
-                      child: Icon(Icons.person, size: 16, color: NeoColors.muted),
+            // Assignee (interactive PopupMenuButton)
+            PopupMenuButton<String>(
+              onSelected: (selectedValue) {
+                final newAssigneeId =
+                    selectedValue == _unassignedSentinel ? null : selectedValue;
+                _updateTicketFields(
+                  ticket,
+                  assigneeId: newAssigneeId,
+                  updateAssignee: true,
+                );
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: _unassignedSentinel,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person_off_outlined, size: 16, color: NeoColors.muted),
+                      const SizedBox(width: 8),
+                      Text('Non assigné', style: NeoTypography.bodySm),
+                    ],
+                  ),
+                ),
+                if (members.isNotEmpty) const PopupMenuDivider(),
+                ...members.map(
+                  (m) => PopupMenuItem<String>(
+                    value: m.userId,
+                    child: Row(
+                      children: [
+                        UserAvatar(name: m.displayName, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            m.displayName,
+                            style: NeoTypography.bodySm,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-              label: 'ASSIGNÉ',
-              value: ticket.assigneeName ?? 'Non assigné',
-            ),
-            // Deadline
-            _buildPropCard(
-              avatar: const CircleAvatar(
-                radius: 15,
-                backgroundColor: NeoColors.secondaryContainer,
-                child: Icon(Icons.schedule, size: 16, color: NeoColors.secondary),
+                  ),
+                ),
+              ],
+              child: _buildPropCard(
+                avatar: ticket.assigneeName != null
+                    ? UserAvatar(name: ticket.assigneeName!, size: 30)
+                    : const CircleAvatar(
+                        radius: 15,
+                        backgroundColor: NeoColors.surfaceContainerHigh,
+                        child: Icon(Icons.person_add_alt_1_outlined, size: 16, color: NeoColors.muted),
+                      ),
+                label: 'ASSIGNÉ',
+                value: ticket.assigneeName ?? 'Non assigné',
               ),
-              label: 'ÉCHÉANCE',
-              value: ticket.dueDate != null
-                  ? DateFormat('dd MMM yyyy').format(ticket.dueDate!)
-                  : 'Non définie',
             ),
+
+            // Deadline (interactive)
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                final now = DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: ticket.dueDate ?? now,
+                  firstDate: now.subtract(const Duration(days: 365)),
+                  lastDate: now.add(const Duration(days: 365 * 2)),
+                );
+                if (picked != null) {
+                  await _updateTicketFields(
+                    ticket,
+                    dueDate: picked,
+                    updateDueDate: true,
+                  );
+                }
+              },
+              child: _buildPropCard(
+                avatar: const CircleAvatar(
+                  radius: 15,
+                  backgroundColor: NeoColors.secondaryContainer,
+                  child: Icon(Icons.schedule, size: 16, color: NeoColors.secondary),
+                ),
+                label: 'ÉCHÉANCE',
+                value: ticket.dueDate != null
+                    ? DateFormat('dd MMM yyyy').format(ticket.dueDate!)
+                    : 'Non définie',
+              ),
+            ),
+
             // Project
             _buildPropCard(
               avatar: const CircleAvatar(
@@ -342,15 +598,34 @@ class _MobileTicketDetailSheetState
               label: 'PROJET',
               value: ticket.projectKey,
             ),
-            // Sprint
-            _buildPropCard(
-              avatar: const CircleAvatar(
-                radius: 15,
-                backgroundColor: NeoColors.surfaceContainerHigh,
-                child: Icon(Icons.palette, size: 16, color: NeoColors.primary),
+
+            // Sprint (interactive)
+            PopupMenuButton<String>(
+              onSelected: (val) {
+                final sId = val == _backlogSprintSentinel ? null : val;
+                _changeSprint(ticket, sId);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem<String>(
+                  value: _backlogSprintSentinel,
+                  child: Text('Backlog (sans sprint)'),
+                ),
+                ...sprints.map(
+                  (s) => PopupMenuItem<String>(
+                    value: s.id,
+                    child: Text(s.name),
+                  ),
+                ),
+              ],
+              child: _buildPropCard(
+                avatar: const CircleAvatar(
+                  radius: 15,
+                  backgroundColor: NeoColors.surfaceContainerHigh,
+                  child: Icon(Icons.autorenew, size: 16, color: NeoColors.primary),
+                ),
+                label: 'CYCLE / SPRINT',
+                value: ticket.sprintName ?? 'Backlog',
               ),
-              label: 'CYCLE / SPRINT',
-              value: ticket.sprintName ?? 'Backlog',
             ),
           ],
         ),
@@ -374,7 +649,7 @@ class _MobileTicketDetailSheetState
                     const Icon(Icons.notes, size: 16, color: NeoColors.onSurfaceVariant),
                     const SizedBox(width: 6),
                     Text(
-                      'NOTE D\'INTENTION',
+                      'DESCRIPTION',
                       style: NeoTypography.labelSm.copyWith(
                         fontWeight: FontWeight.w700,
                         color: NeoColors.onSurfaceVariant,
@@ -394,7 +669,7 @@ class _MobileTicketDetailSheetState
           const SizedBox(height: NeoSpacing.spaceMd),
         ],
 
-        // Interactive Deliverables Checklist (Sous-tâches)
+        // Interactive Deliverables Checklist (Real Sous-tâches only)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -404,7 +679,7 @@ class _MobileTicketDetailSheetState
                 children: [
                   Flexible(
                     child: Text(
-                      'Livrables requis',
+                      'Sous-tâches',
                       style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -424,80 +699,119 @@ class _MobileTicketDetailSheetState
                 ],
               ),
             ),
-            Text(
-              '${(progress * 100).round()}% complété',
-              style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant),
-            ),
+            if (totalCount > 0)
+              Text(
+                '${(progress * 100).round()}% complété',
+                style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant),
+              ),
           ],
         ),
         const SizedBox(height: 6),
-        // Progress track
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 5,
-            backgroundColor: NeoColors.surfaceContainerHigh,
-            valueColor: const AlwaysStoppedAnimation<Color>(NeoColors.primary),
+        if (totalCount > 0) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 5,
+              backgroundColor: NeoColors.surfaceContainerHigh,
+              valueColor: const AlwaysStoppedAnimation<Color>(NeoColors.primary),
+            ),
           ),
-        ),
-        const SizedBox(height: NeoSpacing.spaceSm),
-
-        // Checklist items
-        ...List.generate(_subtaskTitles.length, (index) {
-          final isDone = _subtasksDone[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _subtasksDone[index] = !_subtasksDone[index];
-                });
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: NeoSpacing.spaceSm,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: NeoColors.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: NeoColors.borderWhisper),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: isDone ? NeoColors.primary : NeoColors.surfaceContainer,
-                        borderRadius: BorderRadius.circular(6),
+          const SizedBox(height: NeoSpacing.spaceSm),
+          ...subtasks.map((sub) {
+            final isDone = sub.status.category == StatusCategory.done;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: InkWell(
+                onTap: () => _toggleSubtaskDone(ticket, sub, project),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: NeoSpacing.spaceSm,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: NeoColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: NeoColors.borderWhisper),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: isDone ? NeoColors.primary : NeoColors.surfaceContainer,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: isDone
+                            ? const Icon(Icons.check, size: 14, color: Colors.white)
+                            : null,
                       ),
-                      child: isDone
-                          ? const Icon(Icons.check, size: 14, color: Colors.white)
-                          : null,
-                    ),
-                    const SizedBox(width: NeoSpacing.spaceSm),
-                    Expanded(
-                      child: Text(
-                        _subtaskTitles[index],
-                        style: NeoTypography.bodyMd.copyWith(
-                          decoration: isDone ? TextDecoration.lineThrough : null,
-                          color: isDone ? NeoColors.onSurfaceVariant : NeoColors.primary,
+                      const SizedBox(width: NeoSpacing.spaceSm),
+                      Expanded(
+                        child: Text(
+                          sub.title,
+                          style: NeoTypography.bodyMd.copyWith(
+                            decoration: isDone ? TextDecoration.lineThrough : null,
+                            color: isDone ? NeoColors.onSurfaceVariant : NeoColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+            );
+          }),
+        ] else
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              'Aucune sous-tâche pour ce ticket.',
+              style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
             ),
-          );
-        }),
+          ),
+
+        // Quick subtask input
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: NeoSpacing.spaceSm, vertical: 2),
+          decoration: BoxDecoration(
+            color: NeoColors.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: NeoColors.borderWhisper),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _subtaskController,
+                  style: NeoTypography.bodySm,
+                  decoration: const InputDecoration(
+                    hintText: '+ Ajouter une sous-tâche...',
+                    isDense: true,
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (_) => _addSubtask(ticket),
+                ),
+              ),
+              IconButton(
+                icon: _isAddingSubtask
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_circle_outline, size: 18),
+                onPressed: () => _addSubtask(ticket),
+              ),
+            ],
+          ),
+        ),
 
         const SizedBox(height: NeoSpacing.spaceMd),
 
-        // Fichier de travail / Attachments
+        // Real Attachments
         _buildAttachmentsSection(),
 
         const SizedBox(height: NeoSpacing.spaceMd),
@@ -556,70 +870,64 @@ class _MobileTicketDetailSheetState
   }
 
   Widget _buildAttachmentsSection() {
+    final attachmentsAsync = ref.watch(ticketAttachmentsProvider(widget.ticketId));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: Text(
-                'Fichier de travail',
-                style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              'Synchronisé',
-              style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant),
-            ),
-          ],
+        Text(
+          'Pièces jointes',
+          style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.all(NeoSpacing.spaceMd),
-          decoration: BoxDecoration(
-            color: NeoColors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: NeoColors.borderWhisper),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
+        attachmentsAsync.when(
+          data: (attachments) {
+            if (attachments.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(NeoSpacing.spaceMd),
                 decoration: BoxDecoration(
                   color: NeoColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.design_services, color: NeoColors.primary, size: 22),
-              ),
-              const SizedBox(width: NeoSpacing.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Maquette Figma - Affichage Urbain',
-                      style: NeoTypography.headlineSm.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Wrap(
-                      spacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text('142 Mo', style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant)),
-                        const Text('•', style: TextStyle(color: NeoColors.borderWhisper)),
-                        Text('Mis à jour à 11:20', style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant)),
-                      ],
-                    ),
-                  ],
+                child: Text(
+                  'Aucune pièce jointe.',
+                  style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
-              ),
-              const Icon(Icons.open_in_new, size: 18, color: NeoColors.onSurfaceVariant),
-            ],
-          ),
+              );
+            }
+            return Column(
+              children: attachments.map((att) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.all(NeoSpacing.spaceSm),
+                  decoration: BoxDecoration(
+                    color: NeoColors.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: NeoColors.borderWhisper),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_drive_file_outlined, color: NeoColors.primary, size: 20),
+                      const SizedBox(width: NeoSpacing.spaceSm),
+                      Expanded(
+                        child: Text(
+                          att.fileName,
+                          style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${(att.sizeBytes / 1024).round()} Ko',
+                        style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          error: (_, _) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -674,18 +982,25 @@ class _MobileTicketDetailSheetState
                               children: [
                                 Text(
                                   comment.authorName,
-                                  style: NeoTypography.headlineSm.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+                                  style: NeoTypography.headlineSm.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 Text(
                                   DateFormat('HH:mm').format(comment.createdAt),
-                                  style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant),
+                                  style: NeoTypography.labelSm.copyWith(
+                                    color: NeoColors.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(
                               comment.content,
-                              style: NeoTypography.bodySm.copyWith(color: NeoColors.onSurfaceVariant),
+                              style: NeoTypography.bodySm.copyWith(
+                                color: NeoColors.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -739,17 +1054,8 @@ class _MobileTicketDetailSheetState
                   isDense: true,
                   contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 ),
+                onSubmitted: (_) => _postComment(),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.attach_file, size: 20, color: NeoColors.onSurfaceVariant),
-              onPressed: () {},
-              tooltip: 'Joindre un fichier',
-            ),
-            IconButton(
-              icon: const Icon(Icons.mic_none, size: 20, color: NeoColors.onSurfaceVariant),
-              onPressed: () {},
-              tooltip: 'Note vocale',
             ),
             Container(
               width: 32,

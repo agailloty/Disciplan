@@ -158,7 +158,10 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             ),
           ),
           data: (allTickets) {
-            final filteredTickets = allTickets.where((t) {
+            final topLevelTickets = allTickets
+                .where((t) => t.parentTicketId == null)
+                .toList();
+            final filteredTickets = topLevelTickets.where((t) {
               if (_priorityFilter != null && t.priority != _priorityFilter) {
                 return false;
               }
@@ -192,13 +195,13 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                     context,
                     currentProjectName: currentProject?.name,
                     currentProjectKey: currentProject?.key,
-                    totalTicketsCount: allTickets.length,
+                    totalTicketsCount: topLevelTickets.length,
                     isDesktop: isDesktop,
                   ),
                   const SizedBox(height: NeoSpacing.spaceMd),
 
                   // 2. Scope Switcher: Backlog vs Sprints
-                  _buildScopeSelectorBar(sprints, allTickets.length),
+                  _buildScopeSelectorBar(sprints, topLevelTickets.length),
                   const SizedBox(height: NeoSpacing.spaceMd),
 
                   // 3. Search, Filter & Sprint Assignment Bar
@@ -209,7 +212,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   const SizedBox(height: NeoSpacing.spaceMd),
 
                   // 4. Tickets Content or Empty State
-                  if (allTickets.isEmpty)
+                  if (topLevelTickets.isEmpty)
                     _buildEmptyState()
                   else if (filteredTickets.isEmpty)
                     Container(
@@ -375,11 +378,40 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   const SizedBox(width: NeoSpacing.spaceSm),
                   Text('•', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
                   const SizedBox(width: NeoSpacing.spaceSm),
-                  Text(
-                    '${currentProjectKey ?? ''} — $currentProjectName',
-                    style: NeoTypography.labelSm.copyWith(
-                      color: NeoColors.muted,
-                      fontWeight: FontWeight.w600,
+                  InkWell(
+                    onTap: () => context.go('/projects'),
+                    borderRadius: NeoSpacing.roundedSm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: NeoColors.surfaceContainerLow,
+                        borderRadius: NeoSpacing.roundedSm,
+                        border: Border.all(color: NeoColors.borderWhisper),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.folder_copy_outlined,
+                            size: 12,
+                            color: NeoColors.secondary,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${currentProjectKey ?? ''} — $currentProjectName',
+                            style: NeoTypography.labelSm.copyWith(
+                              color: NeoColors.onSurface,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.swap_horiz_rounded,
+                            size: 13,
+                            color: NeoColors.muted,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -425,6 +457,16 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
           spacing: NeoSpacing.spaceSm,
           runSpacing: NeoSpacing.spaceXs,
           children: [
+            OutlinedButton.icon(
+              onPressed: () => context.go('/projects'),
+              icon: const Icon(Icons.folder_copy_outlined, size: 16),
+              label: const Text('Tous les projets'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: NeoColors.onSurface,
+                side: const BorderSide(color: NeoColors.borderWhisper),
+                shape: RoundedRectangleBorder(borderRadius: NeoSpacing.roundedMd),
+              ),
+            ),
             OutlinedButton.icon(
               onPressed: () => context.go('/kanban'),
               icon: const Icon(Icons.view_kanban_outlined, size: 16),
@@ -615,32 +657,40 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
         ),
 
         // Priority filter
-        PopupMenuButton<CardPriority?>(
+        PopupMenuButton<String>(
           tooltip: 'Filtrer par priorité',
-          onSelected: (priority) {
-            setState(() => _priorityFilter = priority);
+          onSelected: (priorityKey) {
+            setState(() {
+              if (priorityKey == '__ALL__') {
+                _priorityFilter = null;
+              } else {
+                _priorityFilter = CardPriority.values.firstWhere(
+                  (p) => p.name == priorityKey,
+                );
+              }
+            });
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
-              value: null,
+              value: '__ALL__',
               child: Text('Toutes les priorités'),
             ),
             const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: CardPriority.critical,
-              child: Text('Critique'),
+            PopupMenuItem(
+              value: CardPriority.critical.name,
+              child: const Text('Critique'),
             ),
-            const PopupMenuItem(
-              value: CardPriority.high,
-              child: Text('Haute'),
+            PopupMenuItem(
+              value: CardPriority.high.name,
+              child: const Text('Haute'),
             ),
-            const PopupMenuItem(
-              value: CardPriority.medium,
-              child: Text('Moyenne'),
+            PopupMenuItem(
+              value: CardPriority.medium.name,
+              child: const Text('Moyenne'),
             ),
-            const PopupMenuItem(
-              value: CardPriority.low,
-              child: Text('Basse'),
+            PopupMenuItem(
+              value: CardPriority.low.name,
+              child: const Text('Basse'),
             ),
           ],
           child: Container(

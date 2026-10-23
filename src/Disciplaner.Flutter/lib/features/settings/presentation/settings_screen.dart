@@ -24,6 +24,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _displayNameController = TextEditingController();
   final _serverUrlController = TextEditingController();
   final _inviteEmailController = TextEditingController();
+  final _customScaleController = TextEditingController(text: '100');
 
   bool _isSavingDisplayName = false;
   bool _isCreatingInvite = false;
@@ -41,6 +42,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
       final serverUrl = ref.read(homelabServerUrlProvider);
       _serverUrlController.text = serverUrl;
+      final currentScale = ref.read(uiScaleProvider);
+      _customScaleController.text = '${(currentScale * 100).round()}';
     });
   }
 
@@ -49,6 +52,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _displayNameController.dispose();
     _serverUrlController.dispose();
     _inviteEmailController.dispose();
+    _customScaleController.dispose();
     super.dispose();
   }
 
@@ -218,6 +222,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: Consumer(
                     builder: (context, ref, _) {
                       final currentScale = ref.watch(uiScaleProvider);
+                      final currentPercent = (currentScale * 100).round();
                       final presets = [
                         (0.9, 'Compact (90%)'),
                         (1.0, 'Standard (100%)'),
@@ -231,7 +236,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             spacing: NeoSpacing.spaceSm,
                             runSpacing: NeoSpacing.spaceSm,
                             children: presets.map((p) {
-                              final isSelected = (currentScale - p.$1).abs() < 0.03;
+                              final isSelected = (currentScale - p.$1).abs() < 0.015;
                               return ChoiceChip(
                                 label: Text(
                                   p.$2,
@@ -248,13 +253,165 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ),
                                 onSelected: (_) {
                                   ref.read(uiScaleProvider.notifier).setScale(p.$1);
+                                  _customScaleController.text = '${(p.$1 * 100).round()}';
                                 },
                               );
                             }).toList(),
                           ),
+                          const SizedBox(height: NeoSpacing.spaceMd),
+                          Container(
+                            padding: const EdgeInsets.all(NeoSpacing.spaceMd),
+                            decoration: BoxDecoration(
+                              color: NeoColors.surfaceContainerLow,
+                              borderRadius: NeoSpacing.roundedMd,
+                              border: Border.all(color: NeoColors.borderWhisper),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Facteur de mise à l\'échelle personnalisé',
+                                      style: NeoTypography.labelMd.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: NeoColors.kineticAmber.withValues(alpha: 0.16),
+                                        borderRadius: NeoSpacing.roundedSm,
+                                      ),
+                                      child: Text(
+                                        '$currentPercent%',
+                                        style: GoogleFonts.jetBrainsMono(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: NeoColors.secondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: NeoSpacing.spaceSm),
+                                Wrap(
+                                  spacing: NeoSpacing.spaceSm,
+                                  runSpacing: NeoSpacing.spaceSm,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Réduire (-5%)',
+                                      icon: const Icon(Icons.remove_circle_outline, size: 18),
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () {
+                                        ref.read(uiScaleProvider.notifier).decrease();
+                                        final updated = ref.read(uiScaleProvider);
+                                        _customScaleController.text = '${(updated * 100).round()}';
+                                      },
+                                    ),
+                                    SizedBox(
+                                      width: 240,
+                                      child: Slider(
+                                        value: currentScale.clamp(0.50, 2.00),
+                                        min: 0.50,
+                                        max: 2.00,
+                                        divisions: 30,
+                                        activeColor: NeoColors.primary,
+                                        label: '$currentPercent%',
+                                        onChanged: (val) {
+                                          ref.read(uiScaleProvider.notifier).setScale(val);
+                                          _customScaleController.text = '${(val * 100).round()}';
+                                        },
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Augmenter (+5%)',
+                                      icon: const Icon(Icons.add_circle_outline, size: 18),
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () {
+                                        ref.read(uiScaleProvider.notifier).increase();
+                                        final updated = ref.read(uiScaleProvider);
+                                        _customScaleController.text = '${(updated * 100).round()}';
+                                      },
+                                    ),
+                                    SizedBox(
+                                      width: 84,
+                                      child: TextField(
+                                        controller: _customScaleController,
+                                        keyboardType: TextInputType.number,
+                                        style: GoogleFonts.jetBrainsMono(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          suffixText: '%',
+                                          filled: true,
+                                          fillColor: NeoColors.surfaceContainerLowest,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 8,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: NeoSpacing.roundedSm,
+                                            borderSide: const BorderSide(
+                                              color: NeoColors.borderWhisper,
+                                            ),
+                                          ),
+                                        ),
+                                        onSubmitted: (val) {
+                                          final parsed = double.tryParse(
+                                            val.replaceAll('%', '').trim(),
+                                          );
+                                          if (parsed != null) {
+                                            final nextScale = (parsed / 100.0).clamp(0.50, 2.00);
+                                            ref.read(uiScaleProvider.notifier).setScale(nextScale);
+                                            _customScaleController.text =
+                                                '${(nextScale * 100).round()}';
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        final parsed = double.tryParse(
+                                          _customScaleController.text.replaceAll('%', '').trim(),
+                                        );
+                                        if (parsed != null) {
+                                          final nextScale = (parsed / 100.0).clamp(0.50, 2.00);
+                                          ref.read(uiScaleProvider.notifier).setScale(nextScale);
+                                          _customScaleController.text =
+                                              '${(nextScale * 100).round()}';
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: NeoColors.secondary,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      child: const Text('Appliquer'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        ref.read(uiScaleProvider.notifier).reset();
+                                        _customScaleController.text = '100';
+                                      },
+                                      child: const Text('Réinitialiser (100%)'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: NeoSpacing.spaceSm),
                           Text(
-                            'Astuce : vous pouvez aussi ajuster rapidement le zoom depuis l\'icône d\'échelle dans la barre supérieure.',
+                            'Astuce : vous pouvez saisir n\'importe quel pourcentage entre 50% et 200%, ou ajuster le facteur depuis la barre supérieure.',
                             style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                           ),
                         ],

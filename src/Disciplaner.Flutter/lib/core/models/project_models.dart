@@ -221,6 +221,63 @@ class ProjectDetailDto extends Equatable {
         'requestingUserRole': requestingUserRole.toJson(),
       };
 
+  /// Returns all assignable project members (including the owner / current user
+  /// if not already present in the backend `members` collection).
+  List<MemberDto> assignableMembers({
+    String? currentUserId,
+    String? currentUserDisplayName,
+    String? currentUserEmail,
+  }) {
+    final result = <MemberDto>[];
+    final seenIds = <String>{};
+
+    // Include current user if they have write access and aren't in members yet
+    if (currentUserId != null &&
+        currentUserId.isNotEmpty &&
+        requestingUserRole != MemberRole.guest &&
+        !members.any((m) => m.userId == currentUserId)) {
+      seenIds.add(currentUserId);
+      result.add(
+        MemberDto(
+          userId: currentUserId,
+          displayName: (currentUserDisplayName != null && currentUserDisplayName.isNotEmpty)
+              ? currentUserDisplayName
+              : 'Moi',
+          email: currentUserEmail ?? '',
+          role: requestingUserRole,
+          joinedAt: createdAt,
+        ),
+      );
+    }
+
+    for (final m in members) {
+      if (m.role == MemberRole.guest) continue;
+      if (seenIds.add(m.userId)) {
+        result.add(m);
+      }
+    }
+
+    // Fallback: if ownerId is still not in seenIds and ownerId is non-empty
+    if (ownerId.isNotEmpty && !seenIds.contains(ownerId)) {
+      result.insert(
+        0,
+        MemberDto(
+          userId: ownerId,
+          displayName: (currentUserId == ownerId &&
+                  currentUserDisplayName != null &&
+                  currentUserDisplayName.isNotEmpty)
+              ? currentUserDisplayName
+              : 'Propriétaire du projet',
+          email: currentUserId == ownerId ? (currentUserEmail ?? '') : '',
+          role: MemberRole.admin,
+          joinedAt: createdAt,
+        ),
+      );
+    }
+
+    return result;
+  }
+
   @override
   List<Object?> get props => [
         id,

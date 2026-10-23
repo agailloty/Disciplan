@@ -33,13 +33,19 @@ final projectsListProvider = FutureProvider<List<ProjectSummaryDto>>((ref) async
   return projects;
 });
 
+final projectDetailByIdProvider =
+    FutureProvider.family<ProjectDetailDto?, String>((ref, projectId) async {
+  if (projectId.isEmpty) return null;
+  final repo = ref.watch(projectRepositoryProvider);
+  return repo.getById(projectId);
+});
+
 final currentProjectDetailProvider = FutureProvider<ProjectDetailDto?>((ref) async {
   final selectedId = ref.watch(selectedProjectIdProvider);
   if (selectedId == null) {
     return null;
   }
-  final repo = ref.watch(projectRepositoryProvider);
-  return repo.getById(selectedId);
+  return ref.watch(projectDetailByIdProvider(selectedId).future);
 });
 
 // Helper pour générer automatiquement une clé de projet (2 à 6 caractères)

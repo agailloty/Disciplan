@@ -60,45 +60,53 @@ class MobileAppShell extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: NeoColors.primary,
-                        borderRadius: NeoSpacing.roundedSm,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'D',
-                        style: GoogleFonts.jetBrainsMono(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: NeoColors.primary,
+                          borderRadius: NeoSpacing.roundedSm,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'D',
+                          style: GoogleFonts.jetBrainsMono(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: NeoSpacing.spaceSm),
-                    Text(
-                      _titleForRoute(),
-                      style: NeoTypography.headlineSm.copyWith(
-                        fontWeight: FontWeight.w700,
+                      const SizedBox(width: NeoSpacing.spaceSm),
+                      Flexible(
+                        child: Text(
+                          _titleForRoute(),
+                          overflow: TextOverflow.ellipsis,
+                          style: NeoTypography.headlineSm.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_none_outlined, size: 20),
                       tooltip: 'Activité récente',
+                      visualDensity: VisualDensity.compact,
                       onPressed: () {
                         ActivityDrawer.show(context);
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.search, size: 20),
+                      visualDensity: VisualDensity.compact,
                       onPressed: () {
                         ref.read(commandPaletteOpenProvider.notifier).toggle();
                       },
@@ -146,7 +154,7 @@ class MobileAppShell extends ConsumerWidget {
                     context,
                     icon: Icons.folder_open,
                     label: 'Projets',
-                    isSelected: currentRoute.startsWith('/projects'),
+                    isSelected: currentRoute == '/projects',
                     onTap: () => context.go('/projects'),
                   ),
                 ),
@@ -227,9 +235,12 @@ class MobileAppShell extends ConsumerWidget {
   }
 
   String _titleForRoute() {
-    if (currentRoute.startsWith('/projects')) return 'Projets';
+    if (currentRoute == '/projects') return 'Mes Projets';
+    if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects/')) {
+      return 'Backlog du Projet';
+    }
     if (currentRoute.startsWith('/kanban')) return 'Sprint';
-    if (currentRoute.startsWith('/my-tasks')) return 'Mes Tâches';
+    if (currentRoute.startsWith('/my-tasks')) return 'Dashboard';
     if (currentRoute.startsWith('/cycles')) return 'Cycles';
     if (currentRoute.startsWith('/calendar')) return 'Calendrier';
     if (currentRoute.startsWith('/settings')) return 'Paramètres';
