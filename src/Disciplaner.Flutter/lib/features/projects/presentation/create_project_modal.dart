@@ -4,6 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/widgets/kbd_chip.dart';
@@ -37,7 +41,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
 
   bool _isManualKey = false;
   bool _isLoading = false;
-  String? _errorMessage;
+  Object? _error;
 
   @override
   void initState() {
@@ -62,23 +66,24 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     final key = _keyController.text.trim().toUpperCase();
     final description = _descriptionController.text.trim();
 
     if (name.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez saisir le nom du projet.');
+      setState(() => _error = l10n.projNameRequired);
       return;
     }
 
     if (key.length < 2 || key.length > 10) {
-      setState(() => _errorMessage = 'La clé doit comporter entre 2 et 10 caractères.');
+      setState(() => _error = l10n.projectKeyHint);
       return;
     }
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _error = null;
     });
 
     try {
@@ -114,7 +119,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.toString();
+          _error = e;
         });
       }
     }
@@ -122,6 +127,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(NeoSpacing.spaceLg),
@@ -151,7 +157,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                       ),
                       const SizedBox(width: NeoSpacing.spaceSm),
                       Text(
-                        'INITIATION AGILE',
+                        l10n.projInitiationAgile.toUpperCase(),
                         style: NeoTypography.labelSm.copyWith(
                           fontWeight: FontWeight.w700,
                           color: NeoColors.secondary,
@@ -163,10 +169,10 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                 ],
               ),
               const SizedBox(height: NeoSpacing.spaceSm),
-              Text('Créer un nouveau projet', style: NeoTypography.headlineLg),
+              Text(l10n.projectCreateTitle, style: NeoTypography.headlineLg),
               const SizedBox(height: NeoSpacing.spaceXs),
               Text(
-                'Configurez un espace de travail collaboratif pour aligner vos sprints et tickets.',
+                l10n.projCreateSubtitle,
                 style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
               ),
               const SizedBox(height: NeoSpacing.spaceLg),
@@ -179,8 +185,8 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                     flex: 7,
                     child: NeoTextField(
                       controller: _nameController,
-                      labelText: 'NOM DU PROJET *',
-                      hintText: 'ex. Campagne de Marque 2025',
+                      labelText: l10n.projNameLabel.toUpperCase(),
+                      hintText: l10n.projNameHint,
                       autofocus: true,
                     ),
                   ),
@@ -194,7 +200,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'CLÉ *',
+                              '${l10n.projectKey.toUpperCase()} *',
                               style: NeoTypography.headlineSm.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -202,7 +208,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                               ),
                             ),
                             Text(
-                              'AUTO',
+                              l10n.projKeyAuto.toUpperCase(),
                               style: NeoTypography.labelSm.copyWith(fontSize: 10),
                             ),
                           ],
@@ -253,8 +259,8 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
               const SizedBox(height: NeoSpacing.spaceMd),
               NeoTextField(
                 controller: _descriptionController,
-                labelText: 'DESCRIPTION & VISION',
-                hintText: 'Résumez les objectifs stratégiques et le périmètre...',
+                labelText: l10n.projDescriptionLabel.toUpperCase(),
+                hintText: l10n.projDescriptionHint,
                 maxLines: 3,
               ),
               const SizedBox(height: NeoSpacing.spaceMd),
@@ -267,7 +273,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'TYPE PAR DÉFAUT',
+                          l10n.projectDefaultTicketType.toUpperCase(),
                           style: NeoTypography.headlineSm.copyWith(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -276,12 +282,13 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                         ),
                         const SizedBox(height: 4),
                         DropdownButtonFormField<TicketType>(
+                          isExpanded: true,
                           initialValue: _defaultType,
                           decoration: const InputDecoration(isDense: true),
                           items: TicketType.values.map((t) {
                             return DropdownMenuItem(
                               value: t,
-                              child: Text(t.name.toUpperCase(), style: NeoTypography.bodySm),
+                              child: Text(t.localizedLabel(l10n).toUpperCase(), style: NeoTypography.bodySm),
                             );
                           }).toList(),
                           onChanged: (val) {
@@ -297,7 +304,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ASSIGNATION PAR DÉFAUT',
+                          l10n.projectDefaultAssignee.toUpperCase(),
                           style: NeoTypography.headlineSm.copyWith(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -306,13 +313,16 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                         ),
                         const SizedBox(height: 4),
                         DropdownButtonFormField<DefaultAssigneePolicy>(
+                          isExpanded: true,
                           initialValue: _defaultPolicy,
                           decoration: const InputDecoration(isDense: true),
                           items: DefaultAssigneePolicy.values.map((p) {
                             return DropdownMenuItem(
                               value: p,
                               child: Text(
-                                p == DefaultAssigneePolicy.creator ? 'Créateur' : 'Aucun',
+                                p == DefaultAssigneePolicy.creator
+                                    ? l10n.defaultassigneepolicyCreator
+                                    : l10n.defaultassigneepolicyNone,
                                 style: NeoTypography.bodySm,
                               ),
                             );
@@ -327,7 +337,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                 ],
               ),
 
-              if (_errorMessage != null) ...[
+              if (_error != null) ...[
                 const SizedBox(height: NeoSpacing.spaceMd),
                 Container(
                   padding: const EdgeInsets.all(NeoSpacing.spaceSm),
@@ -337,7 +347,9 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                     border: Border.all(color: NeoColors.error.withValues(alpha: 0.3)),
                   ),
                   child: Text(
-                    _errorMessage!,
+                    _error is AppFailure
+                        ? localizedFailureMessage(l10n, _error as AppFailure)
+                        : _error.toString(),
                     style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                   ),
                 ),
@@ -348,13 +360,13 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   NeoButton(
-                    label: 'Annuler',
+                    label: l10n.cancel,
                     variant: NeoButtonVariant.ghost,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   NeoButton(
-                    label: 'Créer le projet',
+                    label: l10n.projCreateSubmit,
                     isLoading: _isLoading,
                     onPressed: _submit,
                   ),

@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 class MockAuthRepository implements IAuthRepository {
   bool setupRequired = false;
@@ -331,7 +332,10 @@ void main() {
             tokenStorageProvider.overrideWithValue(tokenStorage),
             authRepositoryProvider.overrideWithValue(mockRepo),
           ],
-          child: const MaterialApp(
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             home: LoginScreen(),
           ),
         ),

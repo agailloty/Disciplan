@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
@@ -116,7 +118,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de mise à jour : $e')),
+          SnackBar(content: Text(context.l10n.ticketsUpdateFailed(e.toString()))),
         );
       }
     } finally {
@@ -132,7 +134,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur changement de statut : $e')),
+          SnackBar(content: Text(context.l10n.ticketsStatusChangeFailed(e.toString()))),
         );
       }
     } finally {
@@ -150,7 +152,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur changement de sprint : $e')),
+          SnackBar(content: Text(context.l10n.ticketsSprintChangeFailed(e.toString()))),
         );
       }
     } finally {
@@ -171,7 +173,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur ajout commentaire: $e')),
+          SnackBar(content: Text(context.l10n.ticketsCommentAddFailed(e.toString()))),
         );
       }
     } finally {
@@ -201,7 +203,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur ajout sous-tâche: $e')),
+          SnackBar(content: Text(context.l10n.ticketsSubtaskAddFailed(e.toString()))),
         );
       }
     } finally {
@@ -230,7 +232,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur mise à jour sous-tâche: $e')),
+          SnackBar(content: Text(context.l10n.ticketsSubtaskUpdateFailed(e.toString()))),
         );
       }
     }
@@ -238,6 +240,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final ticketAsync = ref.watch(ticketDetailProvider(widget.ticketId));
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -269,13 +272,13 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
               children: [
                 const Icon(Icons.error_outline, color: NeoColors.error, size: 36),
                 const SizedBox(height: NeoSpacing.spaceSm),
-                Text('Impossible de charger le ticket', style: NeoTypography.headlineSm),
+                Text(l10n.ticketsLoadTicketFailed, style: NeoTypography.headlineSm),
                 const SizedBox(height: NeoSpacing.spaceXs),
                 Text(err.toString(), style: NeoTypography.bodySm, textAlign: TextAlign.center),
                 const SizedBox(height: NeoSpacing.spaceMd),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(ticketDetailProvider(widget.ticketId)),
-                  child: const Text('Réessayer'),
+                  child: Text(l10n.attachmentRetry),
                 ),
               ],
             ),
@@ -355,6 +358,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildHeader(TicketDto ticket, ProjectDetailDto? project) {
+    final l10n = context.l10n;
     final statuses = project?.statuses ?? const <TicketStatusDto>[];
 
     return Container(
@@ -386,7 +390,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
               const SizedBox(width: NeoSpacing.spaceXs),
               // Interactive Status chip
               PopupMenuButton<String>(
-                tooltip: 'Changer le statut',
+                tooltip: l10n.ticketsChangeStatus,
                 enabled: statuses.isNotEmpty,
                 onSelected: (statusId) => _changeStatus(ticket, statusId),
                 itemBuilder: (context) => statuses
@@ -450,20 +454,20 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
             children: [
               IconButton(
                 icon: const Icon(Icons.share_outlined, size: 18),
-                tooltip: 'Copier le lien',
+                tooltip: l10n.ticketsCopyLink,
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: ticket.ticketRef));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Référence copiée dans le presse-papier'),
-                      duration: Duration(seconds: 1),
+                    SnackBar(
+                      content: Text(l10n.ticketsRefCopied),
+                      duration: const Duration(seconds: 1),
                     ),
                   );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.close, size: 18),
-                tooltip: 'Fermer',
+                tooltip: l10n.close,
                 onPressed: widget.onClose ??
                     () => ref.read(selectedTicketDetailIdProvider.notifier).clear(),
               ),
@@ -475,6 +479,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildPropertiesSection(TicketDto ticket, ProjectDetailDto? project) {
+    final l10n = context.l10n;
     final authState = ref.watch(authNotifierProvider);
     final session = authState is AuthAuthenticated ? authState.session : null;
     final members = project?.assignableMembers(
@@ -503,9 +508,9 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         children: [
           // 1. Priorité (interactive)
           _buildPropertyRow(
-            'Priorité',
+            l10n.priority,
             PopupMenuButton<CardPriority>(
-              tooltip: 'Modifier la priorité',
+              tooltip: l10n.ticketsEditPriority,
               onSelected: (p) => _updateTicketFields(ticket, priority: p),
               itemBuilder: (context) => [
                 PopupMenuItem(
@@ -514,7 +519,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const PriorityIcon(priority: TicketPriority.low, size: 14),
                       const SizedBox(width: 8),
-                      Text(CardPriority.low.label, style: NeoTypography.bodySm),
+                      Text(l10n.priorityLow, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -524,7 +529,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const PriorityIcon(priority: TicketPriority.medium, size: 14),
                       const SizedBox(width: 8),
-                      Text(CardPriority.medium.label, style: NeoTypography.bodySm),
+                      Text(l10n.priorityMedium, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -534,7 +539,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const PriorityIcon(priority: TicketPriority.high, size: 14),
                       const SizedBox(width: 8),
-                      Text(CardPriority.high.label, style: NeoTypography.bodySm),
+                      Text(l10n.priorityHigh, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -544,7 +549,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const PriorityIcon(priority: TicketPriority.urgent, size: 14),
                       const SizedBox(width: 8),
-                      Text(CardPriority.critical.label, style: NeoTypography.bodySm),
+                      Text(l10n.priorityCritical, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -557,7 +562,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     PriorityIcon(priority: _mapPriority(ticket.priority), size: 15),
                     const SizedBox(width: 6),
                     Text(
-                      ticket.priority.label,
+                      ticket.priority.localizedLabel(l10n),
                       style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(width: 4),
@@ -571,9 +576,9 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
 
           // 2. Assigné (interactive)
           _buildPropertyRow(
-            'Assigné',
+            l10n.ticketsAssigneeLabel,
             PopupMenuButton<String>(
-              tooltip: 'Assigner à un membre du projet',
+              tooltip: l10n.ticketsAssignMember,
               onSelected: (selectedValue) {
                 final newAssigneeId =
                     selectedValue == _unassignedSentinel ? null : selectedValue;
@@ -590,7 +595,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const Icon(Icons.person_off_outlined, size: 16, color: NeoColors.muted),
                       const SizedBox(width: 8),
-                      Text('Non assigné', style: NeoTypography.bodySm),
+                      Text(l10n.ticketNoAssignee, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -637,7 +642,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                       ),
                     ] else
                       Text(
-                        'Non assigné (Cliquer)',
+                        l10n.ticketsUnassignedClick,
                         style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                       ),
                     const SizedBox(width: 4),
@@ -651,9 +656,9 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
 
           // 3. Sprint / Cycle (interactive)
           _buildPropertyRow(
-            'Sprint / Cycle',
+            l10n.ticketsSprintCycle,
             PopupMenuButton<String>(
-              tooltip: 'Affecter à un sprint',
+              tooltip: l10n.ticketsAssignToSprint,
               onSelected: (val) {
                 final sprintId = val == _backlogSprintSentinel ? null : val;
                 _changeSprint(ticket, sprintId);
@@ -665,7 +670,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     children: [
                       const Icon(Icons.inbox_outlined, size: 16, color: NeoColors.muted),
                       const SizedBox(width: 8),
-                      Text('Backlog (sans sprint)', style: NeoTypography.bodySm),
+                      Text(l10n.ticketsBacklogNoSprint, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -700,7 +705,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                   children: [
                     Flexible(
                       child: Text(
-                        ticket.sprintName ?? 'Backlog (sans sprint)',
+                        ticket.sprintName ?? l10n.ticketsBacklogNoSprint,
                         overflow: TextOverflow.ellipsis,
                         style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
                       ),
@@ -716,7 +721,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
 
           // 4. Échéance (interactive)
           _buildPropertyRow(
-            'Échéance',
+            l10n.ticketDueDate,
             InkWell(
               borderRadius: NeoSpacing.roundedSm,
               onTap: () async {
@@ -743,7 +748,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     Text(
                       ticket.dueDate != null
                           ? DateFormat('dd MMM yyyy').format(ticket.dueDate!)
-                          : 'Aucune',
+                          : l10n.ticketsNone,
                       style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(width: 4),
@@ -773,6 +778,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildLabelsSection(TicketDto ticket) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -780,7 +786,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'LABELS',
+              l10n.labelField.toUpperCase(),
               style: NeoTypography.labelSm.copyWith(
                 fontWeight: FontWeight.w600,
                 color: NeoColors.onSurfaceVariant,
@@ -792,7 +798,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         const SizedBox(height: 6),
         if (ticket.labels.isEmpty)
           Text(
-            'Aucun label associé',
+            l10n.ticketsNoLabel,
             style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
           )
         else
@@ -817,6 +823,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildSubtasksSection(TicketDto ticket, ProjectDetailDto? project) {
+    final l10n = context.l10n;
     final subtasksAsync = ref.watch(ticketSubtasksProvider(ticket));
     final subtasks = subtasksAsync.asData?.value ?? const <TicketDto>[];
     final doneCount =
@@ -839,7 +846,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
             children: [
               Flexible(
                 child: Text(
-                  'Sous-tâches & Livrables',
+                  l10n.ticketsSubtasksDeliverables,
                   overflow: TextOverflow.ellipsis,
                   style: NeoTypography.headlineSm.copyWith(fontSize: 14),
                 ),
@@ -880,7 +887,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           ] else ...[
             const SizedBox(height: NeoSpacing.spaceXs),
             Text(
-              'Aucune sous-tâche pour ce ticket.',
+              l10n.ticketsNoSubtask,
               style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
             ),
           ],
@@ -892,11 +899,11 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                 child: TextField(
                   controller: _subtaskController,
                   style: NeoTypography.bodySm,
-                  decoration: const InputDecoration(
-                    hintText: '+ Ajouter une sous-tâche...',
+                  decoration: InputDecoration(
+                    hintText: l10n.ticketsAddSubtaskHint,
                     isDense: true,
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   ),
                   onSubmitted: (_) => _addSubtask(ticket),
                 ),
@@ -953,6 +960,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildAttachmentsSection(TicketDto ticket) {
+    final l10n = context.l10n;
     final attachmentsAsync = ref.watch(ticketAttachmentsProvider(widget.ticketId));
 
     return Container(
@@ -976,7 +984,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        'Pièces jointes',
+                        l10n.attachmentSectionLabel,
                         overflow: TextOverflow.ellipsis,
                         style: NeoTypography.headlineSm.copyWith(fontSize: 14),
                       ),
@@ -992,7 +1000,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: NeoSpacing.spaceXs),
                   child: Text(
-                    'Aucune pièce jointe',
+                    l10n.ticketsNoAttachment,
                     style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                   ),
                 );
@@ -1027,6 +1035,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildActivityTabs(TicketDto ticket) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1036,9 +1045,9 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           unselectedLabelColor: NeoColors.muted,
           indicatorColor: NeoColors.primary,
           indicatorSize: TabBarIndicatorSize.tab,
-          tabs: const [
-            Tab(text: 'Commentaires'),
-            Tab(text: 'Historique'),
+          tabs: [
+            Tab(text: l10n.ticketComments),
+            Tab(text: l10n.ticketsHistoryTab),
           ],
         ),
         const SizedBox(height: NeoSpacing.spaceSm),
@@ -1057,6 +1066,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildCommentsTab() {
+    final l10n = context.l10n;
     final commentsAsync = ref.watch(ticketCommentsProvider(widget.ticketId));
 
     return Column(
@@ -1067,7 +1077,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
               if (comments.isEmpty) {
                 return Center(
                   child: Text(
-                    'Aucun commentaire pour le moment.',
+                    l10n.cardNoComments,
                     style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                   ),
                 );
@@ -1118,7 +1128,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
               );
             },
             loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            error: (err, _) => Center(child: Text('Erreur: $err')),
+            error: (err, _) => Center(child: Text(l10n.ticketsErrorDetail(err.toString()))),
           ),
         ),
         // Comment composer
@@ -1131,7 +1141,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                   controller: _commentController,
                   style: NeoTypography.bodySm,
                   decoration: InputDecoration(
-                    hintText: 'Ajouter un commentaire...',
+                    hintText: l10n.ticketCommentAdd,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(
@@ -1161,6 +1171,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildHistoryTab() {
+    final l10n = context.l10n;
     final historyAsync = ref.watch(ticketHistoryProvider(widget.ticketId));
 
     return historyAsync.when(
@@ -1168,7 +1179,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         if (entries.isEmpty) {
           return Center(
             child: Text(
-              'Aucune modification enregistrée.',
+              l10n.ticketHistoryEmpty,
               style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
             ),
           );
@@ -1205,7 +1216,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                                 text: entry.actorName,
                                 style: const TextStyle(fontWeight: FontWeight.w600),
                               ),
-                              TextSpan(text: ' • ${_formatHistoryKind(entry.kind)}'),
+                              TextSpan(text: ' • ${_formatHistoryKind(entry.kind, l10n)}'),
                             ],
                           ),
                         ),
@@ -1231,22 +1242,22 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         );
       },
       loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      error: (err, _) => Center(child: Text('Erreur: $err')),
+      error: (err, _) => Center(child: Text(l10n.ticketsErrorDetail(err.toString()))),
     );
   }
 
-  String _formatHistoryKind(String kind) {
+  String _formatHistoryKind(String kind, AppLocalizations l10n) {
     switch (kind) {
       case 'created':
-        return 'a créé le ticket';
+        return l10n.historyCreated;
       case 'status_changed':
-        return 'a changé le statut';
+        return l10n.historyStatusChanged;
       case 'priority_changed':
-        return 'a modifié la priorité';
+        return l10n.historyPriorityChanged;
       case 'assignee_changed':
-        return 'a modifié l\'assignation';
+        return l10n.historyAssigneeChanged;
       case 'sprint_changed':
-        return 'a changé le sprint';
+        return l10n.historySprintChanged;
       default:
         return kind;
     }

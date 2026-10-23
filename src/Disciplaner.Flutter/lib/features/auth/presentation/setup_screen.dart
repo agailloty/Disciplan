@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_text_field.dart';
@@ -22,7 +25,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  String? _errorMessage;
+  _SetupError? _validationError;
+  Object? _error;
 
   @override
   void dispose() {
@@ -38,18 +42,19 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || name.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez remplir tous les champs.');
+      setState(() => _validationError = _SetupError.missingFields);
       return;
     }
 
     if (password.length < 8) {
-      setState(() => _errorMessage = 'Le mot de passe doit comporter au moins 8 caractères.');
+      setState(() => _validationError = _SetupError.passwordTooShort);
       return;
     }
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _validationError = null;
+      _error = null;
     });
 
     try {
@@ -62,7 +67,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.toString();
+          _error = e;
         });
       }
     }
@@ -70,6 +75,16 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final errorMessage = switch (_validationError) {
+      _SetupError.missingFields => l10n.authSetupFillAllFields,
+      _SetupError.passwordTooShort => l10n.authSetupPasswordTooShort,
+      null => _error == null
+          ? null
+          : _error is AppFailure
+              ? localizedFailureMessage(l10n, _error as AppFailure)
+              : _error.toString(),
+    };
     return Scaffold(
       backgroundColor: NeoColors.surface,
       body: Center(
@@ -99,10 +114,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   ),
                 ),
                 const SizedBox(height: NeoSpacing.spaceMd),
-                Text('Premier Démarrage', style: NeoTypography.headlineLg),
+                Text(l10n.authSetupTitle, style: NeoTypography.headlineLg),
                 const SizedBox(height: NeoSpacing.spaceXs),
                 Text(
-                  'Initialisez votre instance Homelab en créant le compte administrateur racine.',
+                  l10n.authSetupIntro,
                   textAlign: TextAlign.center,
                   style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                 ),
@@ -117,26 +132,26 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                     children: [
                       NeoTextField(
                         controller: _nameController,
-                        labelText: 'NOM D\'AFFICHAGE',
-                        hintText: 'ex. Alexandre Gailloty',
+                        labelText: l10n.settingsDisplayName.toUpperCase(),
+                        hintText: l10n.authSetupDisplayNameHint,
                         autofocus: true,
                       ),
                       const SizedBox(height: NeoSpacing.spaceMd),
                       NeoTextField(
                         controller: _emailController,
-                        labelText: 'ADRESSE E-MAIL',
+                        labelText: l10n.authEmail.toUpperCase(),
                         hintText: 'admin@disciplan.local',
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: NeoSpacing.spaceMd),
                       NeoTextField(
                         controller: _passwordController,
-                        labelText: 'MOT DE PASSE (MIN. 8 CARACTÈRES)',
+                        labelText: l10n.authSetupPasswordLabel.toUpperCase(),
                         hintText: '••••••••••••',
                         obscureText: true,
                         onSubmitted: (_) => _submit(),
                       ),
-                      if (_errorMessage != null) ...[
+                      if (errorMessage != null) ...[
                         const SizedBox(height: NeoSpacing.spaceMd),
                         Container(
                           padding: const EdgeInsets.all(NeoSpacing.spaceSm),
@@ -146,14 +161,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                             border: Border.all(color: NeoColors.error.withValues(alpha: 0.3)),
                           ),
                           child: Text(
-                            _errorMessage!,
+                            errorMessage,
                             style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                           ),
                         ),
                       ],
                       const SizedBox(height: NeoSpacing.spaceLg),
                       NeoButton(
-                        label: 'Créer le compte Administrateur',
+                        label: l10n.setupCreateAdmin,
                         isLoading: _isLoading,
                         onPressed: _submit,
                       ),
@@ -170,3 +185,5 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     );
   }
 }
+
+enum _SetupError { missingFields, passwordTooShort }

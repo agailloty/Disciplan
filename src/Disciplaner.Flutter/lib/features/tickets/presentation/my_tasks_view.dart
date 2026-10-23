@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
@@ -29,6 +30,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tasksAsync = ref.watch(myTasksProvider);
     final projectsAsync = ref.watch(projectsListProvider);
     final allProjects = projectsAsync.asData?.value ?? const <ProjectSummaryDto>[];
@@ -60,11 +62,11 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                 children: [
                   const Icon(Icons.error_outline, size: 40, color: NeoColors.error),
                   const SizedBox(height: NeoSpacing.spaceSm),
-                  Text('Erreur de chargement: $err', style: NeoTypography.bodyMd),
+                  Text(l10n.ticketsLoadError(err.toString()), style: NeoTypography.bodyMd),
                   const SizedBox(height: NeoSpacing.spaceMd),
                   ElevatedButton(
                     onPressed: () => ref.read(myTasksProvider.notifier).refresh(),
-                    child: const Text('Réessayer'),
+                    child: Text(l10n.attachmentRetry),
                   ),
                 ],
               ),
@@ -133,7 +135,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                     borderRadius: NeoSpacing.roundedSm,
                                   ),
                                   child: Text(
-                                    'TABLEAU DE BORD PERSONNEL',
+                                    l10n.ticketsPersonalDashboardBadge,
                                     style: NeoTypography.codeSm.copyWith(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -147,7 +149,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 Text(
                                   activeSprint != null
                                       ? activeSprint.name
-                                      : (currentProject?.name ?? 'Cycle actif'),
+                                      : (currentProject?.name ?? l10n.ticketsActiveCycle),
                                   style: NeoTypography.labelSm.copyWith(
                                     color: NeoColors.muted,
                                     fontWeight: FontWeight.w600,
@@ -156,10 +158,10 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                               ],
                             ),
                             const SizedBox(height: NeoSpacing.spaceXs),
-                            Text('Mes Tâches', style: NeoTypography.headlineLg),
+                            Text(l10n.myticketsTitle, style: NeoTypography.headlineLg),
                             const SizedBox(height: 2),
                             Text(
-                              '$inProgressCount tâche(s) en cours requièrent votre attention.',
+                              l10n.ticketsInProgressAttention(inProgressCount),
                               style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                             ),
                           ],
@@ -184,7 +186,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 );
                               },
                               icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-                              label: const Text('Sauvegarder la vue'),
+                              label: Text(l10n.ticketsSaveView),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: NeoColors.onSurface,
                                 side: const BorderSide(color: NeoColors.borderWhisper),
@@ -226,7 +228,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                           children: [
                             Expanded(
                               child: _buildMetricCard(
-                                title: 'En cours',
+                                title: l10n.statuscategoryInProgress,
                                 count: inProgressCount,
                                 color: NeoColors.statusAmber,
                                 icon: Icons.timelapse,
@@ -238,7 +240,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                             const SizedBox(width: NeoSpacing.spaceSm),
                             Expanded(
                               child: _buildMetricCard(
-                                title: 'Urgentes',
+                                title: l10n.ticketsUrgent,
                                 count: urgentCount,
                                 color: NeoColors.error,
                                 icon: Icons.crisis_alert,
@@ -250,7 +252,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                             const SizedBox(width: NeoSpacing.spaceSm),
                             Expanded(
                               child: _buildMetricCard(
-                                title: 'Terminées',
+                                title: l10n.statuscategoryDone,
                                 count: doneCount,
                                 color: NeoColors.emerald,
                                 icon: Icons.check_circle_outline,
@@ -273,15 +275,15 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
-                                _buildFilterPill('Toutes (${allTasks.length})', 'all'),
+                                _buildFilterPill(l10n.ticketsFilterAll(allTasks.length), 'all'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
-                                _buildFilterPill('En cours ($inProgressCount)', 'inProgress'),
+                                _buildFilterPill(l10n.ticketsFilterInProgress(inProgressCount), 'inProgress'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
-                                _buildFilterPill('À faire ($backlogTaskCount)', 'backlog'),
+                                _buildFilterPill(l10n.ticketsFilterTodo(backlogTaskCount), 'backlog'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
-                                _buildFilterPill('Urgentes ($urgentCount)', 'urgent'),
+                                _buildFilterPill(l10n.ticketsFilterUrgent(urgentCount), 'urgent'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
-                                _buildFilterPill('Terminées ($doneCount)', 'done'),
+                                _buildFilterPill(l10n.ticketsFilterDone(doneCount), 'done'),
                               ],
                             ),
                           ),
@@ -292,7 +294,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                           data: (views) {
                             if (views.isEmpty) return const SizedBox.shrink();
                             return PopupMenuButton<String>(
-                              tooltip: 'Vues enregistrées',
+                              tooltip: l10n.ticketsSavedViews,
                               icon: const Icon(Icons.bookmarks_outlined, size: 18),
                               shape: RoundedRectangleBorder(
                                 borderRadius: NeoSpacing.roundedMd,
@@ -301,7 +303,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                               onSelected: (viewId) {
                                 ref.read(selectedSavedViewIdProvider.notifier).setViewId(viewId);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Vue sauvegardée activée.')),
+                                  SnackBar(content: Text(l10n.ticketsSavedViewActivated)),
                                 );
                               },
                               itemBuilder: (context) => views.map((v) {
@@ -357,7 +359,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'FOCUS — VOS TICKETS EN COURS ($inProgressCount)',
+                                        l10n.ticketsFocusInProgress(inProgressCount),
                                         style: NeoTypography.labelSm.copyWith(
                                           fontWeight: FontWeight.w700,
                                           color: NeoColors.secondary,
@@ -373,7 +375,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                     ),
                                     child: Text(
-                                      'Isoler En cours →',
+                                      l10n.ticketsIsolateInProgress,
                                       style: NeoTypography.labelSm.copyWith(
                                         color: NeoColors.secondary,
                                         fontWeight: FontWeight.w600,
@@ -441,7 +443,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                   padding: const EdgeInsets.all(NeoSpacing.spaceXl),
                                   child: Center(
                                     child: Text(
-                                      'Aucune tâche ne correspond à ce filtre.',
+                                      l10n.ticketsNoTaskMatchFilter,
                                       style: NeoTypography.bodyMd.copyWith(
                                         color: NeoColors.muted,
                                       ),
@@ -460,7 +462,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                           NeoSpacing.spaceXs,
                                         ),
                                         child: Text(
-                                          'AUTRES TÂCHES ASSIGNÉES (${displayedList.length})',
+                                          l10n.ticketsOtherAssignedTasks(displayedList.length),
                                           style: NeoTypography.labelSm.copyWith(
                                             fontWeight: FontWeight.w700,
                                             color: NeoColors.muted,
@@ -553,6 +555,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     required String? activeProjectId,
     required bool isDesktop,
   }) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: NeoSpacing.spaceMd,
@@ -589,7 +592,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                   ),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   Text(
-                    'MES PROJETS — ESPACES ENCAPSULÉS',
+                    l10n.ticketsMyProjectsSpaces,
                     style: NeoTypography.labelSm.copyWith(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.6,
@@ -623,7 +626,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                   TextButton.icon(
                     onPressed: () => context.go('/projects'),
                     icon: const Icon(Icons.grid_view_rounded, size: 15),
-                    label: const Text('Portefeuille complet'),
+                    label: Text(l10n.ticketsFullPortfolio),
                     style: TextButton.styleFrom(
                       foregroundColor: NeoColors.secondary,
                       visualDensity: VisualDensity.compact,
@@ -633,7 +636,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                   OutlinedButton.icon(
                     onPressed: () => CreateProjectModal.show(context),
                     icon: const Icon(Icons.add, size: 15),
-                    label: const Text('Nouveau projet'),
+                    label: Text(l10n.projectCreateTitle),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: NeoColors.onSurface,
                       visualDensity: VisualDensity.compact,
@@ -699,6 +702,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     required ProjectSummaryDto project,
     required bool isActive,
   }) {
+    final l10n = context.l10n;
     return InkWell(
       onTap: () {
         ref.read(selectedProjectIdProvider.notifier).select(project.id);
@@ -764,7 +768,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                       borderRadius: NeoSpacing.roundedFull,
                     ),
                     child: Text(
-                      'ACTIF',
+                      l10n.settingsThemeActive.toUpperCase(),
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -776,7 +780,11 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
             ),
             const SizedBox(height: 6),
             Text(
-              '${project.ticketCount} tickets • ${project.sprintCount} sprints • ${project.isOwner ? "Propriétaire" : "Membre"}',
+              l10n.ticketsProjectTileSummary(
+                project.ticketCount,
+                project.sprintCount,
+                project.isOwner ? l10n.ticketsOwner : l10n.roleMember,
+              ),
               style: NeoTypography.labelSm.copyWith(
                 color: NeoColors.muted,
                 fontSize: 11,
@@ -791,7 +799,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
               children: [
                 _buildProjectJumpPill(
                   icon: Icons.inbox_outlined,
-                  label: 'Backlog',
+                  label: l10n.projectBacklog,
                   onTap: () {
                     ref.read(selectedProjectIdProvider.notifier).select(project.id);
                     context.go('/backlog');
@@ -799,7 +807,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                 ),
                 _buildProjectJumpPill(
                   icon: Icons.view_kanban_outlined,
-                  label: 'Kanban',
+                  label: l10n.sprintViewKanban,
                   onTap: () {
                     ref.read(selectedProjectIdProvider.notifier).select(project.id);
                     context.go('/kanban');
@@ -807,7 +815,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                 ),
                 _buildProjectJumpPill(
                   icon: Icons.autorenew_rounded,
-                  label: 'Cycles',
+                  label: l10n.ticketsCycles,
                   onTap: () {
                     ref.read(selectedProjectIdProvider.notifier).select(project.id);
                     context.go('/cycles');
@@ -863,32 +871,33 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     required int? backlogCount,
     required bool isDesktop,
   }) {
+    final l10n = context.l10n;
     final prefix = currentProjectKey != null ? '[$currentProjectKey] ' : '';
     final cards = [
       _buildNavShortcutCard(
         icon: Icons.view_kanban_rounded,
-        title: '${prefix}Tableau Kanban',
+        title: '$prefix${l10n.ticketsKanbanBoard}',
         subtitle: activeSprintName != null
-            ? 'Sprint actif : $activeSprintName'
-            : 'Voir les colonnes du sprint',
+            ? l10n.ticketsActiveSprintName(activeSprintName)
+            : l10n.ticketsViewSprintColumns,
         accentColor: NeoColors.kineticAmber,
         onTap: () => context.go('/kanban'),
       ),
       _buildNavShortcutCard(
         icon: Icons.inventory_2_outlined,
-        title: '${prefix}Backlog du Projet',
+        title: '$prefix${l10n.ticketsProjectBacklogTitle}',
         subtitle: backlogCount != null
-            ? '$backlogCount ticket(s) hors sprint à planifier'
-            : 'Lister et prioriser le backlog',
+            ? l10n.ticketsBacklogToPlan(backlogCount)
+            : l10n.ticketsBacklogPrioritize,
         accentColor: NeoColors.statusBlue,
         onTap: () => context.go('/backlog'),
       ),
       _buildNavShortcutCard(
         icon: Icons.autorenew_rounded,
-        title: '${prefix}Cycles & Sprints',
+        title: '$prefix${l10n.ticketsCyclesSprints}',
         subtitle: currentProjectName != null
-            ? 'Cycles de $currentProjectName'
-            : 'Planifier, démarrer ou clôturer un sprint',
+            ? l10n.ticketsCyclesOf(currentProjectName)
+            : l10n.ticketsSprintPlanHint,
         accentColor: NeoColors.emerald,
         onTap: () => context.go('/cycles'),
       ),

@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
@@ -45,6 +47,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tokenAsync = ref.watch(calendarTokenProvider);
     final myTasksAsync = ref.watch(myTasksProvider);
     final selectedProjectId = ref.watch(selectedProjectIdProvider);
@@ -66,12 +69,12 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Calendrier d\'Équipe',
+                  l10n.calTeamCalendarTitle,
                   style: NeoTypography.headlineLg,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Jalons de sprint, échéances de tickets et synchronisation iCal',
+                  l10n.calTeamCalendarSubtitle,
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
               ],
@@ -103,7 +106,10 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                   },
                 ),
                 Text(
-                  DateFormat('MMMM yyyy').format(_currentMonth).toUpperCase(),
+                  DateFormat(
+                    'MMMM yyyy',
+                    Localizations.localeOf(context).toString(),
+                  ).format(_currentMonth).toUpperCase(),
                   style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
@@ -126,11 +132,11 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
             ),
             Row(
               children: [
-                _buildFilterChip('all', 'Tout voir'),
+                _buildFilterChip('all', l10n.calFilterAll),
                 const SizedBox(width: NeoSpacing.spaceSm),
-                _buildFilterChip('sprints', 'Sprints'),
+                _buildFilterChip('sprints', l10n.calFilterSprints),
                 const SizedBox(width: NeoSpacing.spaceSm),
-                _buildFilterChip('tickets', 'Tickets'),
+                _buildFilterChip('tickets', l10n.labelTickets),
               ],
             ),
           ],
@@ -164,6 +170,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
   }
 
   Widget _buildICalCard(AsyncValue tokenAsync, String serverUrl) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(NeoSpacing.spaceMd),
       decoration: BoxDecoration(
@@ -179,7 +186,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
               const Icon(Icons.sync, color: NeoColors.secondary, size: 20),
               const SizedBox(width: NeoSpacing.spaceSm),
               Text(
-                'Synchronisation iCal / Agenda externe',
+                l10n.calIcalSyncTitle,
                 style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               const Spacer(),
@@ -203,14 +210,14 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                 return Row(
                   children: [
                     Text(
-                      'Aucun flux actif. Générez votre jeton privé pour synchroniser votre calendrier.',
+                      l10n.calIcalNoFeed,
                       style: NeoTypography.bodySm.copyWith(color: NeoColors.onSurfaceVariant),
                     ),
                     const Spacer(),
                     ElevatedButton.icon(
                       onPressed: () => ref.read(calendarTokenProvider.notifier).regenerate(),
                       icon: const Icon(Icons.key, size: 16),
-                      label: const Text('Générer le jeton'),
+                      label: Text(l10n.calGenerateToken),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: NeoColors.primary,
                         foregroundColor: Colors.white,
@@ -245,12 +252,12 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.copy, size: 16),
-                          tooltip: 'Copier l\'URL iCal',
+                          tooltip: l10n.calCopyIcalUrl,
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: feedUrl));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('URL du flux iCal copiée'),
+                              SnackBar(
+                                content: Text(l10n.calIcalUrlCopied),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -264,13 +271,13 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Créé le ${DateFormat('dd/MM/yyyy').format(tokenDto.createdAt)}',
+                        '${l10n.adminUsersCreatedOn} ${DateFormat('dd/MM/yyyy').format(tokenDto.createdAt)}',
                         style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                       ),
                       TextButton.icon(
                         onPressed: () => ref.read(calendarTokenProvider.notifier).regenerate(),
                         icon: const Icon(Icons.refresh, size: 14),
-                        label: const Text('Régénérer le jeton'),
+                        label: Text(l10n.calRegenerateToken),
                         style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                       ),
                     ],
@@ -288,7 +295,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                 ),
               ),
             ),
-            error: (err, _) => Text('Erreur token: $err', style: NeoTypography.bodySm),
+            error: (err, _) => Text(l10n.calTokenError(err.toString()), style: NeoTypography.bodySm),
           ),
         ],
       ),
@@ -318,6 +325,8 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
     List<dynamic> sprints,
     bool isDesktop,
   ) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     final items = <Widget>[];
 
     // Sprints
@@ -353,7 +362,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                         style: NeoTypography.bodyMd.copyWith(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        s.goal ?? 'Jalon de cycle',
+                        s.goal ?? l10n.calSprintMilestone,
                         style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                       ),
                     ],
@@ -366,7 +375,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    s.status.name.toUpperCase(),
+                    (s.status as SprintStatus).localizedLabel(l10n).toUpperCase(),
                     style: GoogleFonts.jetBrainsMono(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -439,7 +448,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
                         const Icon(Icons.calendar_today, size: 12, color: NeoColors.muted),
                         const SizedBox(width: 4),
                         Text(
-                          DateFormat('dd MMM').format(t.dueDate!),
+                          DateFormat('dd MMM', locale).format(t.dueDate!),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -462,7 +471,7 @@ class _TeamCalendarScreenState extends ConsumerState<TeamCalendarScreen> {
         padding: const EdgeInsets.all(NeoSpacing.spaceXl),
         alignment: Alignment.center,
         child: Text(
-          'Aucun jalon ou ticket daté pour ce filtre.',
+          l10n.calNoMilestones,
           style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
         ),
       );

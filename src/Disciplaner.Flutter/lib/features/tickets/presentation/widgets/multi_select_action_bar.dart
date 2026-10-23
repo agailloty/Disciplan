@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/widgets/kbd_chip.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class MultiSelectActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (selectedCount == 0) return const SizedBox.shrink();
 
     return Align(
@@ -56,7 +58,7 @@ class MultiSelectActionBar extends StatelessWidget {
                 borderRadius: NeoSpacing.roundedSm,
               ),
               child: Text(
-                '$selectedCount sélectionné${selectedCount > 1 ? 's' : ''}',
+                l10n.ticketsSelectedCount(selectedCount),
                 style: NeoTypography.labelSm.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -75,7 +77,7 @@ class MultiSelectActionBar extends StatelessWidget {
 
             // Change Status Menu
             PopupMenuButton<StatusCategory>(
-              tooltip: 'Changer le statut',
+              tooltip: l10n.ticketsChangeStatus,
               color: NeoColors.surfaceContainerLowest,
               shape: RoundedRectangleBorder(
                 borderRadius: NeoSpacing.roundedMd,
@@ -83,17 +85,17 @@ class MultiSelectActionBar extends StatelessWidget {
               ),
               onSelected: onStatusSelect,
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: StatusCategory.backlog,
-                  child: Text('À faire / Backlog'),
+                  child: Text(l10n.ticketsTodoBacklog),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: StatusCategory.inProgress,
-                  child: Text('En cours'),
+                  child: Text(l10n.statuscategoryInProgress),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: StatusCategory.done,
-                  child: Text('Terminé'),
+                  child: Text(l10n.statuscategoryDone),
                 ),
               ],
               child: Padding(
@@ -108,7 +110,7 @@ class MultiSelectActionBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Statut',
+                      l10n.status,
                       style: NeoTypography.labelSm.copyWith(color: Colors.white),
                     ),
                     const SizedBox(width: 4),
@@ -128,7 +130,7 @@ class MultiSelectActionBar extends StatelessWidget {
                   color: Colors.white,
                 ),
                 label: Text(
-                  'Sprint',
+                  l10n.ticketSprint,
                   style: NeoTypography.labelSm.copyWith(color: Colors.white),
                 ),
               ),
@@ -142,7 +144,7 @@ class MultiSelectActionBar extends StatelessWidget {
                   size: 17,
                   color: Colors.white70,
                 ),
-                tooltip: 'Supprimer',
+                tooltip: l10n.delete,
                 onPressed: onDelete,
               ),
             ],

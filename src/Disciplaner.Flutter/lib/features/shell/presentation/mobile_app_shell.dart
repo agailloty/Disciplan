@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/activity/presentation/activity_drawer.dart';
@@ -41,6 +42,7 @@ class MobileAppShell extends ConsumerWidget {
 
     final authState = ref.watch(authNotifierProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -83,7 +85,7 @@ class MobileAppShell extends ConsumerWidget {
                       const SizedBox(width: NeoSpacing.spaceSm),
                       Flexible(
                         child: Text(
-                          _titleForRoute(),
+                          _titleForRoute(l10n),
                           overflow: TextOverflow.ellipsis,
                           style: NeoTypography.headlineSm.copyWith(
                             fontWeight: FontWeight.w700,
@@ -98,7 +100,7 @@ class MobileAppShell extends ConsumerWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_none_outlined, size: 20),
-                      tooltip: 'Activité récente',
+                      tooltip: l10n.homeActivity,
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
                         ActivityDrawer.show(context);
@@ -153,7 +155,7 @@ class MobileAppShell extends ConsumerWidget {
                   child: _buildNavItem(
                     context,
                     icon: Icons.folder_open,
-                    label: 'Projets',
+                    label: l10n.navProjects,
                     isSelected: currentRoute == '/projects',
                     onTap: () => context.go('/projects'),
                   ),
@@ -162,7 +164,7 @@ class MobileAppShell extends ConsumerWidget {
                   child: _buildNavItem(
                     context,
                     icon: Icons.view_kanban,
-                    label: 'Sprint',
+                    label: l10n.sprintLabel,
                     isSelected: currentRoute.startsWith('/kanban'),
                     onTap: () => context.go('/kanban'),
                   ),
@@ -171,7 +173,7 @@ class MobileAppShell extends ConsumerWidget {
                   child: _buildNavItem(
                     context,
                     icon: Icons.check_circle_outline,
-                    label: 'Tâches',
+                    label: l10n.shellMobileTasks,
                     isSelected: currentRoute.startsWith('/my-tasks'),
                     onTap: () => context.go('/my-tasks'),
                   ),
@@ -180,7 +182,7 @@ class MobileAppShell extends ConsumerWidget {
                   child: _buildNavItem(
                     context,
                     icon: Icons.timelapse,
-                    label: 'Cycles',
+                    label: l10n.shellMobileCycles,
                     isSelected: currentRoute.startsWith('/cycles'),
                     onTap: () => context.go('/cycles'),
                   ),
@@ -189,7 +191,7 @@ class MobileAppShell extends ConsumerWidget {
                   child: _buildNavItem(
                     context,
                     icon: Icons.settings_outlined,
-                    label: 'Paramètres',
+                    label: l10n.navSettings,
                     isSelected: currentRoute.startsWith('/settings'),
                     onTap: () => context.go('/settings'),
                   ),
@@ -234,16 +236,16 @@ class MobileAppShell extends ConsumerWidget {
     );
   }
 
-  String _titleForRoute() {
-    if (currentRoute == '/projects') return 'Mes Projets';
+  String _titleForRoute(AppLocalizations l10n) {
+    if (currentRoute == '/projects') return l10n.shellMobileProjects;
     if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects/')) {
-      return 'Backlog du Projet';
+      return l10n.shellCrumbBacklog;
     }
-    if (currentRoute.startsWith('/kanban')) return 'Sprint';
-    if (currentRoute.startsWith('/my-tasks')) return 'Dashboard';
-    if (currentRoute.startsWith('/cycles')) return 'Cycles';
-    if (currentRoute.startsWith('/calendar')) return 'Calendrier';
-    if (currentRoute.startsWith('/settings')) return 'Paramètres';
-    return 'Disciplan';
+    if (currentRoute.startsWith('/kanban')) return l10n.sprintLabel;
+    if (currentRoute.startsWith('/my-tasks')) return l10n.shellMobileDashboard;
+    if (currentRoute.startsWith('/cycles')) return l10n.shellMobileCycles;
+    if (currentRoute.startsWith('/calendar')) return l10n.navCalendar;
+    if (currentRoute.startsWith('/settings')) return l10n.navSettings;
+    return l10n.appTitle;
   }
 }

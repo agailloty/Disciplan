@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart';
@@ -59,21 +60,22 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
     }
   }
 
-  String _formatDueDate(DateTime? date) {
+  String _formatDueDate(AppLocalizations l10n, DateTime? date) {
     if (date == null) return '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(date.year, date.month, date.day);
     final diff = target.difference(today).inDays;
 
-    if (diff == 0) return "Aujourd'hui";
-    if (diff == 1) return 'Demain';
-    if (diff == -1) return 'Hier';
-    return DateFormat('d MMM', 'fr_FR').format(date);
+    if (diff == 0) return l10n.ticketsToday;
+    if (diff == 1) return l10n.ticketsTomorrow;
+    if (diff == -1) return l10n.ticketsYesterday;
+    return DateFormat('d MMM', l10n.localeName).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final ticket = widget.ticket;
     final isDone = ticket.status.category == StatusCategory.done;
 
@@ -190,7 +192,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _formatDueDate(ticket.dueDate),
+                      _formatDueDate(l10n, ticket.dueDate),
                       style: NeoTypography.labelSm.copyWith(
                         fontSize: 11,
                         color: NeoColors.muted,
@@ -203,7 +205,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
 
               // 8. Assignee Avatar
               UserAvatar(
-                name: ticket.assigneeName ?? 'Non assigné',
+                name: ticket.assigneeName ?? l10n.ticketNoAssignee,
                 size: 22,
               ),
               const SizedBox(width: NeoSpacing.spaceSm),
@@ -224,7 +226,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                     hoverColor: NeoColors.error.withValues(alpha: 0.1),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                    tooltip: 'Supprimer',
+                    tooltip: l10n.delete,
                     onPressed: widget.onDelete,
                   ),
               ],

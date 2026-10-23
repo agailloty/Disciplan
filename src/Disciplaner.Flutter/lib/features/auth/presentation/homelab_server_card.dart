@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/widgets/kbd_chip.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
@@ -19,7 +20,7 @@ class HomelabServerCard extends ConsumerStatefulWidget {
 class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
   late final TextEditingController _controller;
   bool _isTesting = false;
-  String? _statusMessage;
+  bool _hasResult = false;
   bool _isSuccess = false;
 
   @override
@@ -38,7 +39,7 @@ class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
   Future<void> _testAndSave() async {
     setState(() {
       _isTesting = true;
-      _statusMessage = null;
+      _hasResult = false;
     });
 
     final success = await ref
@@ -49,15 +50,14 @@ class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
       setState(() {
         _isTesting = false;
         _isSuccess = success;
-        _statusMessage = success
-            ? 'Connexion établie avec succès.'
-            : 'Échec de connexion au serveur Homelab.';
+        _hasResult = true;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return NeoCard(
       backgroundColor: NeoColors.surfaceContainerLow,
       padding: const EdgeInsets.all(NeoSpacing.spaceMd),
@@ -76,7 +76,7 @@ class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
               ),
               const SizedBox(width: NeoSpacing.spaceSm),
               Text(
-                'SERVEUR HOMELAB',
+                l10n.authHomelabServer.toUpperCase(),
                 style: NeoTypography.labelSm.copyWith(
                   fontWeight: FontWeight.w700,
                   color: NeoColors.onSurfaceVariant,
@@ -98,7 +98,7 @@ class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
               ),
               const SizedBox(width: NeoSpacing.spaceSm),
               NeoButton(
-                label: 'Tester',
+                label: l10n.authServerTest,
                 isDense: true,
                 variant: NeoButtonVariant.secondary,
                 isLoading: _isTesting,
@@ -106,10 +106,10 @@ class _HomelabServerCardState extends ConsumerState<HomelabServerCard> {
               ),
             ],
           ),
-          if (_statusMessage != null) ...[
+          if (_hasResult) ...[
             const SizedBox(height: NeoSpacing.spaceXs),
             Text(
-              _statusMessage!,
+              _isSuccess ? l10n.authServerTestSuccess : l10n.authServerTestFailed,
               style: NeoTypography.labelSm.copyWith(
                 color: _isSuccess ? NeoColors.emerald : NeoColors.error,
               ),

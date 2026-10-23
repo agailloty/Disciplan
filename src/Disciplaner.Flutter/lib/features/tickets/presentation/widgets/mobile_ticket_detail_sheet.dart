@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
@@ -116,7 +118,7 @@ class _MobileTicketDetailSheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de mise à jour : $e')),
+          SnackBar(content: Text(context.l10n.ticketsUpdateFailed(e.toString()))),
         );
       }
     } finally {
@@ -132,7 +134,7 @@ class _MobileTicketDetailSheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur changement de statut : $e')),
+          SnackBar(content: Text(context.l10n.ticketsStatusChangeFailed(e.toString()))),
         );
       }
     } finally {
@@ -150,7 +152,7 @@ class _MobileTicketDetailSheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur changement de sprint : $e')),
+          SnackBar(content: Text(context.l10n.ticketsSprintChangeFailed(e.toString()))),
         );
       }
     } finally {
@@ -180,7 +182,7 @@ class _MobileTicketDetailSheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur ajout sous-tâche: $e')),
+          SnackBar(content: Text(context.l10n.ticketsSubtaskAddFailed(e.toString()))),
         );
       }
     } finally {
@@ -209,7 +211,7 @@ class _MobileTicketDetailSheetState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur mise à jour sous-tâche: $e')),
+          SnackBar(content: Text(context.l10n.ticketsSubtaskUpdateFailed(e.toString()))),
         );
       }
     }
@@ -228,17 +230,17 @@ class _MobileTicketDetailSheetState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text('Commentaire publié'),
-            duration: Duration(seconds: 1),
+            content: Text(context.l10n.ticketsCommentPosted),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text(context.l10n.ticketsErrorDetail(e.toString()))),
         );
       }
     } finally {
@@ -248,6 +250,7 @@ class _MobileTicketDetailSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final ticketAsync = ref.watch(ticketDetailProvider(widget.ticketId));
 
     return Container(
@@ -285,7 +288,7 @@ class _MobileTicketDetailSheetState
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 Text(
-                  'Détail Ticket',
+                  l10n.ticketsTicketDetailTitle,
                   style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 40),
@@ -313,7 +316,7 @@ class _MobileTicketDetailSheetState
                     children: [
                       const Icon(Icons.error_outline, color: NeoColors.error, size: 36),
                       const SizedBox(height: NeoSpacing.spaceSm),
-                      Text('Erreur chargement ticket', style: NeoTypography.headlineSm),
+                      Text(l10n.ticketsTicketLoadError, style: NeoTypography.headlineSm),
                       const SizedBox(height: NeoSpacing.spaceXs),
                       Text(err.toString(), style: NeoTypography.bodySm, textAlign: TextAlign.center),
                     ],
@@ -331,6 +334,7 @@ class _MobileTicketDetailSheetState
   }
 
   Widget _buildDetail(BuildContext context, TicketDto ticket) {
+    final l10n = context.l10n;
     final project = ref.watch(projectDetailByIdProvider(ticket.projectId)).value ??
         ref.watch(currentProjectDetailProvider).value;
     final statuses = project?.statuses ?? const <TicketStatusDto>[];
@@ -422,10 +426,10 @@ class _MobileTicketDetailSheetState
                   PopupMenuButton<CardPriority>(
                     onSelected: (p) => _updateTicketFields(ticket, priority: p),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: CardPriority.low, child: Text('Basse')),
-                      const PopupMenuItem(value: CardPriority.medium, child: Text('Moyenne')),
-                      const PopupMenuItem(value: CardPriority.high, child: Text('Haute')),
-                      const PopupMenuItem(value: CardPriority.critical, child: Text('Critique')),
+                      PopupMenuItem(value: CardPriority.low, child: Text(CardPriority.low.localizedLabel(l10n))),
+                      PopupMenuItem(value: CardPriority.medium, child: Text(CardPriority.medium.localizedLabel(l10n))),
+                      PopupMenuItem(value: CardPriority.high, child: Text(CardPriority.high.localizedLabel(l10n))),
+                      PopupMenuItem(value: CardPriority.critical, child: Text(CardPriority.critical.localizedLabel(l10n))),
                     ],
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -439,7 +443,7 @@ class _MobileTicketDetailSheetState
                           PriorityIcon(priority: _mapPriority(ticket.priority), size: 14),
                           const SizedBox(width: 4),
                           Text(
-                            ticket.priority.label.toUpperCase(),
+                            ticket.priority.localizedLabel(l10n).toUpperCase(),
                             style: NeoTypography.labelSm.copyWith(
                               fontWeight: FontWeight.w700,
                               fontSize: 10,
@@ -467,10 +471,10 @@ class _MobileTicketDetailSheetState
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: ticket.ticketRef));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     behavior: SnackBarBehavior.floating,
-                    content: Text('Lien du ticket copié'),
-                    duration: Duration(milliseconds: 1500),
+                    content: Text(l10n.ticketsTicketLinkCopied),
+                    duration: const Duration(milliseconds: 1500),
                   ),
                 );
               },
@@ -519,7 +523,7 @@ class _MobileTicketDetailSheetState
                     children: [
                       const Icon(Icons.person_off_outlined, size: 16, color: NeoColors.muted),
                       const SizedBox(width: 8),
-                      Text('Non assigné', style: NeoTypography.bodySm),
+                      Text(l10n.ticketNoAssignee, style: NeoTypography.bodySm),
                     ],
                   ),
                 ),
@@ -551,8 +555,8 @@ class _MobileTicketDetailSheetState
                         backgroundColor: NeoColors.surfaceContainerHigh,
                         child: Icon(Icons.person_add_alt_1_outlined, size: 16, color: NeoColors.muted),
                       ),
-                label: 'ASSIGNÉ',
-                value: ticket.assigneeName ?? 'Non assigné',
+                label: l10n.ticketsAssignedLabel,
+                value: ticket.assigneeName ?? l10n.ticketNoAssignee,
               ),
             ),
 
@@ -581,10 +585,10 @@ class _MobileTicketDetailSheetState
                   backgroundColor: NeoColors.secondaryContainer,
                   child: Icon(Icons.schedule, size: 16, color: NeoColors.secondary),
                 ),
-                label: 'ÉCHÉANCE',
+                label: l10n.ticketDueDate.toUpperCase(),
                 value: ticket.dueDate != null
                     ? DateFormat('dd MMM yyyy').format(ticket.dueDate!)
-                    : 'Non définie',
+                    : l10n.ticketsNotSet,
               ),
             ),
 
@@ -595,7 +599,7 @@ class _MobileTicketDetailSheetState
                 backgroundColor: NeoColors.surfaceContainerHigh,
                 child: Icon(Icons.campaign, size: 16, color: NeoColors.primary),
               ),
-              label: 'PROJET',
+              label: l10n.colProject.toUpperCase(),
               value: ticket.projectKey,
             ),
 
@@ -606,9 +610,9 @@ class _MobileTicketDetailSheetState
                 _changeSprint(ticket, sId);
               },
               itemBuilder: (context) => [
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: _backlogSprintSentinel,
-                  child: Text('Backlog (sans sprint)'),
+                  child: Text(l10n.ticketsBacklogNoSprint),
                 ),
                 ...sprints.map(
                   (s) => PopupMenuItem<String>(
@@ -623,8 +627,8 @@ class _MobileTicketDetailSheetState
                   backgroundColor: NeoColors.surfaceContainerHigh,
                   child: Icon(Icons.autorenew, size: 16, color: NeoColors.primary),
                 ),
-                label: 'CYCLE / SPRINT',
-                value: ticket.sprintName ?? 'Backlog',
+                label: l10n.ticketsCycleSprint,
+                value: ticket.sprintName ?? l10n.projectBacklog,
               ),
             ),
           ],
@@ -649,7 +653,7 @@ class _MobileTicketDetailSheetState
                     const Icon(Icons.notes, size: 16, color: NeoColors.onSurfaceVariant),
                     const SizedBox(width: 6),
                     Text(
-                      'DESCRIPTION',
+                      l10n.description.toUpperCase(),
                       style: NeoTypography.labelSm.copyWith(
                         fontWeight: FontWeight.w700,
                         color: NeoColors.onSurfaceVariant,
@@ -679,7 +683,7 @@ class _MobileTicketDetailSheetState
                 children: [
                   Flexible(
                     child: Text(
-                      'Sous-tâches',
+                      l10n.ticketsSubtasks,
                       style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -701,7 +705,7 @@ class _MobileTicketDetailSheetState
             ),
             if (totalCount > 0)
               Text(
-                '${(progress * 100).round()}% complété',
+                l10n.ticketsPercentDone((progress * 100).round()),
                 style: NeoTypography.labelSm.copyWith(color: NeoColors.onSurfaceVariant),
               ),
           ],
@@ -768,7 +772,7 @@ class _MobileTicketDetailSheetState
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              'Aucune sous-tâche pour ce ticket.',
+              l10n.ticketsNoSubtask,
               style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
             ),
           ),
@@ -787,8 +791,8 @@ class _MobileTicketDetailSheetState
                 child: TextField(
                   controller: _subtaskController,
                   style: NeoTypography.bodySm,
-                  decoration: const InputDecoration(
-                    hintText: '+ Ajouter une sous-tâche...',
+                  decoration: InputDecoration(
+                    hintText: l10n.ticketsAddSubtaskHint,
                     isDense: true,
                     border: InputBorder.none,
                   ),
@@ -870,13 +874,14 @@ class _MobileTicketDetailSheetState
   }
 
   Widget _buildAttachmentsSection() {
+    final l10n = context.l10n;
     final attachmentsAsync = ref.watch(ticketAttachmentsProvider(widget.ticketId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Pièces jointes',
+          l10n.attachmentSectionLabel,
           style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
@@ -890,7 +895,7 @@ class _MobileTicketDetailSheetState
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Aucune pièce jointe.',
+                  l10n.ticketsNoAttachment,
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
               );
@@ -934,13 +939,14 @@ class _MobileTicketDetailSheetState
   }
 
   Widget _buildCommentsThread() {
+    final l10n = context.l10n;
     final commentsAsync = ref.watch(ticketCommentsProvider(widget.ticketId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Échanges récents',
+          l10n.ticketsRecentExchanges,
           style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: NeoSpacing.spaceSm),
@@ -954,7 +960,7 @@ class _MobileTicketDetailSheetState
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Aucun échange pour le moment.',
+                  l10n.ticketsNoExchange,
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
               );
@@ -1017,13 +1023,14 @@ class _MobileTicketDetailSheetState
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-          error: (err, _) => Text('Erreur: $err', style: NeoTypography.bodySm),
+          error: (err, _) => Text(l10n.ticketsErrorDetail(err.toString()), style: NeoTypography.bodySm),
         ),
       ],
     );
   }
 
   Widget _buildCommentComposer() {
+    final l10n = context.l10n;
     return Container(
       padding: EdgeInsets.only(
         left: NeoSpacing.spaceMd,
@@ -1048,11 +1055,11 @@ class _MobileTicketDetailSheetState
               child: TextField(
                 controller: _commentController,
                 style: NeoTypography.bodyMd,
-                decoration: const InputDecoration(
-                  hintText: 'Ajouter une note...',
+                decoration: InputDecoration(
+                  hintText: l10n.ticketsAddNoteHint,
                   border: InputBorder.none,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 ),
                 onSubmitted: (_) => _postComment(),
               ),
@@ -1074,7 +1081,7 @@ class _MobileTicketDetailSheetState
                       )
                     : const Icon(Icons.arrow_upward, size: 16, color: Colors.white),
                 onPressed: _postComment,
-                tooltip: 'Envoyer',
+                tooltip: l10n.cardCommentSend,
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
@@ -56,7 +57,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
   Future<void> _handleSave() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez saisir un nom pour la vue.');
+      setState(() => _errorMessage = context.l10n.ticketsViewNameRequired);
       return;
     }
 
@@ -87,7 +88,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vue sauvegardée avec succès !')),
+          SnackBar(content: Text(context.l10n.ticketsViewSaved)),
         );
       }
     } catch (e) {
@@ -100,6 +101,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Dialog(
       backgroundColor: NeoColors.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
@@ -126,7 +128,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
                       ),
                       const SizedBox(width: NeoSpacing.spaceSm),
                       Text(
-                        'Enregistrer comme vue sauvegardée',
+                        l10n.ticketsSaveAsViewTitle,
                         style: NeoTypography.headlineSm,
                       ),
                     ],
@@ -157,15 +159,15 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
 
               NeoTextField(
                 controller: _nameController,
-                labelText: 'Nom de la vue',
-                hintText: 'Ex: Tâches Urgentes, Revue Sprint...',
+                labelText: l10n.ticketsViewNameLabel,
+                hintText: l10n.ticketsViewNameHint,
               ),
               const SizedBox(height: NeoSpacing.spaceMd),
 
               NeoTextField(
                 controller: _descriptionController,
-                labelText: 'Description (facultative)',
-                hintText: 'Filtre automatique appliqué...',
+                labelText: l10n.ticketsViewDescriptionLabel,
+                hintText: l10n.ticketsViewDescriptionHint,
               ),
               const SizedBox(height: NeoSpacing.spaceMd),
 
@@ -174,7 +176,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
                 onChanged: (val) =>
                     setState(() => _onlyAssignedToMe = val ?? false),
                 title: Text(
-                  'Uniquement mes tâches assignées',
+                  l10n.savedviewOnlyAssignedToMe,
                   style: NeoTypography.bodySm,
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
@@ -187,7 +189,7 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
                 onChanged: (val) =>
                     setState(() => _isVisibleOnHome = val ?? false),
                 title: Text(
-                  'Épingler sur l\'accueil / sidebar',
+                  l10n.ticketsPinToHome,
                   style: NeoTypography.bodySm,
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
@@ -200,13 +202,13 @@ class _SaveViewModalState extends ConsumerState<SaveViewModal> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   NeoButton(
-                    label: 'Annuler',
+                    label: l10n.cancel,
                     variant: NeoButtonVariant.secondary,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   NeoButton(
-                    label: 'Enregistrer',
+                    label: l10n.save,
                     isLoading: _isLoading,
                     onPressed: _handleSave,
                   ),

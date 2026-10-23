@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
@@ -36,21 +37,23 @@ class KanbanTicketCard extends StatelessWidget {
     }
   }
 
-  String _formatDueDate(DateTime? date) {
+  String _formatDueDate(DateTime? date, AppLocalizations l10n, String locale) {
     if (date == null) return '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(date.year, date.month, date.day);
     final diff = target.difference(today).inDays;
 
-    if (diff == 0) return "Aujourd'hui";
-    if (diff == 1) return 'Demain';
-    if (diff == -1) return 'Hier';
-    return DateFormat('d MMM', 'fr_FR').format(date);
+    if (diff == 0) return l10n.kanbanDueToday;
+    if (diff == 1) return l10n.kanbanDueTomorrow;
+    if (diff == -1) return l10n.kanbanDueYesterday;
+    return DateFormat('d MMM', locale).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -94,7 +97,7 @@ class KanbanTicketCard extends StatelessWidget {
                   // Move Status Menu
                   if (availableStatuses.length > 1 && onMoveToStatus != null)
                     PopupMenuButton<String>(
-                      tooltip: 'Déplacer vers...',
+                      tooltip: l10n.kanbanMoveToStatus,
                       icon: const Icon(Icons.more_horiz, size: 16, color: NeoColors.muted),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -169,7 +172,7 @@ class KanbanTicketCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _formatDueDate(ticket.dueDate),
+                          _formatDueDate(ticket.dueDate, l10n, locale),
                           style: NeoTypography.labelSm.copyWith(
                             fontSize: 11,
                             color: NeoColors.muted,

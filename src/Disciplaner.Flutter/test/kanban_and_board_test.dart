@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() async {
@@ -154,6 +155,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: DesktopSprintKanbanView(sprint: sampleSprint),
           ),
@@ -207,6 +211,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: MobileSprintKanbanView(sprint: sampleSprint),
           ),

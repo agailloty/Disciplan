@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
@@ -31,6 +34,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final projectsAsync = ref.watch(projectsListProvider);
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     final selectedId = ref.watch(selectedProjectIdProvider) ?? currentProject?.id;
@@ -70,7 +74,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                             borderRadius: NeoSpacing.roundedSm,
                           ),
                           child: Text(
-                            'PORTFEUILLE DE PROJETS',
+                            l10n.projPortfolio.toUpperCase(),
                             style: NeoTypography.codeSm.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -83,7 +87,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                           Text('•', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
                           const SizedBox(width: NeoSpacing.spaceSm),
                           Text(
-                            'Espace actif : ${currentProject.key} — ${currentProject.name}',
+                            l10n.projActiveSpace(currentProject.key, currentProject.name),
                             style: NeoTypography.labelSm.copyWith(
                               color: NeoColors.emerald,
                               fontWeight: FontWeight.w700,
@@ -93,10 +97,10 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                       ],
                     ),
                     const SizedBox(height: NeoSpacing.spaceXs),
-                    Text('Tous mes Projets', style: NeoTypography.headlineLg),
+                    Text(l10n.projAllMyProjects, style: NeoTypography.headlineLg),
                     const SizedBox(height: 2),
                     Text(
-                      'Sélectionnez un projet pour encapsuler votre espace de travail ou accédez directement à son Backlog, Kanban ou Cycles.',
+                      l10n.projSelectSubtitle,
                       style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                     ),
                   ],
@@ -107,7 +111,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                     OutlinedButton.icon(
                       onPressed: () => context.go('/my-tasks'),
                       icon: const Icon(Icons.dashboard_customize_outlined, size: 16),
-                      label: const Text('Dashboard Général'),
+                      label: Text(l10n.projDashboardGeneral),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: NeoColors.onSurface,
                         side: const BorderSide(color: NeoColors.borderWhisper),
@@ -118,7 +122,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                     ),
                     const SizedBox(width: NeoSpacing.spaceSm),
                     NeoButton(
-                      label: 'Nouveau projet',
+                      label: l10n.projectCreateTitle,
                       icon: const Icon(Icons.add, size: 16),
                       onPressed: () => CreateProjectModal.show(context),
                     ),
@@ -161,7 +165,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                       children: [
                         Expanded(
                           child: _buildSummaryMetric(
-                            label: 'Projets actifs',
+                            label: l10n.projActiveProjects,
                             value: '${projects.length}',
                             icon: Icons.folder_copy_outlined,
                             color: NeoColors.primary,
@@ -170,7 +174,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                         const SizedBox(width: NeoSpacing.spaceSm),
                         Expanded(
                           child: _buildSummaryMetric(
-                            label: 'Tickets cumulés',
+                            label: l10n.projTotalTickets,
                             value: '$totalTickets',
                             icon: Icons.confirmation_number_outlined,
                             color: NeoColors.statusBlue,
@@ -179,7 +183,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                         const SizedBox(width: NeoSpacing.spaceSm),
                         Expanded(
                           child: _buildSummaryMetric(
-                            label: 'Sprints & Cycles',
+                            label: l10n.projSprintsCycles,
                             value: '$totalSprints',
                             icon: Icons.timelapse_outlined,
                             color: NeoColors.emerald,
@@ -200,11 +204,11 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              _buildFilterPill('Tous mes projets', 'all', projects.length),
+                              _buildFilterPill(l10n.projAllMyProjects, 'all', projects.length),
                               const SizedBox(width: NeoSpacing.spaceSm),
-                              _buildFilterPill('Propriétaire', 'owner', ownedCount),
+                              _buildFilterPill(l10n.projOwner, 'owner', ownedCount),
                               const SizedBox(width: NeoSpacing.spaceSm),
-                              _buildFilterPill('Membre d\'équipe', 'member', memberCount),
+                              _buildFilterPill(l10n.projFilterMember, 'member', memberCount),
                             ],
                           ),
                         ),
@@ -217,7 +221,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                             style: NeoTypography.bodySm,
                             decoration: InputDecoration(
                               isDense: true,
-                              hintText: 'Rechercher un projet (nom, clé)...',
+                              hintText: l10n.projSearchHint,
                               hintStyle: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                               prefixIcon: const Icon(Icons.search, size: 16, color: NeoColors.muted),
                               suffixIcon: _searchQuery.isNotEmpty
@@ -258,16 +262,16 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                           children: [
                             const Icon(Icons.folder_open, size: 44, color: NeoColors.subdued),
                             const SizedBox(height: NeoSpacing.spaceSm),
-                            Text('Aucun projet pour le moment', style: NeoTypography.headlineSm),
+                            Text(l10n.projectEmpty, style: NeoTypography.headlineSm),
                             const SizedBox(height: 4),
                             Text(
-                              'Créez votre premier projet pour organiser vos tickets et sprints.',
+                              l10n.projEmptyHint,
                               textAlign: TextAlign.center,
                               style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                             ),
                             const SizedBox(height: NeoSpacing.spaceMd),
                             NeoButton(
-                              label: 'Créer un projet',
+                              label: l10n.projCreateNew,
                               onPressed: () => CreateProjectModal.show(context),
                             ),
                           ],
@@ -278,7 +282,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                         padding: const EdgeInsets.all(NeoSpacing.spaceXl),
                         child: Center(
                           child: Text(
-                            'Aucun projet ne correspond à ce filtre.',
+                            l10n.projNoMatch,
                             style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                           ),
                         ),
@@ -325,7 +329,12 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
               ),
               error: (err, _) => NeoCard(
                 padding: const EdgeInsets.all(NeoSpacing.spaceMd),
-                child: Text('Erreur: $err', style: const TextStyle(color: NeoColors.error)),
+                child: Text(
+                  l10n.projLoadError(
+                    err is AppFailure ? localizedFailureMessage(l10n, err) : err.toString(),
+                  ),
+                  style: const TextStyle(color: NeoColors.error),
+                ),
               ),
             ),
           ],
@@ -439,6 +448,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
     ProjectSummaryDto project,
     bool isSelected,
   ) {
+    final l10n = context.l10n;
     return Container(
       decoration: BoxDecoration(
         color: NeoColors.surfaceContainerLowest,
@@ -510,7 +520,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          project.isOwner ? 'Propriétaire' : 'Membre du projet',
+                          project.isOwner ? l10n.projOwner : l10n.projMember,
                           style: NeoTypography.labelSm.copyWith(
                             color: NeoColors.muted,
                             fontSize: 11,
@@ -539,7 +549,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'ESPACE ACTIF',
+                            l10n.projActiveSpaceBadge.toUpperCase(),
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
@@ -555,7 +565,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
               Text(
                 (project.description != null && project.description!.isNotEmpty)
                     ? project.description!
-                    : 'Espace projet encapsulé — cliquez pour accéder à ses tickets et cycles.',
+                    : l10n.projCardDescriptionFallback,
                 style: NeoTypography.bodySm.copyWith(
                   color: NeoColors.muted,
                   fontSize: 12,
@@ -570,12 +580,12 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                 children: [
                   _buildMiniBadge(
                     icon: Icons.confirmation_number_outlined,
-                    label: '${project.ticketCount} tickets',
+                    label: l10n.projectTicketCount(project.ticketCount),
                   ),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   _buildMiniBadge(
                     icon: Icons.timelapse_outlined,
-                    label: '${project.sprintCount} sprints',
+                    label: l10n.projectSprintCount(project.sprintCount),
                   ),
                 ],
               ),
@@ -590,7 +600,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                 children: [
                   _buildQuickActionChip(
                     icon: Icons.inbox_outlined,
-                    label: 'Backlog',
+                    label: l10n.projectBacklog,
                     isPrimary: true,
                     onTap: () {
                       ref.read(selectedProjectIdProvider.notifier).select(project.id);
@@ -599,7 +609,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                   ),
                   _buildQuickActionChip(
                     icon: Icons.view_kanban_outlined,
-                    label: 'Kanban',
+                    label: l10n.sprintViewKanban,
                     onTap: () {
                       ref.read(selectedProjectIdProvider.notifier).select(project.id);
                       context.go('/kanban');
@@ -607,7 +617,7 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
                   ),
                   _buildQuickActionChip(
                     icon: Icons.autorenew_rounded,
-                    label: 'Cycles',
+                    label: l10n.projCycles,
                     onTap: () {
                       ref.read(selectedProjectIdProvider.notifier).select(project.id);
                       context.go('/cycles');

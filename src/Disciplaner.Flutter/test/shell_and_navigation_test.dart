@@ -20,6 +20,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/features/projects/data/project_repository.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 final testAuthSession = AuthResponse(
   token: 'jwt_valid_test',
@@ -151,6 +152,9 @@ void main() {
         builder: (context, ref, _) {
           final router = ref.watch(routerProvider);
           return MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             routerConfig: router,
           );
@@ -239,7 +243,10 @@ void main() {
         child: Consumer(
           builder: (context, ref, _) {
             capturedRef = ref;
-            return const MaterialApp(
+            return MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
               home: AppShortcutsWrapper(
                 child: Scaffold(body: Text('Shortcut Test')),
               ),

@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
@@ -18,12 +19,13 @@ class CyclesOverviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     if (currentProject == null) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: NeoColors.surfaceContainerLowest,
         body: Center(
-          child: Text('Sélectionnez un projet pour afficher ses cycles.'),
+          child: Text(l10n.sprintSelectProject),
         ),
       );
     }
@@ -42,12 +44,12 @@ class CyclesOverviewScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 40, color: NeoColors.error),
               const SizedBox(height: NeoSpacing.spaceSm),
-              Text('Erreur de chargement: $err', style: NeoTypography.bodyMd),
+              Text(l10n.sprintLoadError(err.toString()), style: NeoTypography.bodyMd),
               const SizedBox(height: NeoSpacing.spaceMd),
               ElevatedButton(
                 onPressed: () =>
                     ref.invalidate(projectSprintsProvider(currentProject.id)),
-                child: const Text('Réessayer'),
+                child: Text(l10n.attachmentRetry),
               ),
             ],
           ),
@@ -78,16 +80,16 @@ class CyclesOverviewScreen extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cycles & Sprints', style: NeoTypography.headlineLg),
+                        Text(l10n.sprintCyclesTitle, style: NeoTypography.headlineLg),
                         const SizedBox(height: 2),
                         Text(
-                          'Planification temporelle et métriques de vélocité du projet ${currentProject.name}.',
+                          l10n.sprintCyclesSubtitle(currentProject.name),
                           style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                         ),
                       ],
                     ),
                     NeoButton(
-                      label: 'Créer un cycle',
+                      label: l10n.sprintCreateCycle,
                       icon: const Icon(Icons.add, size: 16),
                       onPressed: () {
                         CreateSprintModal.show(context, projectId: currentProject.id);
@@ -123,13 +125,13 @@ class CyclesOverviewScreen extends ConsumerWidget {
                 ],
 
                 // Planned Sprints Section
-                _buildSectionHeader('CYCLES PLANIFIÉS', plannedSprints.length),
+                _buildSectionHeader(l10n.sprintPlannedCyclesSection.toUpperCase(), plannedSprints.length),
                 const SizedBox(height: NeoSpacing.spaceSm),
                 if (plannedSprints.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: NeoSpacing.spaceMd),
                     child: Text(
-                      'Aucun cycle planifié pour le moment.',
+                      l10n.sprintNoPlannedCycles,
                       style: NeoTypography.bodySm.copyWith(
                         color: NeoColors.muted,
                         fontStyle: FontStyle.italic,
@@ -142,13 +144,13 @@ class CyclesOverviewScreen extends ConsumerWidget {
                 const SizedBox(height: NeoSpacing.spaceXl),
 
                 // Closed Sprints Section
-                _buildSectionHeader('CYCLES CLÔTURÉS & HISTORIQUE', closedSprints.length),
+                _buildSectionHeader(l10n.sprintClosedCyclesSection.toUpperCase(), closedSprints.length),
                 const SizedBox(height: NeoSpacing.spaceSm),
                 if (closedSprints.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: NeoSpacing.spaceMd),
                     child: Text(
-                      'Aucun cycle clôturé.',
+                      l10n.sprintNoClosedCycles,
                       style: NeoTypography.bodySm.copyWith(
                         color: NeoColors.muted,
                         fontStyle: FontStyle.italic,
@@ -204,10 +206,14 @@ class CyclesOverviewScreen extends ConsumerWidget {
     String projectId,
   ) {
     final isPlanned = sprint.status == SprintStatus.planned;
-    final formatter = DateFormat('d MMM yyyy', 'fr_FR');
+    final l10n = context.l10n;
+    final formatter = DateFormat(
+      'd MMM yyyy',
+      Localizations.localeOf(context).toString(),
+    );
     final datesStr = (sprint.startDate != null && sprint.endDate != null)
         ? '${formatter.format(sprint.startDate!)} – ${formatter.format(sprint.endDate!)}'
-        : 'Dates indéfinies';
+        : l10n.sprintDatesUndefined;
 
     return Container(
       margin: const EdgeInsets.only(bottom: NeoSpacing.spaceSm),
@@ -257,7 +263,7 @@ class CyclesOverviewScreen extends ConsumerWidget {
               border: Border.all(color: NeoColors.borderWhisper),
             ),
             child: Text(
-              '${sprint.ticketCount} tâche(s)',
+              l10n.sprintTaskCount(sprint.ticketCount),
               style: GoogleFonts.jetBrainsMono(
                 fontSize: 11,
                 color: NeoColors.onSurface,
@@ -267,7 +273,7 @@ class CyclesOverviewScreen extends ConsumerWidget {
           if (isPlanned) ...[
             const SizedBox(width: NeoSpacing.spaceSm),
             NeoButton(
-              label: 'Démarrer',
+              label: l10n.sprintStart,
               isDense: true,
               onPressed: () async {
                 final now = DateTime.now();

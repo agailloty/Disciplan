@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() {
@@ -23,6 +24,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
           home: Scaffold(
             body: StatefulBuilder(
               builder: (context, setState) {
@@ -87,6 +91,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
           theme: NeoTheme.lightTheme,
           home: Scaffold(
             body: DenseTicketRow(
@@ -114,6 +121,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
           theme: NeoTheme.lightTheme,
           home: Scaffold(
             body: MultiSelectActionBar(
@@ -125,7 +135,7 @@ void main() {
         ),
       );
 
-      expect(find.text('3 sélectionnés'), findsOneWidget);
+      expect(find.text('3 sélectionné(s)'), findsOneWidget);
       expect(find.text('Statut'), findsOneWidget);
       expect(find.text('Esc'), findsOneWidget);
 
@@ -167,6 +177,9 @@ void main() {
             savedViewsListProvider.overrideWith((ref) async => []),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const MyTasksView(),
           ),
@@ -175,10 +188,10 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Mes Tâches'), findsOneWidget);
+      expect(find.text('Mes tickets'), findsOneWidget);
       expect(find.text('En cours'), findsWidgets);
       expect(find.text('Urgentes'), findsWidgets);
-      expect(find.text('Terminées'), findsWidgets);
+      expect(find.text('Terminé'), findsWidgets);
       expect(find.text('DISC-14'), findsOneWidget);
       expect(find.text('Tester la vue mes tâches'), findsOneWidget);
     });

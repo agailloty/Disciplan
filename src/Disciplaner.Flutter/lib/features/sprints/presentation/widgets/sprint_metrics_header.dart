@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/widgets/kbd_chip.dart';
@@ -28,9 +29,9 @@ class SprintMetricsHeader extends ConsumerWidget {
     this.onNewTicket,
   });
 
-  String _formatDateRange(DateTime? start, DateTime? end) {
-    if (start == null && end == null) return 'Dates non définies';
-    final formatter = DateFormat('d MMM', 'fr_FR');
+  String _formatDateRange(DateTime? start, DateTime? end, AppLocalizations l10n, String locale) {
+    if (start == null && end == null) return l10n.sprintDatesNotDefined;
+    final formatter = DateFormat('d MMM', locale);
     final s = start != null ? formatter.format(start) : '?';
     final e = end != null ? formatter.format(end) : '?';
     return '$s – $e';
@@ -38,6 +39,8 @@ class SprintMetricsHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     final m = metrics ??
         SprintMetrics.fromTickets(
           tickets: const [],
@@ -111,8 +114,8 @@ class SprintMetricsHeader extends ConsumerWidget {
                               const SizedBox(width: 6),
                               Text(
                                 isActive
-                                    ? 'Sprint Actif'
-                                    : (isPlanned ? 'Planifié' : 'Clôturé'),
+                                    ? l10n.sprintActive
+                                    : (isPlanned ? l10n.sprintStatusPlanned : l10n.sprintStatusClosed),
                                 style: GoogleFonts.jetBrainsMono(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -129,7 +132,7 @@ class SprintMetricsHeader extends ConsumerWidget {
 
                         // Date range
                         Text(
-                          _formatDateRange(sprint.startDate, sprint.endDate),
+                          _formatDateRange(sprint.startDate, sprint.endDate, l10n, locale),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             color: NeoColors.muted,
@@ -149,7 +152,7 @@ class SprintMetricsHeader extends ConsumerWidget {
                               borderRadius: NeoSpacing.roundedSm,
                             ),
                             child: Text(
-                              'J-${m.daysRemaining} restants',
+                              l10n.sprintDaysRemaining(m.daysRemaining),
                               style: GoogleFonts.jetBrainsMono(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -193,14 +196,14 @@ class SprintMetricsHeader extends ConsumerWidget {
                 children: [
                   if (isPlanned && onStart != null)
                     NeoButton(
-                      label: 'Démarrer le cycle',
+                      label: l10n.sprintStartCycle,
                       icon: const Icon(Icons.play_arrow_outlined, size: 16),
                       onPressed: onStart,
                     ),
 
                   if (isActive && onClose != null)
                     NeoButton(
-                      label: 'Terminer le sprint',
+                      label: l10n.sprintFinish,
                       variant: NeoButtonVariant.secondary,
                       icon: const Icon(Icons.check_circle_outline, size: 16),
                       onPressed: onClose,
@@ -209,7 +212,7 @@ class SprintMetricsHeader extends ConsumerWidget {
                   if (onNewTicket != null) ...[
                     const SizedBox(width: NeoSpacing.spaceSm),
                     NeoButton(
-                      label: 'Nouvelle tâche',
+                      label: l10n.sprintNewTask,
                       icon: const Icon(Icons.add, size: 16),
                       onPressed: onNewTicket,
                     ),
@@ -243,7 +246,10 @@ class SprintMetricsHeader extends ConsumerWidget {
                         _buildMetricChip(
                           icon: Icons.task_alt,
                           iconColor: NeoColors.emerald,
-                          label: '${m.closedTickets}/${m.totalTickets} terminées',
+                          label: l10n.sprintClosedTicketsProgress(
+                            m.closedTickets,
+                            m.totalTickets,
+                          ),
                           sublabel: '(${m.completionPercentage.toInt()}%)',
                         ),
 
@@ -251,8 +257,10 @@ class SprintMetricsHeader extends ConsumerWidget {
                         _buildMetricChip(
                           icon: Icons.pending_actions_outlined,
                           iconColor: NeoColors.secondary,
-                          label: '${m.totalTickets - m.closedTickets} restantes',
-                          sublabel: 'en cours / à faire',
+                          label: l10n.sprintRemainingTickets(
+                            m.totalTickets - m.closedTickets,
+                          ),
+                          sublabel: l10n.sprintRemainingTicketsSub,
                         ),
 
                         // Contributors
@@ -267,7 +275,7 @@ class SprintMetricsHeader extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                '${m.activeMemberNames.length} contributeurs',
+                                l10n.sprintContributorsCount(m.activeMemberNames.length),
                                 style: NeoTypography.bodySm.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -289,13 +297,13 @@ class SprintMetricsHeader extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Burn-down d\'équipe',
+                              l10n.sprintTeamBurndown,
                               style: NeoTypography.labelSm.copyWith(
                                 color: NeoColors.muted,
                               ),
                             ),
                             Text(
-                              '${m.completionPercentage.toInt()}% complété',
+                              l10n.sprintPercentCompleted(m.completionPercentage.toInt()),
                               style: GoogleFonts.jetBrainsMono(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,

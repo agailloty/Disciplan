@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 class FakeMyTasksNotifier extends MyTasksNotifier {
   final List<TicketDto> tickets;
@@ -141,6 +142,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
               currentRoute: '/projects',
@@ -175,6 +179,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
               currentRoute: '/projects',
@@ -213,6 +220,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
               currentRoute: '/projects',
@@ -256,6 +266,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: DesktopCreateTicketDialog(initialProjectId: 'proj-1'),
@@ -290,6 +303,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: CommandPaletteModal(),

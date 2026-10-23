@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
@@ -25,13 +26,14 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
 
     if (currentProject == null) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: NeoColors.surfaceContainerLowest,
         body: Center(
-          child: Text('Sélectionnez un projet pour afficher son tableau Kanban.'),
+          child: Text(l10n.kanbanSelectProject),
         ),
       );
     }
@@ -45,7 +47,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
           child: CircularProgressIndicator(color: NeoColors.primary),
         ),
         error: (err, _) => Center(
-          child: Text('Erreur: $err'),
+          child: Text(l10n.kanbanErrorWithDetail(err.toString())),
         ),
         data: (sprints) {
           final activeSprint = sprints
@@ -82,10 +84,10 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
                         ),
                       ),
                       const SizedBox(height: NeoSpacing.spaceMd),
-                      Text('Aucun cycle actif', style: NeoTypography.headlineMd),
+                      Text(l10n.sprintNoActive, style: NeoTypography.headlineMd),
                       const SizedBox(height: NeoSpacing.spaceSm),
                       Text(
-                        'Démarrez un cycle planifié, prévisualisez son Kanban ou créez un nouveau sprint.',
+                        l10n.sprintNoActiveCycleDesc,
                         textAlign: TextAlign.center,
                         style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                       ),
@@ -97,7 +99,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
                           alignment: WrapAlignment.center,
                           children: [
                             NeoButton(
-                              label: 'Démarrer "${plannedSprint.name}"',
+                              label: l10n.kanbanStartNamed(plannedSprint.name),
                               onPressed: () async {
                                 final now = DateTime.now();
                                 await ref.read(sprintRepositoryProvider).start(
@@ -112,7 +114,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
                               },
                             ),
                             NeoButton(
-                              label: 'Ouvrir le Kanban de "${plannedSprint.name}"',
+                              label: l10n.kanbanOpenSprintBoard(plannedSprint.name),
                               variant: NeoButtonVariant.secondary,
                               onPressed: () {
                                 setState(() => _selectedSprintId = plannedSprint.id);
@@ -128,7 +130,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
                         alignment: WrapAlignment.center,
                         children: [
                           NeoButton(
-                            label: 'Créer un nouveau sprint',
+                            label: l10n.sprintCreateButton,
                             variant: NeoButtonVariant.secondary,
                             onPressed: () {
                               CreateSprintModal.show(context, projectId: currentProject.id);
@@ -137,7 +139,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
                           TextButton.icon(
                             onPressed: () => context.go('/backlog'),
                             icon: const Icon(Icons.inbox_outlined, size: 16),
-                            label: const Text('Voir le Backlog'),
+                            label: Text(l10n.kanbanViewBacklog),
                           ),
                         ],
                       ),

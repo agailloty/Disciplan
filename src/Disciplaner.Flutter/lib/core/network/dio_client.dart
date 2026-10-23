@@ -49,7 +49,7 @@ class DioClient {
 
       switch (statusCode) {
         case 400:
-          return AppFailure.badRequest(serverMessage ?? 'Requête invalide.');
+          return AppFailure.badRequest(serverMessage);
         case 401:
           return AppFailure.unauthorized(serverMessage);
         case 403:
@@ -68,10 +68,13 @@ class DioClient {
               error.type == DioExceptionType.connectionError) {
             return AppFailure.network();
           }
-          return AppFailure(
-            message: serverMessage ?? error.message ?? 'Une erreur réseau est survenue.',
-            statusCode: statusCode,
-          );
+          if (serverMessage != null || error.message != null) {
+            return AppFailure(
+              message: serverMessage ?? error.message,
+              statusCode: statusCode,
+            );
+          }
+          return AppFailure(statusCode: statusCode);
       }
     }
 

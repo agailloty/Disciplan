@@ -13,11 +13,12 @@ class AuthInitial extends AuthState {
 }
 
 class AuthUnconfiguredServer extends AuthState {
-  final String? errorMessage;
-  const AuthUnconfiguredServer({this.errorMessage});
+  /// Raw error (typically an AppFailure); the UI resolves the localized text.
+  final Object? error;
+  const AuthUnconfiguredServer({this.error});
 
   @override
-  List<Object?> get props => [errorMessage];
+  List<Object?> get props => [error];
 }
 
 class AuthNeedsInitialSetup extends AuthState {
@@ -25,11 +26,12 @@ class AuthNeedsInitialSetup extends AuthState {
 }
 
 class AuthUnauthenticated extends AuthState {
-  final String? errorMessage;
-  const AuthUnauthenticated({this.errorMessage});
+  /// Raw error (typically an AppFailure); the UI resolves the localized text.
+  final Object? error;
+  const AuthUnauthenticated({this.error});
 
   @override
-  List<Object?> get props => [errorMessage];
+  List<Object?> get props => [error];
 }
 
 class AuthAuthenticated extends AuthState {

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 class MockProjectRepository implements IProjectRepository {
   final List<ProjectSummaryDto> projects = [];
@@ -211,6 +212,9 @@ void main() {
             projectRepositoryProvider.overrideWithValue(mockRepo),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: CreateProjectModal(),
@@ -219,7 +223,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Créer un nouveau projet'), findsOneWidget);
+      expect(find.text('Nouveau projet'), findsOneWidget);
       expect(find.text('NOM DU PROJET *'), findsOneWidget);
 
       // Saisir un nom de projet
@@ -261,6 +265,9 @@ void main() {
             projectRepositoryProvider.overrideWithValue(mockRepo),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const MobileProjectsView(),
           ),
@@ -269,16 +276,16 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Tous mes Projets'), findsOneWidget);
-      expect(find.text('Tous mes projets'), findsOneWidget);
+      expect(find.text('Tous mes projets'), findsNWidgets(2));
+      expect(find.text('Tous mes projets'), findsNWidgets(2));
       expect(find.text('Propriétaire'), findsWidgets);
       expect(find.text('Membre d\'équipe'), findsOneWidget);
 
       // Card
       expect(find.text('CAMP'), findsOneWidget);
       expect(find.text('Campagne Marque 2025'), findsOneWidget);
-      expect(find.text('18 tickets'), findsOneWidget);
-      expect(find.text('4 sprints'), findsOneWidget);
+      expect(find.text('18 ticket(s)'), findsOneWidget);
+      expect(find.text('4 sprint(s)'), findsOneWidget);
     });
   });
 }

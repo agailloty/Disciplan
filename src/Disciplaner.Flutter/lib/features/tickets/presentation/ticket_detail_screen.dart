@@ -1,5 +1,6 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ticket_providers.dart';
@@ -16,6 +17,7 @@ class TicketDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final ticketAsync = ref.watch(ticketByRefProvider(ticketRef));
 
     return Scaffold(
@@ -61,11 +63,11 @@ class TicketDetailScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: NeoColors.error),
               const SizedBox(height: NeoSpacing.spaceMd),
-              Text('Ticket non trouvé : $ticketRef'),
+              Text(l10n.ticketsNotFoundRef(ticketRef)),
               const SizedBox(height: NeoSpacing.spaceMd),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text('Retour'),
+                child: Text(l10n.back),
               ),
             ],
           ),

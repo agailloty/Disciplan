@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() async {
@@ -113,6 +114,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
           theme: NeoTheme.lightTheme,
           home: Scaffold(
             body: SprintMetricsHeader(
@@ -124,7 +128,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Sprint Actif'), findsOneWidget);
+      expect(find.text('Sprint actif'), findsOneWidget);
       expect(find.text('Sprint 4 — Campagne de Marque'), findsOneWidget);
       expect(find.text('Finaliser la production des contenus et assets médias.'), findsOneWidget);
       expect(find.text('8/12 terminées'), findsOneWidget);
@@ -144,6 +148,9 @@ void main() {
             projectBacklogProvider('p1').overrideWith((ref) async => []),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: CreateSprintModal(projectId: 'p1'),
@@ -159,7 +166,7 @@ void main() {
       expect(find.text('1 sem.'), findsOneWidget);
       expect(find.text('2 sem.'), findsOneWidget);
       expect(find.text('1 mois'), findsOneWidget);
-      expect(find.text('Créer le sprint'), findsOneWidget);
+      expect(find.text('Créer un sprint'), findsOneWidget);
     });
   });
 }

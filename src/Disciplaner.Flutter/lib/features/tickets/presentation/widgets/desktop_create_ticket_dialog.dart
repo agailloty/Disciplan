@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
@@ -92,7 +94,7 @@ class _DesktopCreateTicketDialogState
   Future<void> _handleSubmit(String projectId) async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez saisir un titre.');
+      setState(() => _errorMessage = context.l10n.ticketsTitleRequired);
       return;
     }
 
@@ -133,7 +135,7 @@ class _DesktopCreateTicketDialogState
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Tâche créée ! Vous pouvez en saisir une autre.')),
+            SnackBar(content: Text(context.l10n.ticketsTaskCreatedNext)),
           );
         } else {
           Navigator.of(context).pop();
@@ -149,6 +151,7 @@ class _DesktopCreateTicketDialogState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     final projectId = widget.initialProjectId ?? currentProject?.id ?? '';
     final projectDetail = projectId.isNotEmpty
@@ -187,7 +190,7 @@ class _DesktopCreateTicketDialogState
                   Row(
                     children: [
                       Text(
-                        currentProject?.name ?? 'Disciplan',
+                        currentProject?.name ?? l10n.appTitle,
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 12,
                           color: NeoColors.muted,
@@ -198,7 +201,7 @@ class _DesktopCreateTicketDialogState
                       Text('/', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
                       const SizedBox(width: 6),
                       Text(
-                        'Nouvelle tâche',
+                        l10n.ticketsNewTask,
                         style: NeoTypography.bodySm.copyWith(
                           fontWeight: FontWeight.w700,
                           color: NeoColors.onSurface,
@@ -238,7 +241,7 @@ class _DesktopCreateTicketDialogState
                   fontWeight: FontWeight.w700,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Titre de la tâche...',
+                  hintText: l10n.ticketsTaskTitleHint,
                   hintStyle: NeoTypography.headlineMd.copyWith(
                     color: NeoColors.muted,
                     fontWeight: FontWeight.w500,
@@ -255,7 +258,7 @@ class _DesktopCreateTicketDialogState
                 maxLines: 4,
                 style: NeoTypography.bodyMd,
                 decoration: InputDecoration(
-                  hintText: 'Ajouter une description détaillée (Markdown supporté)...',
+                  hintText: l10n.ticketsDescriptionHint,
                   hintStyle: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
@@ -271,28 +274,28 @@ class _DesktopCreateTicketDialogState
                 children: [
                   // Priority selector
                   PopupMenuButton<CardPriority>(
-                    tooltip: 'Priorité',
+                    tooltip: l10n.priority,
                     shape: RoundedRectangleBorder(
                       borderRadius: NeoSpacing.roundedMd,
                       side: const BorderSide(color: NeoColors.borderWhisper),
                     ),
                     onSelected: (p) => setState(() => _priority = p),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: CardPriority.low,
-                        child: Text('Basse'),
+                        child: Text(CardPriority.low.localizedLabel(l10n)),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: CardPriority.medium,
-                        child: Text('Moyenne'),
+                        child: Text(CardPriority.medium.localizedLabel(l10n)),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: CardPriority.high,
-                        child: Text('Haute'),
+                        child: Text(CardPriority.high.localizedLabel(l10n)),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: CardPriority.critical,
-                        child: Text('Urgente'),
+                        child: Text(CardPriority.critical.localizedLabel(l10n)),
                       ),
                     ],
                     child: Container(
@@ -308,7 +311,7 @@ class _DesktopCreateTicketDialogState
                           PriorityIcon(priority: _mapPriority(_priority), size: 14),
                           const SizedBox(width: 6),
                           Text(
-                            _priority.name.toUpperCase(),
+                            _priority.localizedLabel(l10n).toUpperCase(),
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -323,7 +326,7 @@ class _DesktopCreateTicketDialogState
                   // Assignee selector
                   if (assignableMembers.isNotEmpty)
                     PopupMenuButton<String>(
-                      tooltip: 'Assigner à',
+                      tooltip: l10n.ticketsAssignTo,
                       shape: RoundedRectangleBorder(
                         borderRadius: NeoSpacing.roundedMd,
                         side: const BorderSide(color: NeoColors.borderWhisper),
@@ -343,9 +346,9 @@ class _DesktopCreateTicketDialogState
                         });
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: '__UNASSIGNED__',
-                          child: Text('Non assigné'),
+                          child: Text(l10n.ticketNoAssignee),
                         ),
                         ...assignableMembers.map((m) {
                           return PopupMenuItem(
@@ -370,10 +373,10 @@ class _DesktopCreateTicketDialogState
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            UserAvatar(name: _assigneeName ?? 'Non assigné', size: 18),
+                            UserAvatar(name: _assigneeName ?? l10n.ticketNoAssignee, size: 18),
                             const SizedBox(width: 6),
                             Text(
-                              _assigneeName ?? 'Assigner',
+                              _assigneeName ?? l10n.ticketsAssign,
                               style: NeoTypography.bodySm.copyWith(
                                 color: _assigneeName != null
                                     ? NeoColors.onSurface
@@ -389,7 +392,7 @@ class _DesktopCreateTicketDialogState
                   sprintsAsync.when(
                     data: (sprints) {
                       return PopupMenuButton<String>(
-                        tooltip: 'Sprint',
+                        tooltip: l10n.ticketSprint,
                         shape: RoundedRectangleBorder(
                           borderRadius: NeoSpacing.roundedMd,
                           side: const BorderSide(color: NeoColors.borderWhisper),
@@ -398,9 +401,9 @@ class _DesktopCreateTicketDialogState
                           () => _sprintId = sId == '__BACKLOG__' ? null : sId,
                         ),
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: '__BACKLOG__',
-                            child: Text('Backlog (sans sprint)'),
+                            child: Text(l10n.ticketsBacklogNoSprint),
                           ),
                           ...sprints.map((s) => PopupMenuItem(
                                 value: s.id,
@@ -425,8 +428,8 @@ class _DesktopCreateTicketDialogState
                                         .where((s) => s.id == _sprintId)
                                         .map((s) => s.name)
                                         .firstOrNull ??
-                                        'Backlog')
-                                    : 'Backlog',
+                                        l10n.projectBacklog)
+                                    : l10n.projectBacklog,
                                 style: NeoTypography.bodySm,
                               ),
                             ],
@@ -466,8 +469,8 @@ class _DesktopCreateTicketDialogState
                           const SizedBox(width: 6),
                           Text(
                             _dueDate != null
-                                ? DateFormat('d MMM', 'fr_FR').format(_dueDate!)
-                                : 'Échéance',
+                                ? DateFormat('d MMM', Localizations.localeOf(context).toString()).format(_dueDate!)
+                                : l10n.ticketDueDate,
                             style: NeoTypography.bodySm.copyWith(
                               color: _dueDate != null
                                   ? NeoColors.onSurface
@@ -498,7 +501,7 @@ class _DesktopCreateTicketDialogState
                             activeColor: NeoColors.primary,
                           ),
                           Flexible(
-                            child: Text('Créer une autre tâche', style: NeoTypography.bodySm),
+                            child: Text(l10n.ticketsCreateAnother, style: NeoTypography.bodySm),
                           ),
                         ],
                       ),
@@ -508,13 +511,13 @@ class _DesktopCreateTicketDialogState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       NeoButton(
-                        label: 'Annuler',
+                        label: l10n.cancel,
                         variant: NeoButtonVariant.secondary,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: NeoSpacing.spaceSm),
                       NeoButton(
-                        label: 'Créer la tâche',
+                        label: l10n.ticketsCreateTask,
                         isLoading: _isLoading,
                         onPressed: projectId.isNotEmpty
                             ? () => _handleSubmit(projectId)

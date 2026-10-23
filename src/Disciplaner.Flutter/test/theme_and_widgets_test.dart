@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() {
@@ -32,6 +33,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
         theme: NeoTheme.lightTheme,
         home: Scaffold(
           body: Column(
@@ -67,7 +71,10 @@ void main() {
 
   testWidgets('Renders ShellPlaceholderView directly', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
         home: Scaffold(
           body: ShellPlaceholderView(
             title: 'Explorateur de Projets',

@@ -14,7 +14,7 @@ class KanbanState {
   final bool onlyAssignedToMe;
   final CardPriority? selectedPriority;
   final bool isLoading;
-  final String? errorMessage;
+  final Object? error;
 
   const KanbanState({
     this.statuses = const [],
@@ -23,7 +23,7 @@ class KanbanState {
     this.onlyAssignedToMe = false,
     this.selectedPriority,
     this.isLoading = false,
-    this.errorMessage,
+    this.error,
   });
 
   KanbanState copyWith({
@@ -33,7 +33,7 @@ class KanbanState {
     bool? onlyAssignedToMe,
     CardPriority? selectedPriority,
     bool? isLoading,
-    String? errorMessage,
+    Object? error,
   }) {
     return KanbanState(
       statuses: statuses ?? this.statuses,
@@ -42,7 +42,7 @@ class KanbanState {
       onlyAssignedToMe: onlyAssignedToMe ?? this.onlyAssignedToMe,
       selectedPriority: selectedPriority ?? this.selectedPriority,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      error: error,
     );
   }
 
@@ -170,7 +170,7 @@ class KanbanNotifier extends AsyncNotifier<KanbanState> {
       // 3. Rollback on failure
       state = AsyncValue.data(
         current.copyWith(
-          errorMessage: 'Échec du déplacement : $e',
+          error: e,
         ),
       );
     }

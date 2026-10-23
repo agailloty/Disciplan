@@ -1,6 +1,9 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_text_field.dart';
@@ -41,7 +44,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
   int _cadenceDays = 14;
   bool _startImmediately = false;
   bool _isLoading = false;
-  String? _errorMessage;
+  Object? _error;
 
   final Set<String> _selectedBacklogTicketIds = {};
 
@@ -49,7 +52,11 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
   void initState() {
     super.initState();
     _endDate = _startDate.add(Duration(days: _cadenceDays));
-    _nameController.text = 'Sprint ${DateTime.now().month} — Optimisations & Livrables';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _nameController.text =
+          context.l10n.sprintDefaultName(DateTime.now().month);
+    });
   }
 
   @override
@@ -69,13 +76,13 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
   Future<void> _handleSubmit() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez saisir un nom de sprint.');
+      setState(() => _error = context.l10n.sprintNameRequired);
       return;
     }
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _error = null;
     });
 
     try {
@@ -115,21 +122,25 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sprint créé avec succès !')),
+          SnackBar(content: Text(context.l10n.sprintCreatedSuccess)),
         );
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString();
+        _error = e;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final backlogAsync = ref.watch(projectBacklogProvider(widget.projectId));
-    final dateFormatter = DateFormat('dd MMM yyyy', 'fr_FR');
+    final dateFormatter = DateFormat(
+      'dd MMM yyyy',
+      Localizations.localeOf(context).toString(),
+    );
 
     return Dialog(
       backgroundColor: NeoColors.surfaceContainerLowest,
@@ -163,7 +174,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                         ),
                       ),
                       const SizedBox(width: NeoSpacing.spaceSm),
-                      Text('Créer et planifier un cycle', style: NeoTypography.headlineMd),
+                      Text(l10n.sprintCreateModalTitle, style: NeoTypography.headlineMd),
                     ],
                   ),
                   IconButton(
@@ -175,7 +186,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
               ),
               const SizedBox(height: NeoSpacing.spaceMd),
 
-              if (_errorMessage != null) ...[
+              if (_error != null) ...[
                 Container(
                   padding: const EdgeInsets.all(NeoSpacing.spaceSm),
                   decoration: BoxDecoration(
@@ -183,7 +194,9 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                     borderRadius: NeoSpacing.roundedSm,
                   ),
                   child: Text(
-                    _errorMessage!,
+                    _error is AppFailure
+                        ? localizedFailureMessage(l10n, _error as AppFailure)
+                        : _error.toString(),
                     style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                   ),
                 ),
@@ -197,8 +210,8 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                     // Field 1: Sprint Name
                     NeoTextField(
                       controller: _nameController,
-                      labelText: 'Nom du cycle / sprint',
-                      hintText: 'Ex: Sprint 5 — Production & Lancement',
+                      labelText: l10n.sprintNameLabel,
+                      hintText: l10n.sprintNameHint,
                     ),
                     const SizedBox(height: NeoSpacing.spaceSm),
 
@@ -206,9 +219,9 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                     Wrap(
                       spacing: 6,
                       children: [
-                        Text('Suggéré :', style: NeoTypography.labelSm.copyWith(color: NeoColors.muted)),
-                        _buildSuggestionChip('Déploiement Capsule Q3'),
-                        _buildSuggestionChip('Optimisations & Recette'),
+                        Text(l10n.sprintSuggested, style: NeoTypography.labelSm.copyWith(color: NeoColors.muted)),
+                        _buildSuggestionChip(l10n.sprintSuggestion1),
+                        _buildSuggestionChip(l10n.sprintSuggestion2),
                       ],
                     ),
                     const SizedBox(height: NeoSpacing.spaceMd),
@@ -227,9 +240,9 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Rythme & Fréquence', style: NeoTypography.headlineSm),
+                              Text(l10n.sprintCadenceTitle, style: NeoTypography.headlineSm),
                               Text(
-                                '${_cadenceDays ~/ 7} semaine(s) (${_cadenceDays}j)',
+                                l10n.sprintCadenceWeeks(_cadenceDays ~/ 7, _cadenceDays),
                                 style: GoogleFonts.jetBrainsMono(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -243,24 +256,24 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                             children: [
                               Expanded(
                                 child: _buildCadenceButton(
-                                  label: '1 sem.',
-                                  sublabel: 'Flash (7j)',
+                                  label: l10n.sprintCadenceOneWeek,
+                                  sublabel: l10n.sprintCadenceFlash,
                                   days: 7,
                                 ),
                               ),
                               const SizedBox(width: NeoSpacing.spaceSm),
                               Expanded(
                                 child: _buildCadenceButton(
-                                  label: '2 sem.',
-                                  sublabel: 'Optimal (14j)',
+                                  label: l10n.sprintCadenceTwoWeeks,
+                                  sublabel: l10n.sprintCadenceOptimal,
                                   days: 14,
                                 ),
                               ),
                               const SizedBox(width: NeoSpacing.spaceSm),
                               Expanded(
                                 child: _buildCadenceButton(
-                                  label: '1 mois',
-                                  sublabel: 'Projet (30j)',
+                                  label: l10n.sprintCadenceOneMonth,
+                                  sublabel: l10n.sprintCadenceProject,
                                   days: 30,
                                 ),
                               ),
@@ -275,7 +288,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Date de début', style: NeoTypography.labelSm),
+                                    Text(l10n.sprintStartDate, style: NeoTypography.labelSm),
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -297,7 +310,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Date de fin', style: NeoTypography.labelSm),
+                                    Text(l10n.sprintEndDate, style: NeoTypography.labelSm),
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -324,8 +337,8 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                     // Field 3: Sprint Goal
                     NeoTextField(
                       controller: _goalController,
-                      labelText: 'Objectif principal du cycle (Sprint Goal)',
-                      hintText: 'Ex: Finaliser la refonte graphique et valider la campagne de marque...',
+                      labelText: l10n.sprintGoalLabel,
+                      hintText: l10n.sprintGoalHint,
                       maxLines: 2,
                     ),
                     const SizedBox(height: NeoSpacing.spaceMd),
@@ -357,11 +370,11 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Tickets du Backlog à inclure',
+                                    l10n.sprintBacklogTicketsTitle,
                                     style: NeoTypography.headlineSm,
                                   ),
                                   Text(
-                                    '${selectedTickets.length} tâche(s) · $totalPts pts',
+                                    l10n.sprintSelectedTicketsSummary(selectedTickets.length, totalPts),
                                     style: GoogleFonts.jetBrainsMono(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -373,7 +386,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                               const SizedBox(height: NeoSpacing.spaceSm),
                               if (backlog.isEmpty)
                                 Text(
-                                  'Aucun ticket disponible dans le backlog.',
+                                  l10n.sprintNoBacklogTickets,
                                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                                 )
                               else
@@ -444,7 +457,7 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                                               if (t.storyPoints != null) ...[
                                                 const SizedBox(width: NeoSpacing.spaceSm),
                                                 Text(
-                                                  '${t.storyPoints} pts',
+                                                  l10n.sprintPointsShort(t.storyPoints!),
                                                   style: GoogleFonts.jetBrainsMono(
                                                     fontSize: 11,
                                                     color: NeoColors.muted,
@@ -470,11 +483,11 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                       value: _startImmediately,
                       onChanged: (val) => setState(() => _startImmediately = val ?? false),
                       title: Text(
-                        'Démarrer immédiatement ce sprint',
+                        l10n.sprintStartImmediately,
                         style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
-                        'Le sprint passera au statut Actif dès sa création.',
+                        l10n.sprintStartImmediatelyHint,
                         style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
@@ -491,13 +504,13 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   NeoButton(
-                    label: 'Annuler',
+                    label: l10n.cancel,
                     variant: NeoButtonVariant.secondary,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   NeoButton(
-                    label: 'Créer le sprint',
+                    label: l10n.sprintCreateButton,
                     isLoading: _isLoading,
                     onPressed: _handleSubmit,
                   ),

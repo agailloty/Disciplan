@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/kbd_chip.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
@@ -91,6 +92,7 @@ class DesktopAppShell extends ConsumerWidget {
   ) {
     final projects = ref.watch(projectsListProvider).value ?? [];
     final uiScale = ref.watch(uiScaleProvider);
+    final l10n = context.l10n;
 
     return Container(
       height: 46,
@@ -122,7 +124,7 @@ class DesktopAppShell extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   child: Text(
-                    'Disciplan',
+                    l10n.appTitle,
                     style: NeoTypography.headlineSm.copyWith(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
@@ -132,7 +134,7 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               const Icon(Icons.chevron_right, size: 16, color: NeoColors.subdued),
               PopupMenuButton<String>(
-                tooltip: 'Changer de projet actif',
+                tooltip: l10n.shellSwitchProject,
                 shape: RoundedRectangleBorder(
                   borderRadius: NeoSpacing.roundedMd,
                   side: const BorderSide(color: NeoColors.borderWhisper),
@@ -165,13 +167,13 @@ class DesktopAppShell extends ConsumerWidget {
                     ),
                   ),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'NEW',
                     child: Row(
                       children: [
-                        Icon(Icons.add, size: 16),
-                        SizedBox(width: 8),
-                        Text('Nouveau projet'),
+                        const Icon(Icons.add, size: 16),
+                        const SizedBox(width: 8),
+                        Text(l10n.projectCreateTitle),
                       ],
                     ),
                   ),
@@ -197,7 +199,7 @@ class DesktopAppShell extends ConsumerWidget {
                         const SizedBox(width: 6),
                       ],
                       Text(
-                        currentProject?.name ?? 'Sélectionner un projet',
+                        currentProject?.name ?? l10n.shellSelectProject,
                         style: NeoTypography.bodySm.copyWith(
                           fontWeight: FontWeight.w600,
                           color: NeoColors.onSurface,
@@ -222,7 +224,7 @@ class DesktopAppShell extends ConsumerWidget {
                     Icon(_breadcrumbSectionIcon(), size: 13, color: NeoColors.secondary),
                     const SizedBox(width: 5),
                     Text(
-                      _breadcrumbSectionName(),
+                      _breadcrumbSectionName(l10n),
                       style: NeoTypography.labelSm.copyWith(
                         fontWeight: FontWeight.w700,
                         color: NeoColors.primary,
@@ -263,7 +265,7 @@ class DesktopAppShell extends ConsumerWidget {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  'Rechercher une tâche, aller au Kanban, Backlog...',
+                                  l10n.shellSearchPlaceholder,
                                   overflow: TextOverflow.ellipsis,
                                   style: NeoTypography.bodySm.copyWith(
                                     color: NeoColors.subdued,
@@ -289,7 +291,7 @@ class DesktopAppShell extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               PopupMenuButton<double>(
-                tooltip: 'Taille d\'affichage (${(uiScale * 100).round()}%)',
+                tooltip: l10n.shellDisplaySize((uiScale * 100).round()),
                 shape: RoundedRectangleBorder(
                   borderRadius: NeoSpacing.roundedMd,
                   side: const BorderSide(color: NeoColors.borderWhisper),
@@ -302,10 +304,10 @@ class DesktopAppShell extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: 0.9, child: Text('Compact (90%)')),
-                  const PopupMenuItem(value: 1.0, child: Text('Standard (100%)')),
-                  const PopupMenuItem(value: 1.1, child: Text('Confort (110%)')),
-                  const PopupMenuItem(value: 1.2, child: Text('Grand écran (120%)')),
+                  PopupMenuItem(value: 0.9, child: Text(l10n.shellScaleCompact)),
+                  PopupMenuItem(value: 1.0, child: Text(l10n.shellScaleStandard)),
+                  PopupMenuItem(value: 1.1, child: Text(l10n.shellScaleComfort)),
+                  PopupMenuItem(value: 1.2, child: Text(l10n.shellScaleLarge)),
                   const PopupMenuDivider(),
                   PopupMenuItem(
                     value: -1.0,
@@ -314,7 +316,7 @@ class DesktopAppShell extends ConsumerWidget {
                         const Icon(Icons.tune, size: 15, color: NeoColors.secondary),
                         const SizedBox(width: 8),
                         Text(
-                          'Facteur personnalisé (${(uiScale * 100).round()}%)...',
+                          l10n.shellScaleCustom((uiScale * 100).round()),
                           style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -344,7 +346,7 @@ class DesktopAppShell extends ConsumerWidget {
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.vertical_split_outlined, size: 17),
-                tooltip: 'Basculer la barre latérale (⌘B)',
+                tooltip: l10n.shellToggleSidebar,
                 visualDensity: VisualDensity.compact,
                 onPressed: () {
                   ref.read(sidebarCollapsedProvider.notifier).toggle();
@@ -352,7 +354,7 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               const SizedBox(width: NeoSpacing.spaceXs),
               NeoButton(
-                label: 'Nouvelle tâche',
+                label: l10n.shellNewTask,
                 isDense: true,
                 icon: const Icon(Icons.add, size: 14),
                 onPressed: () {
@@ -368,7 +370,7 @@ class DesktopAppShell extends ConsumerWidget {
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.logout, size: 16),
-                tooltip: 'Déconnexion',
+                tooltip: l10n.navLogout,
                 visualDensity: VisualDensity.compact,
                 onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
               ),
@@ -384,6 +386,7 @@ class DesktopAppShell extends ConsumerWidget {
     final myActiveCount = myTasks
         .where((t) => t.status.category != StatusCategory.done)
         .length;
+    final l10n = context.l10n;
 
     return Container(
       width: 54,
@@ -417,45 +420,45 @@ class DesktopAppShell extends ConsumerWidget {
               const SizedBox(height: 12),
               _buildActivityItem(
                 icon: Icons.dashboard_customize_outlined,
-                tooltip: 'Tableau de bord & Mes Tâches',
+                tooltip: l10n.shellTooltipMyTasks,
                 isActive: currentRoute.startsWith('/my-tasks'),
                 badgeText: myActiveCount > 0 ? '$myActiveCount' : null,
                 onTap: () => context.go('/my-tasks'),
               ),
               _buildActivityItem(
                 icon: Icons.folder_copy_outlined,
-                tooltip: 'Tous mes Projets',
+                tooltip: l10n.shellAllProjects,
                 isActive: currentRoute == '/projects',
                 onTap: () => context.go('/projects'),
               ),
               _buildActivityItem(
                 icon: Icons.view_kanban_outlined,
-                tooltip: 'Tableau Kanban des Sprints',
+                tooltip: l10n.shellTooltipKanban,
                 isActive: currentRoute.startsWith('/kanban'),
                 onTap: () => context.go('/kanban'),
               ),
               _buildActivityItem(
                 icon: Icons.inbox_outlined,
-                tooltip: 'Backlog & Tickets du projet',
+                tooltip: l10n.shellTooltipBacklog,
                 isActive: currentRoute.startsWith('/backlog') ||
                     currentRoute.startsWith('/projects/'),
                 onTap: () => context.go('/backlog'),
               ),
               _buildActivityItem(
                 icon: Icons.timelapse_outlined,
-                tooltip: 'Cycles & Feuille de route',
+                tooltip: l10n.shellTooltipCycles,
                 isActive: currentRoute.startsWith('/cycles'),
                 onTap: () => context.go('/cycles'),
               ),
               _buildActivityItem(
                 icon: Icons.calendar_today_outlined,
-                tooltip: 'Calendrier d\'équipe',
+                tooltip: l10n.shellTooltipCalendar,
                 isActive: currentRoute.startsWith('/calendar'),
                 onTap: () => context.go('/calendar'),
               ),
               _buildActivityItem(
                 icon: Icons.search,
-                tooltip: 'Recherche globale (⌘K)',
+                tooltip: l10n.shellTooltipSearch,
                 isActive: false,
                 onTap: () {
                   ref.read(commandPaletteOpenProvider.notifier).toggle();
@@ -463,7 +466,7 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               _buildActivityItem(
                 icon: Icons.notifications_none_outlined,
-                tooltip: 'Activité récente',
+                tooltip: l10n.homeActivity,
                 isActive: false,
                 onTap: () {
                   ActivityDrawer.show(context);
@@ -477,7 +480,7 @@ class DesktopAppShell extends ConsumerWidget {
             children: [
               _buildActivityItem(
                 icon: Icons.settings_outlined,
-                tooltip: 'Paramètres (⌘,)',
+                tooltip: l10n.shellTooltipSettings,
                 isActive: currentRoute.startsWith('/settings'),
                 onTap: () => context.go('/settings'),
               ),
@@ -560,6 +563,7 @@ class DesktopAppShell extends ConsumerWidget {
 
   Widget _buildPrimarySidebar(BuildContext context, WidgetRef ref, dynamic currentProject) {
     final projects = ref.watch(projectsListProvider).value ?? [];
+    final l10n = context.l10n;
     final projectId = currentProject?.id as String?;
 
     final backlogCount = projectId != null
@@ -604,13 +608,13 @@ class DesktopAppShell extends ConsumerWidget {
               children: [
                 Expanded(
                   child: PopupMenuButton<String>(
-                    tooltip: 'Changer de projet',
+                    tooltip: l10n.shellChangeProject,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Flexible(
                           child: Text(
-                            'PLAN DU PROJET',
+                            l10n.shellProjectPlan.toUpperCase(),
                             overflow: TextOverflow.ellipsis,
                             style: NeoTypography.labelSm.copyWith(
                               fontWeight: FontWeight.w700,
@@ -630,13 +634,13 @@ class DesktopAppShell extends ConsumerWidget {
                         ),
                       ),
                       const PopupMenuDivider(),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'NEW',
                         child: Row(
                           children: [
-                            Icon(Icons.add, size: 16),
-                            SizedBox(width: 8),
-                            Text('+ Nouveau projet'),
+                            const Icon(Icons.add, size: 16),
+                            const SizedBox(width: 8),
+                            Text('+ ${l10n.projectCreateTitle}'),
                           ],
                         ),
                       ),
@@ -652,7 +656,7 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.dock, size: 15, color: NeoColors.muted),
-                  tooltip: 'Replier la barre latérale (⌘B)',
+                  tooltip: l10n.shellCollapseSidebar,
                   visualDensity: VisualDensity.compact,
                   onPressed: () {
                     ref.read(sidebarCollapsedProvider.notifier).set(true);
@@ -704,8 +708,8 @@ class DesktopAppShell extends ConsumerWidget {
                         ),
                         Text(
                           activeSprint != null
-                              ? 'Sprint actif : ${activeSprint.name}'
-                              : 'Aucun sprint actif',
+                              ? l10n.shellActiveSprintName(activeSprint.name)
+                              : l10n.sprintNoActive,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: NeoTypography.labelSm.copyWith(
@@ -725,11 +729,11 @@ class DesktopAppShell extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               children: [
-                _buildSidebarSectionHeader('ESPACE PERSONNEL'),
+                _buildSidebarSectionHeader(l10n.shellPersonalSpace.toUpperCase()),
                 _buildSidebarItem(
                   context,
-                  title: 'Dashboard & Mes Tâches',
-                  subtitle: 'Vue globale & tickets assignés',
+                  title: l10n.shellSidebarMyTasks,
+                  subtitle: l10n.shellSidebarMyTasksSubtitle,
                   icon: Icons.dashboard_customize_outlined,
                   isSelected: currentRoute == '/my-tasks',
                   badge: myActiveCount > 0 ? '$myActiveCount' : null,
@@ -737,8 +741,8 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 _buildSidebarItem(
                   context,
-                  title: 'Tous mes Projets',
-                  subtitle: 'Portefeuille & espaces projets',
+                  title: l10n.shellAllProjects,
+                  subtitle: l10n.shellSidebarPortfolioSubtitle,
                   icon: Icons.folder_copy_outlined,
                   isSelected: currentRoute == '/projects',
                   badge: projects.isNotEmpty ? '${projects.length}' : null,
@@ -746,11 +750,11 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader('VUES DU PROJET'),
+                _buildSidebarSectionHeader(l10n.shellProjectViews.toUpperCase()),
                 _buildSidebarItem(
                   context,
-                  title: 'Tableau Kanban',
-                  subtitle: activeSprint != null ? activeSprint.name : 'Sprints en cours',
+                  title: l10n.shellSidebarKanban,
+                  subtitle: activeSprint != null ? activeSprint.name : l10n.shellSidebarCurrentSprints,
                   icon: Icons.view_kanban,
                   isSelected: currentRoute == '/kanban',
                   badge: activeSprint != null ? '${activeSprint.ticketCount}' : null,
@@ -758,8 +762,8 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 _buildSidebarItem(
                   context,
-                  title: 'Vue Liste',
-                  subtitle: 'Backlog & tickets du projet',
+                  title: l10n.shellSidebarListView,
+                  subtitle: l10n.shellSidebarListSubtitle,
                   icon: Icons.format_list_bulleted,
                   isSelected: currentRoute == '/backlog' ||
                       currentRoute.startsWith('/projects/'),
@@ -768,11 +772,11 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader('PLANNING & CYCLES'),
+                _buildSidebarSectionHeader(l10n.shellSidebarPlanning.toUpperCase()),
                 _buildSidebarItem(
                   context,
-                  title: 'Sprint Actif',
-                  subtitle: 'Cycles, vélocité & roadmap',
+                  title: l10n.sprintActive,
+                  subtitle: l10n.shellSidebarCyclesSubtitle,
                   icon: Icons.autorenew,
                   isSelected: currentRoute == '/cycles',
                   badge: sprintMetrics != null && activeSprint?.endDate != null
@@ -782,18 +786,18 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 _buildSidebarItem(
                   context,
-                  title: 'Calendrier & Jalons',
-                  subtitle: 'Échéances & flux iCal',
+                  title: l10n.shellSidebarCalendar,
+                  subtitle: l10n.shellSidebarCalendarSubtitle,
                   icon: Icons.calendar_today,
                   isSelected: currentRoute == '/calendar',
                   onTap: () => context.go('/calendar'),
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader('ADMINISTRATION'),
+                _buildSidebarSectionHeader(l10n.shellSidebarAdmin.toUpperCase()),
                 _buildSidebarItem(
                   context,
-                  title: 'Paramètres d\'équipe',
+                  title: l10n.shellSidebarTeamSettings,
                   icon: Icons.settings,
                   isSelected: currentRoute == '/settings',
                   onTap: () => context.go('/settings'),
@@ -828,7 +832,7 @@ class DesktopAppShell extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            activeSprint != null ? 'Avancement Sprint' : 'Capacité Sprint',
+                            activeSprint != null ? l10n.shellSprintProgress : l10n.shellSprintCapacity,
                             style: NeoTypography.labelSm.copyWith(
                               color: NeoColors.muted,
                               fontWeight: FontWeight.w600,
@@ -839,7 +843,7 @@ class DesktopAppShell extends ConsumerWidget {
                         Text(
                           sprintMetrics != null
                               ? '${sprintMetrics.completionPercentage.round()}%'
-                              : (activeSprint != null ? 'En cours' : 'Aucun actif'),
+                              : (activeSprint != null ? l10n.statuscategoryInProgress : l10n.shellSprintNoneActive),
                           style: GoogleFonts.ibmPlexMono(
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
@@ -965,6 +969,7 @@ class DesktopAppShell extends ConsumerWidget {
     WidgetRef ref,
     double initialScale,
   ) {
+    final l10n = context.l10n;
     final controller = TextEditingController(
       text: '${(initialScale * 100).round()}',
     );
@@ -980,7 +985,7 @@ class DesktopAppShell extends ConsumerWidget {
             side: const BorderSide(color: NeoColors.borderWhisper),
           ),
           title: Text(
-            'Facteur de mise à l\'échelle personnalisé',
+            l10n.shellScaleCustomTitle,
             style: NeoTypography.headlineSm,
           ),
           content: SizedBox(
@@ -990,7 +995,7 @@ class DesktopAppShell extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choisissez un facteur entre 50% et 200% (ou utilisez les préréglages 90%, 100%, 110%, 120%).',
+                  l10n.shellScaleCustomHint,
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
                 const SizedBox(height: NeoSpacing.spaceMd),
@@ -1052,11 +1057,11 @@ class DesktopAppShell extends ConsumerWidget {
                 ref.read(uiScaleProvider.notifier).reset();
                 Navigator.of(ctx).pop();
               },
-              child: const Text('100% (Défaut)'),
+              child: Text(l10n.shellScaleReset),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Annuler'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -1073,7 +1078,7 @@ class DesktopAppShell extends ConsumerWidget {
                 ref.read(uiScaleProvider.notifier).setScale(finalScale);
                 Navigator.of(ctx).pop();
               },
-              child: const Text('Appliquer'),
+              child: Text(l10n.shellApply),
             ),
           ],
         ),
@@ -1081,15 +1086,15 @@ class DesktopAppShell extends ConsumerWidget {
     );
   }
 
-  String _breadcrumbSectionName() {
-    if (currentRoute.startsWith('/backlog')) return 'Backlog du Projet';
-    if (currentRoute.startsWith('/projects')) return 'Backlog & Vue Liste';
-    if (currentRoute.startsWith('/my-tasks')) return 'Mon Dashboard & Tâches';
-    if (currentRoute.startsWith('/kanban')) return 'Tableau Kanban';
-    if (currentRoute.startsWith('/cycles')) return 'Cycles & Sprints';
-    if (currentRoute.startsWith('/calendar')) return 'Calendrier';
-    if (currentRoute.startsWith('/settings')) return 'Paramètres';
-    return 'Espace';
+  String _breadcrumbSectionName(AppLocalizations l10n) {
+    if (currentRoute.startsWith('/backlog')) return l10n.shellCrumbBacklog;
+    if (currentRoute.startsWith('/projects')) return l10n.shellCrumbBacklogList;
+    if (currentRoute.startsWith('/my-tasks')) return l10n.shellCrumbMyTasks;
+    if (currentRoute.startsWith('/kanban')) return l10n.shellSidebarKanban;
+    if (currentRoute.startsWith('/cycles')) return l10n.shellCrumbCycles;
+    if (currentRoute.startsWith('/calendar')) return l10n.navCalendar;
+    if (currentRoute.startsWith('/settings')) return l10n.navSettings;
+    return l10n.shellCrumbWorkspace;
   }
 
   IconData _breadcrumbSectionIcon() {

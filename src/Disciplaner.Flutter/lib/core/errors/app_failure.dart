@@ -11,60 +11,64 @@ enum AppFailureType {
   unknown,
 }
 
+/// Describes a failed operation.
+///
+/// The failure never carries localized text: [message], when present, is a
+/// server-provided detail. User-facing text is resolved from [type] at display
+/// time via [localizedFailureMessage] (core/l10n/failure_l10n.dart).
 class AppFailure extends Equatable implements Exception {
-  final String message;
+  final String? message;
   final int? statusCode;
   final AppFailureType type;
 
   const AppFailure({
-    required this.message,
+    this.message,
     this.statusCode,
     this.type = AppFailureType.unknown,
   });
 
-  factory AppFailure.network([String? message]) => AppFailure(
-        message: message ?? 'Impossible de joindre le serveur. Vérifiez votre connexion et l\'URL du serveur.',
+  factory AppFailure.network() => const AppFailure(
         type: AppFailureType.network,
       );
 
   factory AppFailure.unauthorized([String? message]) => AppFailure(
-        message: message ?? 'Identifiants invalides ou session expirée.',
+        message: message,
         statusCode: 401,
         type: AppFailureType.unauthorized,
       );
 
   factory AppFailure.forbidden([String? message]) => AppFailure(
-        message: message ?? 'Accès refusé pour cette opération.',
+        message: message,
         statusCode: 403,
         type: AppFailureType.forbidden,
       );
 
   factory AppFailure.notFound([String? message]) => AppFailure(
-        message: message ?? 'Ressource introuvable.',
+        message: message,
         statusCode: 404,
         type: AppFailureType.notFound,
       );
 
   factory AppFailure.conflict([String? message]) => AppFailure(
-        message: message ?? 'Un conflit est survenu (élément déjà existant ou modifié).',
+        message: message,
         statusCode: 409,
         type: AppFailureType.conflict,
       );
 
-  factory AppFailure.badRequest(String message) => AppFailure(
+  factory AppFailure.badRequest([String? message]) => AppFailure(
         message: message,
         statusCode: 400,
         type: AppFailureType.badRequest,
       );
 
   factory AppFailure.server([String? message]) => AppFailure(
-        message: message ?? 'Une erreur interne est survenue sur le serveur.',
+        message: message,
         statusCode: 500,
         type: AppFailureType.server,
       );
 
   @override
-  String toString() => message;
+  String toString() => message ?? 'AppFailure(${type.name})';
 
   @override
   List<Object?> get props => [message, statusCode, type];

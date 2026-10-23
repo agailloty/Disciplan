@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
@@ -92,7 +94,7 @@ class _MobileCreateTicketSheetState
   Future<void> _handleSubmit(String projectId) async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      setState(() => _errorMessage = 'Veuillez saisir un intitulé.');
+      setState(() => _errorMessage = context.l10n.ticketsTitleRequired);
       return;
     }
 
@@ -127,13 +129,13 @@ class _MobileCreateTicketSheetState
             behavior: SnackBarBehavior.floating,
             backgroundColor: NeoColors.primary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.check_circle, color: NeoColors.emerald, size: 18),
-                SizedBox(width: NeoSpacing.spaceSm),
+                const Icon(Icons.check_circle, color: NeoColors.emerald, size: 18),
+                const SizedBox(width: NeoSpacing.spaceSm),
                 Text(
-                  'Tâche créée avec succès',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  context.l10n.ticketsTaskCreated,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -163,6 +165,7 @@ class _MobileCreateTicketSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final projectsAsync = ref.watch(projectsListProvider);
     final projects = projectsAsync.asData?.value ?? <ProjectSummaryDto>[];
 
@@ -217,7 +220,7 @@ class _MobileCreateTicketSheetState
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(
-                    'Annuler',
+                    l10n.cancel,
                     style: NeoTypography.bodyMd.copyWith(color: NeoColors.onSurfaceVariant),
                   ),
                 ),
@@ -263,7 +266,7 @@ class _MobileCreateTicketSheetState
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : const Icon(Icons.arrow_forward, size: 16),
-                  label: const Text('Créer'),
+                  label: Text(l10n.create),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: NeoColors.primary,
                     foregroundColor: Colors.white,
@@ -321,8 +324,8 @@ class _MobileCreateTicketSheetState
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: null,
-                        decoration: const InputDecoration(
-                          hintText: 'Intitulé de la tâche ou action...',
+                        decoration: InputDecoration(
+                          hintText: l10n.ticketsTaskTitleActionHint,
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -334,8 +337,8 @@ class _MobileCreateTicketSheetState
                         style: NeoTypography.bodyMd,
                         maxLines: 4,
                         minLines: 2,
-                        decoration: const InputDecoration(
-                          hintText: 'Ajouter des notes, contexte ou critères de validation...',
+                        decoration: InputDecoration(
+                          hintText: l10n.ticketsNotesHint,
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -353,7 +356,7 @@ class _MobileCreateTicketSheetState
                   children: [
                     Flexible(
                       child: Text(
-                        'MÉTADONNÉES RAPIDES',
+                        l10n.ticketsQuickMetadata,
                         style: NeoTypography.labelSm.copyWith(
                           fontWeight: FontWeight.w600,
                           color: NeoColors.onSurfaceVariant,
@@ -364,7 +367,7 @@ class _MobileCreateTicketSheetState
                     ),
                     Flexible(
                       child: Text(
-                        'Modifiable à tout moment',
+                        l10n.ticketsEditableAnytime,
                         style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -384,7 +387,7 @@ class _MobileCreateTicketSheetState
                       // Status row
                       _buildMetaRow(
                         icon: Icons.radio_button_unchecked,
-                        label: 'Statut',
+                        label: l10n.status,
                         action: PopupMenuButton<StatusCategory>(
                           initialValue: _status,
                           onSelected: (cat) => setState(() => _status = cat),
@@ -407,7 +410,7 @@ class _MobileCreateTicketSheetState
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _status.label,
+                                  _status.localizedLabel(l10n),
                                   style: NeoTypography.headlineSm.copyWith(
                                     fontSize: 13,
                                     color: NeoColors.secondary,
@@ -419,9 +422,9 @@ class _MobileCreateTicketSheetState
                             ),
                           ),
                           itemBuilder: (context) => [
-                            const PopupMenuItem(value: StatusCategory.backlog, child: Text('À faire')),
-                            const PopupMenuItem(value: StatusCategory.inProgress, child: Text('En cours')),
-                            const PopupMenuItem(value: StatusCategory.done, child: Text('Terminé')),
+                            PopupMenuItem(value: StatusCategory.backlog, child: Text(l10n.ticketsTodo)),
+                            PopupMenuItem(value: StatusCategory.inProgress, child: Text(l10n.statuscategoryInProgress)),
+                            PopupMenuItem(value: StatusCategory.done, child: Text(l10n.statuscategoryDone)),
                           ],
                         ),
                       ),
@@ -430,7 +433,7 @@ class _MobileCreateTicketSheetState
                       // Priority row
                       _buildMetaRow(
                         icon: Icons.signal_cellular_alt_2_bar,
-                        label: 'Priorité',
+                        label: l10n.priority,
                         action: PopupMenuButton<CardPriority>(
                           initialValue: _priority,
                           onSelected: (p) => setState(() => _priority = p),
@@ -446,7 +449,7 @@ class _MobileCreateTicketSheetState
                                 PriorityIcon(priority: _mapPriority(_priority), size: 15),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _priority.label,
+                                  _priority.localizedLabel(l10n),
                                   style: NeoTypography.headlineSm.copyWith(fontSize: 13),
                                 ),
                                 const SizedBox(width: 4),
@@ -455,10 +458,10 @@ class _MobileCreateTicketSheetState
                             ),
                           ),
                           itemBuilder: (context) => [
-                            const PopupMenuItem(value: CardPriority.low, child: Text('Basse')),
-                            const PopupMenuItem(value: CardPriority.medium, child: Text('Moyenne')),
-                            const PopupMenuItem(value: CardPriority.high, child: Text('Haute')),
-                            const PopupMenuItem(value: CardPriority.critical, child: Text('Urgente')),
+                            PopupMenuItem(value: CardPriority.low, child: Text(CardPriority.low.localizedLabel(l10n))),
+                            PopupMenuItem(value: CardPriority.medium, child: Text(CardPriority.medium.localizedLabel(l10n))),
+                            PopupMenuItem(value: CardPriority.high, child: Text(CardPriority.high.localizedLabel(l10n))),
+                            PopupMenuItem(value: CardPriority.critical, child: Text(CardPriority.critical.localizedLabel(l10n))),
                           ],
                         ),
                       ),
@@ -467,7 +470,7 @@ class _MobileCreateTicketSheetState
                       // Assignee row
                       _buildMetaRow(
                         icon: Icons.person_outline,
-                        label: 'Assigné à',
+                        label: l10n.ticketAssignee,
                         action: PopupMenuButton<String>(
                           onSelected: (userId) {
                             setState(() {
@@ -484,9 +487,9 @@ class _MobileCreateTicketSheetState
                             });
                           },
                           itemBuilder: (context) => [
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: '__UNASSIGNED__',
-                              child: Text('Non assigné'),
+                              child: Text(l10n.ticketNoAssignee),
                             ),
                             ...assignableMembers.map(
                               (m) => PopupMenuItem(
@@ -525,7 +528,7 @@ class _MobileCreateTicketSheetState
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      'Non assigné',
+                                      l10n.ticketNoAssignee,
                                       overflow: TextOverflow.ellipsis,
                                       style: NeoTypography.headlineSm.copyWith(
                                         fontSize: 13,
@@ -546,7 +549,7 @@ class _MobileCreateTicketSheetState
                       // Project row
                       _buildMetaRow(
                         icon: Icons.folder_open,
-                        label: 'Projet',
+                        label: l10n.colProject,
                         action: PopupMenuButton<String>(
                           initialValue: effectiveProjectId,
                           onSelected: (id) => setState(() {
@@ -565,7 +568,7 @@ class _MobileCreateTicketSheetState
                               children: [
                                 Flexible(
                                   child: Text(
-                                    selectedProject?.name ?? 'Sélectionner',
+                                    selectedProject?.name ?? l10n.ticketsSelectProject,
                                     overflow: TextOverflow.ellipsis,
                                     style: NeoTypography.headlineSm.copyWith(fontSize: 13),
                                   ),
@@ -585,7 +588,7 @@ class _MobileCreateTicketSheetState
                       // Due date row
                       _buildMetaRow(
                         icon: Icons.calendar_today_outlined,
-                        label: 'Échéance',
+                        label: l10n.ticketDueDate,
                         action: InkWell(
                           onTap: () async {
                             final now = DateTime.now();
@@ -612,7 +615,7 @@ class _MobileCreateTicketSheetState
                                   child: Text(
                                     _dueDate != null
                                         ? DateFormat('dd MMM yyyy').format(_dueDate!)
-                                        : 'Aucune',
+                                        : l10n.ticketsNone,
                                     overflow: TextOverflow.ellipsis,
                                     style: NeoTypography.headlineSm.copyWith(
                                       fontSize: 13,
@@ -652,11 +655,11 @@ class _MobileCreateTicketSheetState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Créer une autre tâche ensuite',
+                              l10n.ticketsCreateAnotherNext,
                               style: NeoTypography.bodyMd.copyWith(fontWeight: FontWeight.w600),
                             ),
                             Text(
-                              'Garder la modale ouverte pour enchaîner',
+                              l10n.ticketsKeepOpenHint,
                               style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                             ),
                           ],

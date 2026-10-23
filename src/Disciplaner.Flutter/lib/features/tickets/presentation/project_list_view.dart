@@ -1,6 +1,8 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
@@ -83,7 +85,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la création : $e')),
+          SnackBar(content: Text(context.l10n.ticketsCreateFailed(e.toString()))),
         );
       }
     }
@@ -109,14 +111,14 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${ticketIds.length} ticket(s) planifié(s) dans "${targetSprint.name}".'),
+            content: Text(context.l10n.ticketsPlannedInSprint(ticketIds.length, targetSprint.name)),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de l\'affectation au sprint : $e')),
+          SnackBar(content: Text(context.l10n.ticketsAssignToSprintFailed(e.toString()))),
         );
       }
     }
@@ -124,6 +126,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final ticketsAsync = _selectedSprintScopeId == null
         ? ref.watch(projectBacklogProvider(widget.projectId))
         : ref.watch(sprintTicketsProvider(_selectedSprintScopeId!));
@@ -148,11 +151,11 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               children: [
                 const Icon(Icons.error_outline, size: 40, color: NeoColors.error),
                 const SizedBox(height: NeoSpacing.spaceSm),
-                Text('Erreur de chargement: $err', style: NeoTypography.bodyMd),
+                Text(l10n.ticketsLoadError(err.toString()), style: NeoTypography.bodyMd),
                 const SizedBox(height: NeoSpacing.spaceMd),
                 ElevatedButton(
                   onPressed: _refreshCurrentScope,
-                  child: const Text('Réessayer'),
+                  child: Text(l10n.attachmentRetry),
                 ),
               ],
             ),
@@ -227,7 +230,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                           const Icon(Icons.filter_alt_off_outlined, size: 36, color: NeoColors.muted),
                           const SizedBox(height: NeoSpacing.spaceSm),
                           Text(
-                            'Aucun ticket ne correspond à votre recherche.',
+                            l10n.ticketsNoTicketMatchSearch,
                             style: NeoTypography.titleMd,
                           ),
                           const SizedBox(height: NeoSpacing.spaceXs),
@@ -239,7 +242,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                                 _priorityFilter = null;
                               });
                             },
-                            child: const Text('Réinitialiser les filtres'),
+                            child: Text(l10n.ticketsResetFilters),
                           ),
                         ],
                       ),
@@ -247,10 +250,10 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   else ...[
                     // Order sections logically: For Backlog, show 'À faire' first then 'En cours'
                     _buildSection(
-                      title: 'À faire',
+                      title: l10n.ticketsTodo,
                       subtitle: _selectedSprintScopeId == null
-                          ? 'Tickets du backlog prêts à être planifiés ou démarrés'
-                          : 'Tickets du sprint en attente de démarrage',
+                          ? l10n.ticketsBacklogSectionSubtitle
+                          : l10n.ticketsSprintTodoSubtitle,
                       icon: Icons.radio_button_unchecked,
                       iconColor: NeoColors.statusBlue,
                       category: StatusCategory.backlog,
@@ -261,8 +264,8 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                     ),
                     const SizedBox(height: NeoSpacing.spaceMd),
                     _buildSection(
-                      title: 'En cours',
-                      subtitle: 'Tickets activement travaillés',
+                      title: l10n.statuscategoryInProgress,
+                      subtitle: l10n.ticketsInProgressSubtitle,
                       icon: Icons.timelapse_outlined,
                       iconColor: NeoColors.statusAmber,
                       category: StatusCategory.inProgress,
@@ -273,8 +276,8 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                     ),
                     const SizedBox(height: NeoSpacing.spaceMd),
                     _buildSection(
-                      title: 'Terminé',
-                      subtitle: 'Tickets livrés et validés',
+                      title: l10n.statuscategoryDone,
+                      subtitle: l10n.ticketsDoneSubtitle,
                       icon: Icons.check_circle_outline,
                       iconColor: NeoColors.emerald,
                       category: StatusCategory.done,
@@ -346,6 +349,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
     required int totalTicketsCount,
     required bool isDesktop,
   }) {
+    final l10n = context.l10n;
     final isBacklogScope = _selectedSprintScopeId == null;
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
@@ -366,7 +370,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                     borderRadius: NeoSpacing.roundedSm,
                   ),
                   child: Text(
-                    isBacklogScope ? 'BACKLOG DU PROJET' : 'LISTE DU SPRINT',
+                    isBacklogScope ? l10n.ticketsBacklogProjectBadge : l10n.ticketsSprintListBadge,
                     style: NeoTypography.codeSm.copyWith(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -422,7 +426,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  isBacklogScope ? 'Backlog & Vue Liste' : 'Tickets du Sprint',
+                  isBacklogScope ? l10n.ticketsBacklogListView : l10n.ticketsSprintTicketsTitle,
                   style: NeoTypography.headlineLg,
                 ),
                 const SizedBox(width: NeoSpacing.spaceSm),
@@ -445,8 +449,8 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             const SizedBox(height: 2),
             Text(
               isBacklogScope
-                  ? 'Tickets hors sprint en attente de planification. Affectez-les à un sprint ou modifiez leur priorité.'
-                  : 'Liste détaillée des tickets affectés à ce cycle.',
+                  ? l10n.ticketsBacklogHeaderDesc
+                  : l10n.ticketsSprintHeaderDesc,
               style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
             ),
           ],
@@ -460,7 +464,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             OutlinedButton.icon(
               onPressed: () => context.go('/projects'),
               icon: const Icon(Icons.folder_copy_outlined, size: 16),
-              label: const Text('Tous les projets'),
+              label: Text(l10n.savedviewAllProjects),
               style: OutlinedButton.styleFrom(
                 foregroundColor: NeoColors.onSurface,
                 side: const BorderSide(color: NeoColors.borderWhisper),
@@ -470,7 +474,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             OutlinedButton.icon(
               onPressed: () => context.go('/kanban'),
               icon: const Icon(Icons.view_kanban_outlined, size: 16),
-              label: const Text('Tableau Kanban'),
+              label: Text(l10n.ticketsKanbanBoard),
               style: OutlinedButton.styleFrom(
                 foregroundColor: NeoColors.onSurface,
                 side: const BorderSide(color: NeoColors.borderWhisper),
@@ -480,7 +484,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             OutlinedButton.icon(
               onPressed: () => context.go('/cycles'),
               icon: const Icon(Icons.autorenew_rounded, size: 16),
-              label: const Text('Gérer les Sprints'),
+              label: Text(l10n.ticketsManageSprints),
               style: OutlinedButton.styleFrom(
                 foregroundColor: NeoColors.onSurface,
                 side: const BorderSide(color: NeoColors.borderWhisper),
@@ -496,7 +500,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                 }
               },
               icon: const Icon(Icons.add, size: 16),
-              label: const Text('Créer un ticket'),
+              label: Text(l10n.ticketsCreateTicket),
               style: ElevatedButton.styleFrom(
                 backgroundColor: NeoColors.primary,
                 foregroundColor: Colors.white,
@@ -510,12 +514,13 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
   }
 
   Widget _buildScopeSelectorBar(List<SprintDto> sprints, int currentCount) {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           _buildScopeChip(
-            label: 'Backlog (Hors sprint)',
+            label: l10n.ticketsBacklogScopeChip,
             icon: Icons.inbox_outlined,
             isSelected: _selectedSprintScopeId == null,
             badgeText: _selectedSprintScopeId == null ? '$currentCount' : null,
@@ -531,7 +536,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               return Padding(
                 padding: const EdgeInsets.only(right: NeoSpacing.spaceXs),
                 child: _buildScopeChip(
-                  label: isActive ? '${sprint.name} (Actif)' : sprint.name,
+                  label: isActive ? '${sprint.name} (${l10n.sprintStatusActive})' : sprint.name,
                   icon: isActive ? Icons.bolt_rounded : Icons.timelapse_outlined,
                   iconColor: isActive ? NeoColors.emerald : null,
                   isSelected: isSelected,
@@ -614,6 +619,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
     required List<SprintDto> openSprints,
     required Set<String> selectedIds,
   }) {
+    final l10n = context.l10n;
     return Wrap(
       spacing: NeoSpacing.spaceSm,
       runSpacing: NeoSpacing.spaceSm,
@@ -630,7 +636,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              hintText: 'Filtrer les tickets (titre, réf, assigné)...',
+              hintText: l10n.ticketsFilterTicketsHint,
               hintStyle: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
               prefixIcon: const Icon(Icons.search, size: 16, color: NeoColors.muted),
               suffixIcon: _searchQuery.isNotEmpty
@@ -658,7 +664,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
 
         // Priority filter
         PopupMenuButton<String>(
-          tooltip: 'Filtrer par priorité',
+          tooltip: l10n.ticketsFilterByPriority,
           onSelected: (priorityKey) {
             setState(() {
               if (priorityKey == '__ALL__') {
@@ -671,26 +677,26 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             });
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: '__ALL__',
-              child: Text('Toutes les priorités'),
+              child: Text(l10n.savedviewAllPriorities),
             ),
             const PopupMenuDivider(),
             PopupMenuItem(
               value: CardPriority.critical.name,
-              child: const Text('Critique'),
+              child: Text(CardPriority.critical.localizedLabel(l10n)),
             ),
             PopupMenuItem(
               value: CardPriority.high.name,
-              child: const Text('Haute'),
+              child: Text(CardPriority.high.localizedLabel(l10n)),
             ),
             PopupMenuItem(
               value: CardPriority.medium.name,
-              child: const Text('Moyenne'),
+              child: Text(CardPriority.medium.localizedLabel(l10n)),
             ),
             PopupMenuItem(
               value: CardPriority.low.name,
-              child: const Text('Basse'),
+              child: Text(CardPriority.low.localizedLabel(l10n)),
             ),
           ],
           child: Container(
@@ -714,8 +720,10 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                 const SizedBox(width: 6),
                 Text(
                   _priorityFilter == null
-                      ? 'Priorité : Toutes'
-                      : 'Priorité : ${_priorityFilter!.name.toUpperCase()}',
+                      ? l10n.ticketsPriorityAll
+                      : l10n.ticketsPrioritySelected(
+                          _priorityFilter!.localizedLabel(l10n).toUpperCase(),
+                        ),
                   style: NeoTypography.labelSm.copyWith(
                     color: NeoColors.onSurface,
                     fontWeight: FontWeight.w600,
@@ -731,7 +739,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
         // Batch move to Sprint button when tickets are selected
         if (selectedIds.isNotEmpty && openSprints.isNotEmpty)
           PopupMenuButton<SprintDto>(
-            tooltip: 'Affecter la sélection à un sprint',
+            tooltip: l10n.ticketsAssignSelectionToSprint,
             onSelected: (sprint) => _assignTicketsToSprint(selectedIds, sprint),
             itemBuilder: (context) => openSprints
                 .map(
@@ -768,7 +776,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   const Icon(Icons.drive_file_move_outlined, size: 16, color: NeoColors.primary),
                   const SizedBox(width: 6),
                   Text(
-                    'Planifier ${selectedIds.length} ticket(s) dans un sprint',
+                    l10n.ticketsPlanInSprint(selectedIds.length),
                     style: NeoTypography.labelSm.copyWith(
                       color: NeoColors.primary,
                       fontWeight: FontWeight.w700,
@@ -785,6 +793,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(NeoSpacing.space2Xl),
       decoration: BoxDecoration(
@@ -804,13 +813,13 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             const SizedBox(height: NeoSpacing.spaceMd),
             Text(
               _selectedSprintScopeId == null
-                  ? 'Aucun ticket dans le backlog'
-                  : 'Aucun ticket dans ce sprint',
+                  ? l10n.ticketsNoTicketBacklog
+                  : l10n.ticketsNoTicketSprint,
               style: NeoTypography.headlineMd,
             ),
             const SizedBox(height: NeoSpacing.spaceSm),
             Text(
-              'Ajoutez votre première tâche rapide ci-dessous.',
+              l10n.ticketsAddFirstQuickTask,
               style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
             ),
             const SizedBox(height: NeoSpacing.spaceLg),
@@ -818,9 +827,9 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               constraints: const BoxConstraints(maxWidth: 420),
               child: TextField(
                 controller: _quickControllers[StatusCategory.backlog],
-                decoration: const InputDecoration(
-                  hintText: '+ Ajouter une tâche rapide... (Entrée)',
-                  prefixIcon: Icon(Icons.add, size: 18),
+                decoration: InputDecoration(
+                  hintText: l10n.ticketsQuickAddHint,
+                  prefixIcon: const Icon(Icons.add, size: 18),
                 ),
                 onSubmitted: (_) => _handleQuickAdd(StatusCategory.backlog),
               ),
@@ -842,6 +851,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
     required bool isDesktop,
     required List<SprintDto> openSprints,
   }) {
+    final l10n = context.l10n;
     final isExpanded = _expandedSections[category] ?? true;
 
     return Container(
@@ -935,7 +945,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               Padding(
                 padding: const EdgeInsets.all(NeoSpacing.spaceMd),
                 child: Text(
-                  'Aucune tâche dans cette section.',
+                  l10n.ticketsNoTaskInSection,
                   style: NeoTypography.bodySm.copyWith(
                     color: NeoColors.muted,
                     fontStyle: FontStyle.italic,
@@ -996,7 +1006,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                        hintText: 'Ajouter une tâche rapide dans "$title"...',
+                        hintText: l10n.ticketsQuickAddInSection(title),
                         hintStyle: NeoTypography.bodySm.copyWith(
                           color: NeoColors.muted,
                           fontStyle: FontStyle.italic,
@@ -1017,7 +1027,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                       border: Border.all(color: NeoColors.borderWhisper),
                     ),
                     child: Text(
-                      'Entrée',
+                      l10n.ticketsEnterKey,
                       style: NeoTypography.codeSm.copyWith(
                         fontSize: 9,
                         color: NeoColors.muted,

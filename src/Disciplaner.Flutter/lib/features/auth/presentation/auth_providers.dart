@@ -80,7 +80,7 @@ class AuthNotifier extends Notifier<AuthState> {
         state = const AuthUnauthenticated();
       }
     } catch (e) {
-      state = AuthUnconfiguredServer(errorMessage: e.toString());
+      state = AuthUnconfiguredServer(error: e);
     }
   }
 
@@ -100,7 +100,7 @@ class AuthNotifier extends Notifier<AuthState> {
       }
       return true;
     } catch (e) {
-      state = AuthUnconfiguredServer(errorMessage: e.toString());
+      state = AuthUnconfiguredServer(error: e);
       return false;
     }
   }
@@ -112,7 +112,7 @@ class AuthNotifier extends Notifier<AuthState> {
       await _tokenStorage.saveSession(res);
       state = AuthAuthenticated(res);
     } catch (e) {
-      state = AuthUnauthenticated(errorMessage: e.toString());
+      state = AuthUnauthenticated(error: e);
     }
   }
 
@@ -153,7 +153,7 @@ class AuthNotifier extends Notifier<AuthState> {
       await _tokenStorage.saveSession(res);
       state = AuthAuthenticated(res);
     } catch (e) {
-      state = AuthUnauthenticated(errorMessage: e.toString());
+      state = AuthUnauthenticated(error: e);
       rethrow;
     }
   }

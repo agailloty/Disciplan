@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/features/shell/presentation/shell_placeholders.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/project_list_view.dart';
 import 'mobile_projects_view.dart';
@@ -15,6 +16,7 @@ class ProjectsAdaptiveScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
 
     if (showAllProjectsOverview) {
@@ -25,10 +27,9 @@ class ProjectsAdaptiveScreen extends ConsumerWidget {
       return ProjectListView(projectId: currentProject.id);
     }
 
-    return const ShellPlaceholderView(
-      title: 'Explorateur de Projets',
-      subtitle:
-          'Sélectionnez ou créez un projet pour afficher sa vue liste et son backlog.',
+    return ShellPlaceholderView(
+      title: l10n.projExplorerTitle,
+      subtitle: l10n.projExplorerSubtitle,
       icon: Icons.folder_copy,
     );
   }

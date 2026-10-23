@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 class FakeMyTasksNotifier extends MyTasksNotifier {
   final List<TicketDto> tickets;
@@ -115,6 +116,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: CommandPaletteModal(),
@@ -135,7 +139,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'sprint');
       await tester.pumpAndSettle();
 
-      expect(find.text('Créer un nouveau sprint'), findsOneWidget);
+      expect(find.text('Créer un sprint'), findsOneWidget);
 
       // Keyboard navigation with ArrowDown
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -172,6 +176,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const SettingsScreen(),
           ),
@@ -182,7 +189,7 @@ void main() {
 
       // Header and badge
       expect(find.text('Paramètres'), findsOneWidget);
-      expect(find.text('Administrateur'), findsOneWidget);
+      expect(find.text('Administrateur'), findsNWidgets(2));
 
       // User profile section
       expect(find.text('Profil & Compte'), findsOneWidget);
@@ -220,6 +227,9 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const TeamCalendarScreen(),
           ),

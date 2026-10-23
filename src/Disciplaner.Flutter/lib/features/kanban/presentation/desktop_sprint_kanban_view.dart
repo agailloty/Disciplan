@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
@@ -47,6 +48,7 @@ class _DesktopSprintKanbanViewState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final kanbanAsync = ref.watch(kanbanStateProvider(widget.sprint.id));
     final metricsAsync = ref.watch(sprintMetricsProvider(widget.sprint.id));
     final authState = ref.watch(authNotifierProvider);
@@ -89,7 +91,7 @@ class _DesktopSprintKanbanViewState
                   if (widget.availableSprints.length > 1 &&
                       widget.onSelectSprint != null)
                     PopupMenuButton<SprintDto>(
-                      tooltip: 'Changer de sprint affiché',
+                      tooltip: l10n.kanbanSwitchSprintTooltip,
                       onSelected: widget.onSelectSprint,
                       itemBuilder: (context) => widget.availableSprints
                           .map(
@@ -125,7 +127,7 @@ class _DesktopSprintKanbanViewState
                                         borderRadius: NeoSpacing.roundedSm,
                                       ),
                                       child: Text(
-                                        'ACTIF',
+                                        l10n.sprintStatusActive.toUpperCase(),
                                         style: NeoTypography.codeSm.copyWith(
                                           fontSize: 9,
                                           color: NeoColors.emerald,
@@ -180,7 +182,7 @@ class _DesktopSprintKanbanViewState
                       controller: _searchController,
                       style: NeoTypography.bodySm,
                       decoration: InputDecoration(
-                        hintText: 'Filtrer les cartes...',
+                        hintText: l10n.kanbanFilterCardsHint,
                         hintStyle: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                         prefixIcon: const Icon(Icons.search, size: 16, color: NeoColors.muted),
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -211,7 +213,7 @@ class _DesktopSprintKanbanViewState
                           // Only Mine Filter Pill
                           FilterChip(
                             label: Text(
-                              'Mes tâches',
+                              l10n.homeMyTickets,
                               style: NeoTypography.labelSm.copyWith(
                                 color: kState.onlyAssignedToMe
                                     ? Colors.white
@@ -234,7 +236,7 @@ class _DesktopSprintKanbanViewState
                           // Urgent / High Priority Filter Pill
                           FilterChip(
                             label: Text(
-                              'Priorité Haute',
+                              l10n.kanbanPriorityHighFilter,
                               style: NeoTypography.labelSm.copyWith(
                                 color: kState.selectedPriority == CardPriority.high
                                     ? Colors.white
@@ -271,7 +273,7 @@ class _DesktopSprintKanbanViewState
                       _showMetrics ? Icons.expand_less : Icons.analytics_outlined,
                       size: 16,
                     ),
-                    label: Text(_showMetrics ? 'Masquer en-tête' : 'Afficher métriques'),
+                    label: Text(_showMetrics ? l10n.kanbanHideMetrics : l10n.kanbanShowMetrics),
                     style: TextButton.styleFrom(
                       foregroundColor: NeoColors.muted,
                       visualDensity: VisualDensity.compact,
@@ -282,7 +284,7 @@ class _DesktopSprintKanbanViewState
                     OutlinedButton.icon(
                       onPressed: () => context.go('/backlog'),
                       icon: const Icon(Icons.inbox_outlined, size: 15),
-                      label: const Text('Backlog'),
+                      label: Text(l10n.projectBacklog),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: NeoColors.onSurface,
                         visualDensity: VisualDensity.compact,
@@ -304,12 +306,12 @@ class _DesktopSprintKanbanViewState
                 child: CircularProgressIndicator(color: NeoColors.primary),
               ),
               error: (err, _) => Center(
-                child: Text('Erreur de chargement du tableau: $err'),
+                child: Text(l10n.kanbanBoardLoadError(err.toString())),
               ),
               data: (kState) {
                 if (kState.statuses.isEmpty) {
-                  return const Center(
-                    child: Text('Aucun statut défini pour ce projet.'),
+                  return Center(
+                    child: Text(l10n.kanbanNoStatuses),
                   );
                 }
 
@@ -378,6 +380,7 @@ class _DesktopSprintKanbanViewState
     final statusColor = Color(
       int.tryParse(status.color.replaceAll('#', '0xFF')) ?? 0xFFE5A800,
     );
+    final l10n = context.l10n;
 
     return DragTarget<TicketDto>(
       onWillAcceptWithDetails: (details) => details.data.status.id != status.id,
@@ -452,7 +455,7 @@ class _DesktopSprintKanbanViewState
                 child: tickets.isEmpty
                     ? Center(
                         child: Text(
-                          'Glisser une tâche ici',
+                          l10n.kanbanDropTicketHere,
                           style: NeoTypography.bodySm.copyWith(
                             color: NeoColors.muted,
                             fontStyle: FontStyle.italic,

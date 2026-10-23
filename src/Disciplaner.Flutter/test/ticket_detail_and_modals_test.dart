@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:disciplaner_flutter/l10n/app_localizations.dart';
 
 void main() {
   setUpAll(() {
@@ -111,6 +112,9 @@ void main() {
                 ]),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: DesktopCreateTicketDialog(initialProjectId: 'proj-1'),
@@ -157,6 +161,9 @@ void main() {
                 ]),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: MobileCreateTicketSheet(initialProjectId: 'proj-1'),
@@ -192,6 +199,9 @@ void main() {
             ticketHistoryProvider('ticket-14').overrideWith((ref) async => sampleHistory),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: SplitInspectorPanel(ticketId: 'ticket-14'),
@@ -231,6 +241,9 @@ void main() {
             ticketHistoryProvider('ticket-14').overrideWith((ref) async => sampleHistory),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const Scaffold(
               body: MobileTicketDetailSheet(ticketId: 'ticket-14'),

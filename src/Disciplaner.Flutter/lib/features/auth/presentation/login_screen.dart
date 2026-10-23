@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_text_field.dart';
@@ -63,11 +66,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState is AuthLoading;
-    final errorMessage = switch (authState) {
-      AuthUnauthenticated(:final errorMessage) => errorMessage,
-      AuthUnconfiguredServer(:final errorMessage) => errorMessage,
+    final l10n = context.l10n;
+    final error = switch (authState) {
+      AuthUnauthenticated(:final error) => error,
+      AuthUnconfiguredServer(:final error) => error,
       _ => null,
     };
+    final errorMessage = error == null
+        ? null
+        : error is AppFailure
+            ? error.type == AppFailureType.unauthorized
+                ? l10n.authErrorInvalid
+                : localizedFailureMessage(l10n, error)
+            : error.toString();
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -99,14 +110,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: NeoSpacing.spaceMd),
                 Text(
-                  _isInvitationMode ? 'Rejoindre une Équipe' : 'Connexion à Disciplan',
+                  _isInvitationMode ? l10n.authJoinTeam : l10n.authLoginTitle,
                   style: NeoTypography.headlineLg,
                 ),
                 const SizedBox(height: NeoSpacing.spaceXs),
                 Text(
                   _isInvitationMode
-                      ? 'Complétez votre inscription via votre jeton d\'invitation.'
-                      : 'Pilotez vos sprints et tickets en haute vélocité.',
+                      ? l10n.authInvitationSubtitle
+                      : l10n.authLoginTagline,
                   textAlign: TextAlign.center,
                   style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                 ),
@@ -122,29 +133,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       if (_isInvitationMode) ...[
                         NeoTextField(
                           controller: _invitationTokenController,
-                          labelText: 'JETON D\'INVITATION',
-                          hintText: 'ex. inv_8f93ab...',
+                          labelText: l10n.authInvitationTokenLabel.toUpperCase(),
+                          hintText: l10n.authInvitationTokenHint,
                           autofocus: true,
                         ),
                         const SizedBox(height: NeoSpacing.spaceMd),
                         NeoTextField(
                           controller: _displayNameController,
-                          labelText: 'NOM D\'AFFICHAGE',
-                          hintText: 'ex. Marie Curie',
+                          labelText: l10n.settingsDisplayName.toUpperCase(),
+                          hintText: l10n.authDisplayNameHint,
                         ),
                         const SizedBox(height: NeoSpacing.spaceMd),
                       ],
                       NeoTextField(
                         controller: _emailController,
-                        labelText: 'ADRESSE E-MAIL',
-                        hintText: 'vous@exemple.com',
+                        labelText: l10n.authEmail.toUpperCase(),
+                        hintText: l10n.authEmailHint,
                         keyboardType: TextInputType.emailAddress,
                         autofocus: !_isInvitationMode,
                       ),
                       const SizedBox(height: NeoSpacing.spaceMd),
                       NeoTextField(
                         controller: _passwordController,
-                        labelText: 'MOT DE PASSE',
+                        labelText: l10n.authPassword.toUpperCase(),
                         hintText: '••••••••••••',
                         obscureText: true,
                         onSubmitted: (_) => _isInvitationMode ? _submitInvitationRegister() : _submitLogin(),
@@ -166,7 +177,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ],
                       const SizedBox(height: NeoSpacing.spaceLg),
                       NeoButton(
-                        label: _isInvitationMode ? 'Valider l\'invitation' : 'Se connecter',
+                        label: _isInvitationMode ? l10n.authValidateInvitation : l10n.authSubmit,
                         isLoading: isLoading,
                         onPressed: _isInvitationMode ? _submitInvitationRegister : _submitLogin,
                       ),
@@ -179,8 +190,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         },
                         child: Text(
                           _isInvitationMode
-                              ? 'Déjà un compte ? Se connecter'
-                              : 'Vous avez reçu une invitation ?',
+                              ? l10n.authHaveAccount
+                              : l10n.authReceivedInvitation,
                           style: NeoTypography.bodySm.copyWith(
                             color: NeoColors.onSurfaceVariant,
                             fontWeight: FontWeight.w500,

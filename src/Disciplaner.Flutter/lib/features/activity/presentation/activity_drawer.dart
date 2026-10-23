@@ -1,6 +1,9 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
+import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +18,7 @@ class ActivityDrawer extends ConsumerWidget {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Activité',
+      barrierLabel: context.l10n.ticketHistory,
       barrierColor: Colors.black38,
       pageBuilder: (context, anim1, anim2) {
         return Align(
@@ -38,6 +41,7 @@ class ActivityDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activityAsync = ref.watch(recentActivityProvider);
+    final l10n = context.l10n;
 
     return Material(
       color: Colors.transparent,
@@ -74,7 +78,7 @@ class ActivityDrawer extends ConsumerWidget {
                         const Icon(Icons.notifications_outlined, size: 20, color: NeoColors.primary),
                         const SizedBox(width: 8),
                         Text(
-                          'Activité Récente',
+                          l10n.homeActivity,
                           style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -95,7 +99,7 @@ class ActivityDrawer extends ConsumerWidget {
                   if (activities.isEmpty) {
                     return Center(
                       child: Text(
-                        'Aucune activité récente.',
+                        l10n.homeNoActivity,
                         style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                       ),
                     );
@@ -168,7 +172,12 @@ class ActivityDrawer extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                error: (err, _) => Center(child: Text('Erreur: $err', style: NeoTypography.bodySm)),
+                error: (err, _) {
+                  final message = err is AppFailure
+                      ? localizedFailureMessage(l10n, err)
+                      : l10n.shellActivityError(err.toString());
+                  return Center(child: Text(message, style: NeoTypography.bodySm));
+                },
               ),
             ),
           ],

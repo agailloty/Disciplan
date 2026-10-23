@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/widgets/create_sprint_modal.dart';
@@ -66,14 +67,15 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
   }
 
   List<CommandPaletteItem> _buildItems(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
     final items = <CommandPaletteItem>[];
 
     // 1. Actions rapides
     items.add(
       CommandPaletteItem(
-        category: 'Actions rapides',
-        title: 'Créer une tâche',
+        category: l10n.cmdCategoryActions,
+        title: l10n.cmdCreateTask,
         shortcut: 'C',
         icon: Icons.add_task,
         onSelect: () {
@@ -88,8 +90,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Actions rapides',
-        title: 'Créer un nouveau sprint',
+        category: l10n.cmdCategoryActions,
+        title: l10n.sprintCreateTitle,
         shortcut: 'S',
         icon: Icons.timelapse,
         onSelect: () {
@@ -105,8 +107,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Actions rapides',
-        title: 'Créer un projet',
+        category: l10n.cmdCategoryActions,
+        title: l10n.projCreateNew,
         shortcut: 'P',
         icon: Icons.create_new_folder_outlined,
         onSelect: () {
@@ -119,8 +121,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     // 2. Navigation
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Mes Tâches',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.navMyTickets,
         shortcut: 'G T',
         icon: Icons.check_circle_outline,
         onSelect: () {
@@ -131,8 +133,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Tableau Kanban du Sprint',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.cmdNavSprintKanban,
         shortcut: 'G K',
         icon: Icons.view_kanban_outlined,
         onSelect: () {
@@ -143,8 +145,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Explorateur de Projets',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.projExplorerTitle,
         shortcut: 'G P',
         icon: Icons.folder_open,
         onSelect: () {
@@ -155,8 +157,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Cycles & Sprints',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.cmdNavCycles,
         shortcut: 'G C',
         icon: Icons.cached,
         onSelect: () {
@@ -167,8 +169,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Calendrier d\'Équipe',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.cmdNavCalendar,
         shortcut: 'G D',
         icon: Icons.calendar_today_outlined,
         onSelect: () {
@@ -179,8 +181,8 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     );
     items.add(
       CommandPaletteItem(
-        category: 'Navigation',
-        title: 'Paramètres & Administration',
+        category: l10n.cmdCategoryNavigation,
+        title: l10n.cmdNavSettings,
         shortcut: 'G S',
         icon: Icons.settings_outlined,
         onSelect: () {
@@ -195,7 +197,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     for (final ticket in myTasks) {
       items.add(
         CommandPaletteItem(
-          category: 'Tickets',
+          category: l10n.cmdCategoryTickets,
           title: ticket.title,
           subtitle: ticket.status.name,
           shortcut: ticket.ticketRef,
@@ -247,6 +249,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final filteredItems = _buildItems(context, ref);
     if (_selectedIndex >= filteredItems.length) {
       _selectedIndex = 0;
@@ -301,7 +304,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                           fontSize: 16,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Rechercher un ticket, une action ou naviguer...',
+                          hintText: l10n.cmdSearchHint,
                           hintStyle: NeoTypography.headlineSm.copyWith(
                             color: NeoColors.muted.withValues(alpha: 0.6),
                             fontSize: 16,
@@ -326,7 +329,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'ÉCHAP',
+                        l10n.cmdEscapeKey.toUpperCase(),
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 10,
                           color: NeoColors.muted,
@@ -344,7 +347,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                     ? Padding(
                         padding: const EdgeInsets.all(NeoSpacing.spaceXl),
                         child: Text(
-                          'Aucun résultat correspondant à “$_query”',
+                          l10n.cmdNoResults(_query),
                           style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                           textAlign: TextAlign.center,
                         ),
@@ -481,7 +484,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                     Row(
                       children: [
                         Text(
-                          'Naviguer',
+                          l10n.cmdNavigate,
                           style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                         ),
                         const SizedBox(width: 4),
@@ -491,7 +494,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Ouvrir',
+                          l10n.cmdOpen,
                           style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                         ),
                         const SizedBox(width: 4),
@@ -502,7 +505,7 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
                       ],
                     ),
                     Text(
-                      'Disciplan Neo-Linear',
+                      l10n.cmdFooterBrand,
                       style: NeoTypography.labelSm.copyWith(
                         color: NeoColors.muted.withValues(alpha: 0.6),
                       ),

@@ -1,6 +1,9 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
+import 'package:disciplaner_flutter/core/l10n/locale_providers.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
@@ -29,8 +32,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isSavingDisplayName = false;
   bool _isCreatingInvite = false;
   String? _lastCreatedInviteUrl;
-  String? _profileMessage;
+  bool _profileMessageVisible = false;
   bool _profileSuccess = true;
+  Object? _profileError;
 
   @override
   void initState() {
@@ -62,7 +66,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     setState(() {
       _isSavingDisplayName = true;
-      _profileMessage = null;
+      _profileMessageVisible = false;
+      _profileError = null;
     });
 
     try {
@@ -72,14 +77,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         setState(() {
           _profileSuccess = true;
-          _profileMessage = 'Nom d\'affichage mis à jour avec succès.';
+          _profileMessageVisible = true;
+          _profileError = null;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _profileSuccess = false;
-          _profileMessage = 'Erreur lors de la mise à jour : $e';
+          _profileMessageVisible = true;
+          _profileError = e;
         });
       }
     } finally {
@@ -96,10 +103,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (url.isEmpty) return;
     final success = await ref.read(authNotifierProvider.notifier).updateServerUrl(url);
     if (mounted) {
+      final l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'URL du serveur Homelab mise à jour' : 'Impossible de contacter le serveur',
+            success ? l10n.settingsServerUrlUpdated : l10n.settingsServerUnreachable,
             style: NeoTypography.bodySm.copyWith(color: Colors.white),
           ),
           backgroundColor: success ? NeoColors.primary : NeoColors.error,
@@ -111,9 +119,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _createInvitation() async {
     final email = _inviteEmailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
+      final l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez saisir une adresse email valide.'),
+        SnackBar(
+          content: Text(l10n.settingsInviteEmailInvalid),
           backgroundColor: NeoColors.error,
         ),
       );
@@ -138,18 +147,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       });
 
       if (mounted) {
+        final l10n = context.l10n;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Invitation générée pour $email !'),
+            content: Text(l10n.settingsInviteGenerated(email)),
             backgroundColor: NeoColors.emerald,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = context.l10n;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la création de l\'invitation : $e'),
+            content: Text(l10n.settingsInviteError(e.toString())),
             backgroundColor: NeoColors.error,
           ),
         );
@@ -165,6 +176,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final authState = ref.watch(authNotifierProvider);
     final session = authState is AuthAuthenticated ? authState.session : null;
     final isAdmin = session?.roles.contains('Admin') ?? false;
@@ -186,7 +198,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Row(
                   children: [
                     Text(
-                      'Paramètres',
+                      l10n.settingsTitle,
                       style: NeoTypography.headlineLg,
                     ),
                     const SizedBox(width: NeoSpacing.spaceMd),
@@ -199,7 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           border: Border.all(color: NeoColors.primary.withValues(alpha: 0.3)),
                         ),
                         child: Text(
-                          'Administrateur',
+                          l10n.roleAdmin,
                           style: NeoTypography.labelSm.copyWith(
                             color: NeoColors.primary,
                             fontWeight: FontWeight.bold,
@@ -210,24 +222,90 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: NeoSpacing.spaceXs),
                 Text(
-                  'Préférences utilisateur, configuration Homelab et gestion des accès',
+                  l10n.settingsHeaderSubtitle,
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
                 const SizedBox(height: NeoSpacing.spaceXl),
 
+                // Langue
+                _buildCardSection(
+                  title: l10n.settingsLanguage,
+                  subtitle: l10n.settingsLanguageHint,
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final currentLocale = ref.watch(localeProvider);
+                      return Wrap(
+                        spacing: NeoSpacing.spaceSm,
+                        runSpacing: NeoSpacing.spaceSm,
+                        children: [
+                          ChoiceChip(
+                            label: Text(
+                              l10n.settingsLanguageFr,
+                              style: NeoTypography.labelSm.copyWith(
+                                color: currentLocale.languageCode == 'fr'
+                                    ? Colors.white
+                                    : NeoColors.onSurface,
+                                fontWeight: currentLocale.languageCode == 'fr'
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            selected: currentLocale.languageCode == 'fr',
+                            selectedColor: NeoColors.primary,
+                            backgroundColor: NeoColors.surfaceContainerLow,
+                            side: BorderSide(
+                              color: currentLocale.languageCode == 'fr'
+                                  ? NeoColors.primary
+                                  : NeoColors.borderWhisper,
+                            ),
+                            onSelected: (_) {
+                              ref.read(localeProvider.notifier).set(const Locale('fr'));
+                            },
+                          ),
+                          ChoiceChip(
+                            label: Text(
+                              l10n.settingsLanguageEn,
+                              style: NeoTypography.labelSm.copyWith(
+                                color: currentLocale.languageCode == 'en'
+                                    ? Colors.white
+                                    : NeoColors.onSurface,
+                                fontWeight: currentLocale.languageCode == 'en'
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            selected: currentLocale.languageCode == 'en',
+                            selectedColor: NeoColors.primary,
+                            backgroundColor: NeoColors.surfaceContainerLow,
+                            side: BorderSide(
+                              color: currentLocale.languageCode == 'en'
+                                  ? NeoColors.primary
+                                  : NeoColors.borderWhisper,
+                            ),
+                            onSelected: (_) {
+                              ref.read(localeProvider.notifier).set(const Locale('en'));
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: NeoSpacing.spaceLg),
+
                 // 0. Affichage & Mise à l'échelle (UI Scaling)
                 _buildCardSection(
-                  title: 'Affichage & Mise à l\'échelle (UI Scaling)',
-                  subtitle: 'Adaptez la taille des polices et des éléments visuels à la résolution de votre écran',
+                  title: l10n.settingsScalingTitle,
+                  subtitle: l10n.settingsScalingSubtitle,
                   child: Consumer(
                     builder: (context, ref, _) {
                       final currentScale = ref.watch(uiScaleProvider);
                       final currentPercent = (currentScale * 100).round();
                       final presets = [
-                        (0.9, 'Compact (90%)'),
-                        (1.0, 'Standard (100%)'),
-                        (1.1, 'Confort (110%)'),
-                        (1.2, 'Grand écran (120%)'),
+                        (0.9, l10n.settingsScaleCompact),
+                        (1.0, l10n.settingsScaleStandard),
+                        (1.1, l10n.settingsScaleComfort),
+                        (1.2, l10n.settingsScaleLarge),
                       ];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Facteur de mise à l\'échelle personnalisé',
+                                      l10n.settingsScaleFactor,
                                       style: NeoTypography.labelMd.copyWith(
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -305,7 +383,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     IconButton(
-                                      tooltip: 'Réduire (-5%)',
+                                      tooltip: l10n.settingsScaleDecrease,
                                       icon: const Icon(Icons.remove_circle_outline, size: 18),
                                       visualDensity: VisualDensity.compact,
                                       onPressed: () {
@@ -330,7 +408,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: 'Augmenter (+5%)',
+                                      tooltip: l10n.settingsScaleIncrease,
                                       icon: const Icon(Icons.add_circle_outline, size: 18),
                                       visualDensity: VisualDensity.compact,
                                       onPressed: () {
@@ -395,14 +473,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         elevation: 0,
                                         visualDensity: VisualDensity.compact,
                                       ),
-                                      child: const Text('Appliquer'),
+                                      child: Text(l10n.settingsApply),
                                     ),
                                     TextButton(
                                       onPressed: () {
                                         ref.read(uiScaleProvider.notifier).reset();
                                         _customScaleController.text = '100';
                                       },
-                                      child: const Text('Réinitialiser (100%)'),
+                                      child: Text(l10n.settingsScaleReset),
                                     ),
                                   ],
                                 ),
@@ -411,7 +489,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                           const SizedBox(height: NeoSpacing.spaceSm),
                           Text(
-                            'Astuce : vous pouvez saisir n\'importe quel pourcentage entre 50% et 200%, ou ajuster le facteur depuis la barre supérieure.',
+                            l10n.settingsScaleHint,
                             style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                           ),
                         ],
@@ -423,15 +501,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 // 1. Profil Section
                 _buildCardSection(
-                  title: 'Profil & Compte',
-                  subtitle: 'Gérez vos informations de compte Disciplan',
+                  title: l10n.settingsProfileTitle,
+                  subtitle: l10n.settingsProfileSubtitle,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           UserAvatar(
-                            name: session?.displayName ?? 'Utilisateur',
+                            name: session?.displayName ?? l10n.settingsDefaultUser,
                             size: 48,
                           ),
                           const SizedBox(width: NeoSpacing.spaceMd),
@@ -440,12 +518,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  session?.displayName ?? 'Utilisateur',
+                                  session?.displayName ?? l10n.settingsDefaultUser,
                                   style: NeoTypography.headlineSm,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  session?.email ?? 'Non connecté',
+                                  session?.email ?? l10n.settingsNotConnected,
                                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                                 ),
                               ],
@@ -455,7 +533,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: NeoSpacing.spaceLg),
                       Text(
-                        'Nom d\'affichage',
+                        l10n.settingsDisplayName,
                         style: NeoTypography.labelMd.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: NeoSpacing.spaceSm),
@@ -466,7 +544,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               controller: _displayNameController,
                               style: NeoTypography.bodyMd,
                               decoration: InputDecoration(
-                                hintText: 'Votre nom d\'affichage...',
+                                hintText: l10n.settingsDisplayNamePlaceholder,
                                 isDense: true,
                                 filled: true,
                                 fillColor: NeoColors.surfaceContainerLowest,
@@ -510,14 +588,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text('Enregistrer'),
+                                : Text(l10n.save),
                           ),
                         ],
                       ),
-                      if (_profileMessage != null) ...[
+                      if (_profileMessageVisible) ...[
                         const SizedBox(height: NeoSpacing.spaceSm),
                         Text(
-                          _profileMessage!,
+                          _profileSuccess
+                              ? l10n.settingsDisplayNameSaved
+                              : l10n.settingsUpdateError(_profileError.toString()),
                           style: NeoTypography.bodySm.copyWith(
                             color: _profileSuccess ? NeoColors.emerald : NeoColors.error,
                           ),
@@ -534,11 +614,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Session active',
+                                  l10n.settingsSessionTitle,
                                   style: NeoTypography.labelMd.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 Text(
-                                  'Déconnecte ce poste de votre instance Disciplan',
+                                  l10n.settingsSessionSubtitle,
                                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                                 ),
                               ],
@@ -551,7 +631,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             },
                             icon: const Icon(Icons.logout, size: 16, color: NeoColors.error),
                             label: Text(
-                              'Se déconnecter',
+                              l10n.navLogout,
                               style: NeoTypography.labelMd.copyWith(color: NeoColors.error),
                             ),
                             style: OutlinedButton.styleFrom(
@@ -570,8 +650,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 // 2. Serveur Homelab
                 _buildCardSection(
-                  title: 'Serveur Homelab',
-                  subtitle: 'Adresse de votre instance Disciplan sur le réseau local ou distant',
+                  title: l10n.settingsServerTitle,
+                  subtitle: l10n.settingsServerSubtitle,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -620,13 +700,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),
-                            child: const Text('Appliquer'),
+                            child: Text(l10n.settingsApply),
                           ),
                         ],
                       ),
                       const SizedBox(height: NeoSpacing.spaceSm),
                       Text(
-                        'Les requêtes HTTP et l\'abonnement iCal s\'appuient sur cette URL de base.',
+                        l10n.settingsServerHint,
                         style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                       ),
                     ],
@@ -636,8 +716,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 // 3. Vues Sauvegardées
                 _buildCardSection(
-                  title: 'Vues Sauvegardées',
-                  subtitle: 'Gérez vos filtres et vues personnalisées épinglées à la barre latérale',
+                  title: l10n.settingsSavedViewsTitle,
+                  subtitle: l10n.settingsSavedViewsSubtitle,
                   child: Consumer(
                     builder: (context, ref, _) {
                       final savedViewsAsync = ref.watch(savedViewsListProvider);
@@ -652,7 +732,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         error: (err, _) => Padding(
                           padding: const EdgeInsets.all(NeoSpacing.spaceMd),
                           child: Text(
-                            'Impossible de charger les vues : $err',
+                            l10n.settingsSavedViewsError(err.toString()),
                             style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                           ),
                         ),
@@ -661,7 +741,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: NeoSpacing.spaceMd),
                               child: Text(
-                                'Aucune vue sauvegardée pour le moment. Vous pouvez en créer depuis la Vue Liste.',
+                                l10n.settingsSavedViewsEmpty,
                                 style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                               ),
                             );
@@ -687,7 +767,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ),
                                 title: Text(view.name, style: NeoTypography.labelMd),
                                 subtitle: Text(
-                                  'Projet: ${view.projectId ?? "Tous"} • Type: ${view.type?.name ?? "Tous"}',
+                                  l10n.settingsSavedViewSummary(
+                                    view.projectId ?? l10n.settingsAll,
+                                    view.type?.localizedLabel(l10n) ?? l10n.settingsAll,
+                                  ),
                                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                                 ),
                                 trailing: Row(
@@ -699,7 +782,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         size: 18,
                                         color: view.isVisibleOnHome ? NeoColors.primary : NeoColors.muted,
                                       ),
-                                      tooltip: view.isVisibleOnHome ? 'Détacher' : 'Épingler',
+                                      tooltip: view.isVisibleOnHome ? l10n.settingsUnpin : l10n.settingsPin,
                                       onPressed: () async {
                                         final repo = ref.read(savedViewRepositoryProvider);
                                         await repo.update(
@@ -729,7 +812,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         size: 18,
                                         color: NeoColors.error,
                                       ),
-                                      tooltip: 'Supprimer',
+                                      tooltip: l10n.delete,
                                       onPressed: () async {
                                         final repo = ref.read(savedViewRepositoryProvider);
                                         await repo.delete(view.id);
@@ -751,8 +834,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (isAdmin) ...[
                   const SizedBox(height: NeoSpacing.spaceLg),
                   _buildCardSection(
-                    title: 'Administration — Invitations (7 jours)',
-                    subtitle: 'Générez des liens d\'invitation à usage unique pour intégrer de nouveaux membres',
+                    title: l10n.settingsAdminInvitationsTitle,
+                    subtitle: l10n.settingsAdminInvitationsSubtitle,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -763,7 +846,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 controller: _inviteEmailController,
                                 style: NeoTypography.bodyMd,
                                 decoration: InputDecoration(
-                                  hintText: 'adresse@entreprise.com',
+                                  hintText: l10n.settingsInviteEmailHint,
                                   isDense: true,
                                   filled: true,
                                   fillColor: NeoColors.surfaceContainerLowest,
@@ -790,7 +873,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ElevatedButton.icon(
                               onPressed: _isCreatingInvite ? null : _createInvitation,
                               icon: const Icon(Icons.link, size: 16),
-                              label: const Text('Générer un lien (7j)'),
+                              label: Text(l10n.settingsGenerateInviteLink),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: NeoColors.primary,
                                 foregroundColor: NeoColors.secondary,
@@ -827,12 +910,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.copy, size: 18),
-                                  tooltip: 'Copier le lien',
+                                  tooltip: l10n.adminInviteCopyLink,
                                   onPressed: () {
                                     Clipboard.setData(ClipboardData(text: _lastCreatedInviteUrl!));
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Lien d\'invitation copié dans le presse-papiers'),
+                                      SnackBar(
+                                        content: Text(l10n.settingsInviteLinkCopied),
                                       ),
                                     );
                                   },
@@ -843,7 +926,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                         const SizedBox(height: NeoSpacing.spaceLg),
                         Text(
-                          'Invitations en attente ou récentes',
+                          l10n.settingsPendingInvitations,
                           style: NeoTypography.labelMd.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: NeoSpacing.spaceSm),
@@ -859,13 +942,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ),
                               ),
                               error: (e, _) => Text(
-                                'Erreur chargement invitations: $e',
+                                l10n.settingsInvitationsError(e.toString()),
                                 style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                               ),
                               data: (invites) {
                                 if (invites.isEmpty) {
                                   return Text(
-                                    'Aucune invitation en cours.',
+                                    l10n.adminInvitationsEmpty,
                                     style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                                   );
                                 }
@@ -886,7 +969,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       contentPadding: EdgeInsets.zero,
                                       title: Text(inv.email, style: NeoTypography.labelMd),
                                       subtitle: Text(
-                                        'Expire le ${inv.expiresAt.day}/${inv.expiresAt.month}/${inv.expiresAt.year} • ${inv.isUsed ? "Déjà utilisée" : (isExpired ? "Expirée" : "Valide")}',
+                                        '${l10n.adminInviteExpiresOn} ${inv.expiresAt.day}/${inv.expiresAt.month}/${inv.expiresAt.year} • ${inv.isUsed ? l10n.settingsInviteUsed : (isExpired ? l10n.settingsInviteExpired : l10n.settingsInviteValid)}',
                                         style: NeoTypography.bodySm.copyWith(
                                           color: inv.isUsed
                                               ? NeoColors.muted
@@ -895,12 +978,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       ),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.copy, size: 16),
-                                        tooltip: 'Copier le jeton',
+                                        tooltip: l10n.settingsCopyToken,
                                         onPressed: () {
                                           Clipboard.setData(ClipboardData(text: inv.token));
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Jeton d\'invitation copié'),
+                                            SnackBar(
+                                              content: Text(l10n.settingsTokenCopied),
                                             ),
                                           );
                                         },
@@ -919,8 +1002,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   // 5. Administration — Utilisateurs
                   _buildCardSection(
-                    title: 'Administration — Gestion des Comptes',
-                    subtitle: 'Activer, désactiver ou changer les rôles des utilisateurs de l\'instance',
+                    title: l10n.settingsAdminUsersTitle,
+                    subtitle: l10n.settingsAdminUsersSubtitle,
                     child: Consumer(
                       builder: (context, ref, _) {
                         final usersAsync = ref.watch(adminUsersListProvider);
@@ -933,7 +1016,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                           ),
                           error: (e, _) => Text(
-                            'Erreur chargement utilisateurs: $e',
+                            l10n.settingsUsersError(e.toString()),
                             style: NeoTypography.bodySm.copyWith(color: NeoColors.error),
                           ),
                           data: (users) {
@@ -959,7 +1042,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       if (isCurrent) ...[
                                         const SizedBox(width: 6),
                                         Text(
-                                          '(vous)',
+                                          l10n.settingsYou,
                                           style: NeoTypography.bodySm.copyWith(
                                             color: NeoColors.muted,
                                             fontStyle: FontStyle.italic,
@@ -976,7 +1059,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
-                                          u.isActive ? 'Actif' : 'Inactif',
+                                          u.isActive ? l10n.settingsActive : l10n.settingsInactive,
                                           style: NeoTypography.labelSm.copyWith(
                                             color: u.isActive ? NeoColors.emerald : NeoColors.error,
                                             fontSize: 10,
@@ -998,9 +1081,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         value: isAdminUser ? 'Admin' : 'User',
                                         underline: const SizedBox(),
                                         style: NeoTypography.labelSm.copyWith(color: NeoColors.secondary),
-                                        items: const [
-                                          DropdownMenuItem(value: 'User', child: Text('User')),
-                                          DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                                        items: [
+                                          DropdownMenuItem(value: 'User', child: Text(l10n.adminUsersRoleUser)),
+                                          DropdownMenuItem(value: 'Admin', child: Text(l10n.adminUsersRoleAdmin)),
                                         ],
                                         onChanged: isCurrent
                                             ? null
@@ -1027,7 +1110,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                             foregroundColor: u.isActive ? NeoColors.error : NeoColors.emerald,
                                             padding: const EdgeInsets.symmetric(horizontal: 8),
                                           ),
-                                          child: Text(u.isActive ? 'Désactiver' : 'Activer'),
+                                          child: Text(u.isActive ? l10n.adminUsersDeactivate : l10n.adminUsersActivate),
                                         ),
                                     ],
                                   ),

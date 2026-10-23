@@ -1,6 +1,7 @@
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
@@ -31,6 +32,7 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final kanbanAsync = ref.watch(kanbanStateProvider(widget.sprint.id));
     final metricsAsync = ref.watch(sprintMetricsProvider(widget.sprint.id));
     final authState = ref.watch(authNotifierProvider);
@@ -46,11 +48,11 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
           child: CircularProgressIndicator(color: NeoColors.primary),
         ),
         error: (err, _) => Center(
-          child: Text('Erreur: $err'),
+          child: Text(l10n.kanbanErrorWithDetail(err.toString())),
         ),
         data: (kState) {
           if (kState.statuses.isEmpty) {
-            return const Center(child: Text('Aucun statut disponible.'));
+            return Center(child: Text(l10n.kanbanNoStatusesAvailable));
           }
 
           if (_selectedTabIndex >= kState.statuses.length) {
@@ -99,7 +101,7 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
                               borderRadius: NeoSpacing.roundedSm,
                             ),
                             child: Text(
-                              'J-${metrics.daysRemaining}',
+                              l10n.sprintDaysRemainingBadge(metrics.daysRemaining),
                               style: GoogleFonts.jetBrainsMono(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -117,7 +119,10 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${metrics.closedTickets}/${metrics.totalTickets} terminées',
+                            l10n.sprintClosedTicketsProgress(
+                              metrics.closedTickets,
+                              metrics.totalTickets,
+                            ),
                             style: NeoTypography.labelSm.copyWith(
                               color: NeoColors.muted,
                             ),
@@ -175,7 +180,7 @@ class _MobileSprintKanbanViewState extends ConsumerState<MobileSprintKanbanView>
                   padding: const EdgeInsets.all(NeoSpacing.spaceXl),
                   alignment: Alignment.center,
                   child: Text(
-                    'Aucune tâche dans "${activeStatus.name}"',
+                    l10n.kanbanNoTicketsInStatus(activeStatus.name),
                     style: NeoTypography.bodyMd.copyWith(
                       color: NeoColors.muted,
                       fontStyle: FontStyle.italic,
