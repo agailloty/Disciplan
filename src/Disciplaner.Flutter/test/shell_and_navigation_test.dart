@@ -15,6 +15,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:disciplaner_flutter/core/models/project_models.dart';
+import 'package:disciplaner_flutter/core/models/enums.dart';
+import 'package:disciplaner_flutter/features/projects/data/project_repository.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+
 final testAuthSession = AuthResponse(
   token: 'jwt_valid_test',
   email: 'admin@disciplan.local',
@@ -22,6 +27,101 @@ final testAuthSession = AuthResponse(
   roles: const ['Admin'],
   expiresAt: DateTime.now().add(const Duration(days: 7)),
 );
+
+class FakeShellProjectRepo implements IProjectRepository {
+  @override
+  Future<List<ProjectSummaryDto>> getAll() async => [
+        ProjectSummaryDto(
+          id: 'proj_1',
+          name: 'Campagne de Marque 2025',
+          key: 'CAMP',
+          ticketCount: 18,
+          sprintCount: 4,
+          createdAt: DateTime.now(),
+          requestingUserRole: MemberRole.admin,
+          isOwner: true,
+        ),
+      ];
+
+  @override
+  Future<ProjectDetailDto> getById(String id) async => ProjectDetailDto(
+        id: id,
+        name: 'Campagne de Marque 2025',
+        key: 'CAMP',
+        ownerId: 'admin',
+        createdAt: DateTime.now(),
+        statuses: const [],
+        sprints: const [],
+        defaultTicketType: TicketType.story,
+        defaultAssigneePolicy: DefaultAssigneePolicy.creator,
+        members: const [],
+        requestingUserRole: MemberRole.admin,
+      );
+
+  @override
+  Future<ProjectDetailDto> create(CreateProjectRequest request) async => getById('new');
+
+  @override
+  Future<ProjectDetailDto> update(String id, UpdateProjectRequest request) async => getById(id);
+
+  @override
+  Future<ProjectDetailDto> updateDefaults(String id, UpdateProjectDefaultsRequest request) async => getById(id);
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
+  Future<TicketStatusDto> addStatus(String projectId, CreateTicketStatusRequest request) async =>
+      TicketStatusDto(
+        id: 'stat',
+        projectId: projectId,
+        name: request.name,
+        color: request.color,
+        order: 0,
+        category: request.category,
+      );
+
+  @override
+  Future<TicketStatusDto> updateStatus(
+          String projectId, String statusId, UpdateTicketStatusRequest request) async =>
+      TicketStatusDto(
+        id: statusId,
+        projectId: projectId,
+        name: request.name,
+        color: request.color,
+        order: 0,
+        category: request.category,
+      );
+
+  @override
+  Future<void> deleteStatus(String projectId, String statusId) async {}
+
+  @override
+  Future<List<MemberDto>> getMembers(String projectId) async => const [];
+
+  @override
+  Future<MemberDto> addMember(String projectId, AddMemberRequest request) async => MemberDto(
+        userId: request.userId,
+        displayName: 'User',
+        email: 'user@test.com',
+        role: request.role,
+        joinedAt: DateTime.now(),
+      );
+
+  @override
+  Future<MemberDto> updateMemberRole(
+          String projectId, String userId, UpdateMemberRoleRequest request) async =>
+      MemberDto(
+        userId: userId,
+        displayName: 'User',
+        email: 'user@test.com',
+        role: request.role,
+        joinedAt: DateTime.now(),
+      );
+
+  @override
+  Future<void> removeMember(String projectId, String userId) async {}
+}
 
 class AuthenticatedMockAuthNotifier extends AuthNotifier {
   @override
@@ -42,6 +142,7 @@ void main() {
       overrides: [
         serverConfigStorageProvider.overrideWithValue(serverStorage),
         tokenStorageProvider.overrideWithValue(tokenStorage),
+        projectRepositoryProvider.overrideWithValue(FakeShellProjectRepo()),
         authNotifierProvider.overrideWith(AuthenticatedMockAuthNotifier.new),
       ],
       child: Consumer(

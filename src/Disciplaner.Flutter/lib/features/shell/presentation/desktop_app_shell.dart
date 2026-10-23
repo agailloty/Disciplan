@@ -11,6 +11,8 @@ import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 
 class DesktopAppShell extends ConsumerWidget {
   final Widget child;
@@ -27,13 +29,14 @@ class DesktopAppShell extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final isSidebarCollapsed = ref.watch(sidebarCollapsedProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
+    final currentProject = ref.watch(currentProjectDetailProvider).value;
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
       body: Column(
         children: [
           // 1. TOP TITLE / COMMAND BAR (44px)
-          _buildTopBar(context, ref, user),
+          _buildTopBar(context, ref, user, currentProject),
 
           // 2. MAIN LAYOUT (ACTIVITY BAR + PRIMARY SIDEBAR + WORKSPACE)
           Expanded(
@@ -43,7 +46,7 @@ class DesktopAppShell extends ConsumerWidget {
                 _buildActivityBar(context, ref, user),
 
                 // B. Primary Sidebar repliable (240px fond #F4F1EA)
-                if (!isSidebarCollapsed) _buildPrimarySidebar(context, ref),
+                if (!isSidebarCollapsed) _buildPrimarySidebar(context, ref, currentProject),
 
                 // C. Zone centrale de travail (Workspace)
                 Expanded(
@@ -60,7 +63,12 @@ class DesktopAppShell extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, WidgetRef ref, dynamic user) {
+  Widget _buildTopBar(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic user,
+    dynamic currentProject,
+  ) {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -94,10 +102,11 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               const Icon(Icons.chevron_right, size: 16, color: NeoColors.subdued),
               Text(
-                _breadcrumbSectionName(),
+                currentProject?.name ?? _breadcrumbSectionName(),
                 style: NeoTypography.bodyMd.copyWith(
                   fontSize: 13,
-                  color: NeoColors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  color: NeoColors.onSurface,
                 ),
               ),
               const Icon(Icons.chevron_right, size: 16, color: NeoColors.subdued),
@@ -108,7 +117,7 @@ class DesktopAppShell extends ConsumerWidget {
                   borderRadius: NeoSpacing.roundedSm,
                 ),
                 child: Text(
-                  'Cycle 1',
+                  currentProject?.key ?? 'Cycle 1',
                   style: NeoTypography.labelSm.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -371,7 +380,9 @@ class DesktopAppShell extends ConsumerWidget {
     );
   }
 
-  Widget _buildPrimarySidebar(BuildContext context, WidgetRef ref) {
+  Widget _buildPrimarySidebar(BuildContext context, WidgetRef ref, dynamic currentProject) {
+    final projects = ref.watch(projectsListProvider).value ?? [];
+
     return Container(
       width: 240,
       decoration: const BoxDecoration(
@@ -382,7 +393,7 @@ class DesktopAppShell extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Sidebar Header
+          // Sidebar Header: Switcher de projet & collapse
           Container(
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -394,12 +405,52 @@ class DesktopAppShell extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'PLAN DU PROJET',
-                  style: NeoTypography.labelSm.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: NeoColors.onSurfaceVariant,
+                Expanded(
+                  child: PopupMenuButton<String>(
+                    tooltip: 'Changer de projet',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'PLAN DU PROJET',
+                            overflow: TextOverflow.ellipsis,
+                            style: NeoTypography.labelSm.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.6,
+                              color: NeoColors.onSurface,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down, size: 16, color: NeoColors.muted),
+                      ],
+                    ),
+                    itemBuilder: (context) => [
+                      ...projects.map(
+                        (p) => PopupMenuItem(
+                          value: p.id,
+                          child: Text('${p.key} • ${p.name}', style: NeoTypography.bodySm),
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'NEW',
+                        child: Row(
+                          children: [
+                            Icon(Icons.add, size: 16),
+                            SizedBox(width: 8),
+                            Text('+ Nouveau projet'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (val) {
+                      if (val == 'NEW') {
+                        CreateProjectModal.show(context);
+                      } else {
+                        ref.read(selectedProjectIdProvider.notifier).select(val);
+                      }
+                    },
                   ),
                 ),
                 IconButton(
@@ -419,12 +470,13 @@ class DesktopAppShell extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
               children: [
+                _buildSidebarSectionHeader('VUES DU PROJET'),
                 _buildSidebarItem(
                   context,
                   title: 'Vue Liste',
                   icon: Icons.format_list_bulleted,
                   isSelected: currentRoute == '/projects',
-                  badge: '12',
+                  badge: '${currentProject?.sprints.length ?? 12}',
                   onTap: () => context.go('/projects'),
                 ),
                 _buildSidebarItem(
@@ -437,11 +489,33 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 _buildSidebarItem(
                   context,
-                  title: 'Sprints & Cycles',
-                  icon: Icons.timelapse,
+                  title: 'Calendrier & Jalons',
+                  icon: Icons.calendar_today,
+                  isSelected: currentRoute == '/calendar',
+                  onTap: () => context.go('/calendar'),
+                ),
+
+                const SizedBox(height: NeoSpacing.spaceSm),
+                _buildSidebarSectionHeader('PLANNING & CYCLES'),
+                _buildSidebarItem(
+                  context,
+                  title: 'Sprint Actif',
+                  icon: Icons.autorenew,
                   isSelected: currentRoute == '/cycles',
+                  badge: 'J-4',
                   onTap: () => context.go('/cycles'),
                 ),
+                _buildSidebarItem(
+                  context,
+                  title: 'Backlog général',
+                  icon: Icons.inbox_outlined,
+                  isSelected: false,
+                  badge: '24',
+                  onTap: () => context.go('/projects'),
+                ),
+
+                const SizedBox(height: NeoSpacing.spaceSm),
+                _buildSidebarSectionHeader('ESPACE PERSONNEL'),
                 _buildSidebarItem(
                   context,
                   title: 'Mes Tâches',
@@ -452,14 +526,7 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 _buildSidebarItem(
                   context,
-                  title: 'Calendrier',
-                  icon: Icons.calendar_today,
-                  isSelected: currentRoute == '/calendar',
-                  onTap: () => context.go('/calendar'),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: 'Paramètres',
+                  title: 'Paramètres d\'équipe',
                   icon: Icons.settings,
                   isSelected: currentRoute == '/settings',
                   onTap: () => context.go('/settings'),
@@ -467,7 +534,60 @@ class DesktopAppShell extends ConsumerWidget {
               ],
             ),
           ),
+
+          // En bas de la sidebar: Jauge capacité sprint
+          Container(
+            padding: const EdgeInsets.all(NeoSpacing.spaceSm),
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: NeoColors.borderWhisper, width: 1),
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: NeoColors.surfaceContainerLowest,
+                borderRadius: NeoSpacing.roundedSm,
+                border: Border.all(color: NeoColors.borderWhisper),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Capacité Sprint',
+                      style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    '82%',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      color: NeoColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 6, bottom: 2),
+      child: Text(
+        title,
+        style: NeoTypography.labelSm.copyWith(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: NeoColors.subdued,
+        ),
       ),
     );
   }
@@ -481,7 +601,7 @@ class DesktopAppShell extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Material(
         color: isSelected ? NeoColors.surfaceContainerHighest : Colors.transparent,
         borderRadius: NeoSpacing.roundedSm,
@@ -510,7 +630,7 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                     decoration: BoxDecoration(
                       color: isSelected ? NeoColors.surfaceContainerLowest : NeoColors.surfaceContainerHigh,
                       borderRadius: NeoSpacing.roundedSm,

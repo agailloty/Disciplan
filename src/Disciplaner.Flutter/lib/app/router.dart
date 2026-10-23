@@ -5,6 +5,7 @@ import '../features/auth/presentation/auth_providers.dart';
 import '../features/auth/presentation/auth_state.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/setup_screen.dart';
+import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
 import '../features/shell/presentation/shell_placeholders.dart';
 
@@ -46,11 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/projects',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Explorateur de Projets',
-              subtitle: 'Navigation dans les projets, sprints et statuts du workspace.',
-              icon: Icons.folder_copy,
-            ),
+            builder: (context, state) => const ProjectsAdaptiveScreen(),
           ),
           GoRoute(
             path: '/my-tasks',
