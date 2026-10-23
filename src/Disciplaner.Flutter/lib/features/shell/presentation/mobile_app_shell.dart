@@ -154,15 +154,6 @@ class MobileAppShell extends ConsumerWidget {
                 Expanded(
                   child: _buildNavItem(
                     context,
-                    icon: Icons.folder_open,
-                    label: l10n.navProjects,
-                    isSelected: currentRoute == '/projects',
-                    onTap: () => context.go('/projects'),
-                  ),
-                ),
-                Expanded(
-                  child: _buildNavItem(
-                    context,
                     icon: Icons.view_kanban,
                     label: l10n.sprintLabel,
                     isSelected: currentRoute.startsWith('/kanban'),
@@ -237,13 +228,11 @@ class MobileAppShell extends ConsumerWidget {
   }
 
   String _titleForRoute(AppLocalizations l10n) {
-    if (currentRoute == '/projects') return l10n.shellMobileProjects;
     if (currentRoute == '/dashboard') return l10n.dashboardTitle;
     if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects/')) {
       return l10n.shellCrumbBacklog;
     }
     if (currentRoute.startsWith('/kanban')) return l10n.sprintLabel;
-    if (currentRoute.startsWith('/my-tasks')) return l10n.shellMobileDashboard;
     if (currentRoute.startsWith('/cycles')) return l10n.shellMobileCycles;
     if (currentRoute.startsWith('/calendar')) return l10n.navCalendar;
     if (currentRoute.startsWith('/settings')) return l10n.navSettings;

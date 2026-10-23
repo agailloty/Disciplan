@@ -10,7 +10,6 @@ import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
 import '../features/shell/presentation/shell_placeholders.dart';
 import '../features/sprints/presentation/cycles_overview_screen.dart';
-import '../features/tickets/presentation/my_tasks_view.dart';
 import '../features/tickets/presentation/project_list_view.dart';
 import '../features/tickets/presentation/ticket_detail_screen.dart';
 import '../features/calendar/presentation/team_calendar_screen.dart';
@@ -61,16 +60,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const WorkspaceWelcomeView(),
           ),
           GoRoute(
-            path: '/projects',
-            builder: (context, state) => const ProjectsAdaptiveScreen(
-              showAllProjectsOverview: true,
-            ),
-          ),
-          GoRoute(
             path: '/backlog',
-            builder: (context, state) => const ProjectsAdaptiveScreen(
-              showAllProjectsOverview: false,
-            ),
+            builder: (context, state) => const ProjectsAdaptiveScreen(),
           ),
           GoRoute(
             path: '/projects/:id/list',
@@ -78,10 +69,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id'] ?? '';
               return ProjectListView(projectId: id);
             },
-          ),
-          GoRoute(
-            path: '/my-tasks',
-            builder: (context, state) => const MyTasksView(),
           ),
           GoRoute(
             path: '/kanban',

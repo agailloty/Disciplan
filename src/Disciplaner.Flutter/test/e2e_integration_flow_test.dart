@@ -147,7 +147,7 @@ void main() {
             locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
-              currentRoute: '/projects',
+              currentRoute: '/dashboard',
               child: Scaffold(body: Center(child: Text('Mobile Content'))),
             ),
           ),
@@ -184,7 +184,7 @@ void main() {
             locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
-              currentRoute: '/projects',
+              currentRoute: '/dashboard',
               child: Scaffold(body: Center(child: Text('Tablet Content'))),
             ),
           ),
@@ -197,7 +197,7 @@ void main() {
       expect(find.text('Tablet Content'), findsOneWidget);
     });
 
-    testWidgets('1920x1080 Desktop large layout renders full Activity Bar and Primary Sidebar', (tester) async {
+    testWidgets('1920x1080 Desktop large layout renders full Activity Bar', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1920, 1080));
 
       await tester.pumpWidget(
@@ -225,7 +225,7 @@ void main() {
             locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
             home: const AdaptiveAppShell(
-              currentRoute: '/projects',
+              currentRoute: '/dashboard',
               child: Scaffold(body: Center(child: Text('Desktop Large Content'))),
             ),
           ),

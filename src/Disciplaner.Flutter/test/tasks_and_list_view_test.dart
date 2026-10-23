@@ -2,13 +2,10 @@ import 'package:disciplaner_flutter/app/theme/neo_theme.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
-import 'package:disciplaner_flutter/features/tickets/presentation/my_tasks_view.dart';
-import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/dense_checkbox.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/dense_ticket_row.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/multi_select_action_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/l10n/app_localizations.dart';
@@ -145,66 +142,4 @@ void main() {
       expect(chosenCategory, isNull);
     });
   });
-
-  group('MyTasksView Widget Test', () {
-    testWidgets('MyTasksView renders metric counters and filter pills', (tester) async {
-      final sampleTicket = TicketDto(
-        id: 'ticket-1',
-        projectId: 'proj-1',
-        projectKey: 'DISC',
-        ticketNumber: 14,
-        ticketRef: 'DISC-14',
-        title: 'Tester la vue mes tâches',
-        type: TicketType.task,
-        priority: CardPriority.critical,
-        status: const TicketStatusDto(
-          id: 'status-1',
-          projectId: 'proj-1',
-          name: 'En cours',
-          color: '#F59E0B',
-          order: 1,
-          category: StatusCategory.inProgress,
-        ),
-        reporterId: 'user-1',
-        reporterName: 'Alexandre M.',
-        createdAt: DateTime.now(),
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            myTasksProvider.overrideWith(() => _MockMyTasksNotifier([sampleTicket])),
-            savedViewsListProvider.overrideWith((ref) async => []),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('fr'),
-            theme: NeoTheme.lightTheme,
-            home: const MyTasksView(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      expect(find.text('Mes tickets'), findsOneWidget);
-      expect(find.text('En cours'), findsWidgets);
-      expect(find.text('Urgentes'), findsWidgets);
-      expect(find.text('Terminé'), findsWidgets);
-      expect(find.text('DISC-14'), findsOneWidget);
-      expect(find.text('Tester la vue mes tâches'), findsOneWidget);
-    });
-  });
-}
-
-class _MockMyTasksNotifier extends MyTasksNotifier {
-  final List<TicketDto> initialData;
-
-  _MockMyTasksNotifier(this.initialData);
-
-  @override
-  Future<List<TicketDto>> build() async {
-    return initialData;
-  }
 }

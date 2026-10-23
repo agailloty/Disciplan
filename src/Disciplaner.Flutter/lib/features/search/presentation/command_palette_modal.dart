@@ -122,36 +122,12 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     items.add(
       CommandPaletteItem(
         category: l10n.cmdCategoryNavigation,
-        title: l10n.navMyTickets,
-        shortcut: 'G T',
-        icon: Icons.check_circle_outline,
-        onSelect: () {
-          Navigator.of(context).pop();
-          context.go('/my-tasks');
-        },
-      ),
-    );
-    items.add(
-      CommandPaletteItem(
-        category: l10n.cmdCategoryNavigation,
         title: l10n.cmdNavSprintKanban,
         shortcut: 'G K',
         icon: Icons.view_kanban_outlined,
         onSelect: () {
           Navigator.of(context).pop();
           context.go('/kanban');
-        },
-      ),
-    );
-    items.add(
-      CommandPaletteItem(
-        category: l10n.cmdCategoryNavigation,
-        title: l10n.projExplorerTitle,
-        shortcut: 'G P',
-        icon: Icons.folder_open,
-        onSelect: () {
-          Navigator.of(context).pop();
-          context.go('/projects');
         },
       ),
     );

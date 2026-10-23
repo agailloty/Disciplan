@@ -178,40 +178,11 @@ void main() {
 
     // VS Code Top Bar elements
     expect(find.text('Disciplan'), findsWidgets);
-    expect(find.text('PLAN DU PROJET'), findsOneWidget);
     expect(find.text('⌘K'), findsOneWidget);
     expect(find.text('Nouvelle tâche'), findsOneWidget);
 
-    // Primary Sidebar is initially open
-    expect(find.text('Vue Liste'), findsOneWidget);
-  });
-
-  testWidgets('DesktopAppShell toggles Primary Sidebar collapse', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1440, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(createTestApp());
-    await tester.pumpAndSettle();
-
-    expect(find.text('PLAN DU PROJET'), findsOneWidget);
-
-    // Click collapse icon on sidebar header
-    final collapseBtn = find.byTooltip('Replier la barre latérale (⌘B)');
-    expect(collapseBtn, findsOneWidget);
-    await tester.tap(collapseBtn);
-    await tester.pumpAndSettle();
-
-    // Sidebar should be collapsed
+    // No primary sidebar: navigation lives in the activity bar only
     expect(find.text('PLAN DU PROJET'), findsNothing);
-
-    // Re-open via Top Bar toggle
-    final topBarToggle = find.byTooltip('Basculer la barre latérale (⌘B)');
-    await tester.tap(topBarToggle);
-    await tester.pumpAndSettle();
-
-    expect(find.text('PLAN DU PROJET'), findsOneWidget);
   });
 
   testWidgets('AdaptiveAppShell switches to MobileAppShell on 390x844', (WidgetTester tester) async {
@@ -229,7 +200,6 @@ void main() {
 
     // Mobile shell bottom navigation items
     expect(find.text('Sprint'), findsOneWidget);
-    expect(find.text('Projets'), findsWidgets);
     expect(find.text('Accueil'), findsOneWidget);
     expect(find.text('Paramètres'), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);

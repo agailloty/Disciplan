@@ -16,10 +16,7 @@ import 'package:disciplaner_flutter/features/activity/presentation/activity_draw
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:disciplaner_flutter/features/search/presentation/command_palette_modal.dart';
-import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
-import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
-import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/features/shell/presentation/workspace_tab_bar.dart';
 import 'package:disciplaner_flutter/features/shell/presentation/workspace_tabs.dart';
 
@@ -50,7 +47,6 @@ class DesktopAppShell extends ConsumerWidget {
     });
 
     final authState = ref.watch(authNotifierProvider);
-    final isSidebarCollapsed = ref.watch(sidebarCollapsedProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     final openTabs = ref.watch(workspaceTabsProvider);
@@ -63,17 +59,14 @@ class DesktopAppShell extends ConsumerWidget {
           // 1. TOP TITLE / COMMAND BAR (44px)
           _buildTopBar(context, ref, user, currentProject),
 
-          // 2. MAIN LAYOUT (ACTIVITY BAR + PRIMARY SIDEBAR + WORKSPACE)
+          // 2. MAIN LAYOUT (ACTIVITY BAR + WORKSPACE)
           Expanded(
             child: Row(
               children: [
                 // A. Activity Bar (52px sombre #181715)
                 _buildActivityBar(context, ref, user),
 
-                // B. Primary Sidebar repliable (240px fond #F4F1EA)
-                if (!isSidebarCollapsed) _buildPrimarySidebar(context, ref, currentProject),
-
-                // C. Zone centrale de travail (Workspace + onglets VS Code)
+                // B. Zone centrale de travail (Workspace + onglets VS Code)
                 Expanded(
                   child: Container(
                     color: NeoColors.surface,
@@ -383,15 +376,6 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.vertical_split_outlined, size: 17),
-                tooltip: l10n.shellToggleSidebar,
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  ref.read(sidebarCollapsedProvider.notifier).toggle();
-                },
-              ),
-              const SizedBox(width: NeoSpacing.spaceXs),
               NeoButton(
                 label: l10n.shellNewTask,
                 isDense: true,
@@ -421,10 +405,6 @@ class DesktopAppShell extends ConsumerWidget {
   }
 
   Widget _buildActivityBar(BuildContext context, WidgetRef ref, dynamic user) {
-    final myTasks = ref.watch(myTasksProvider).asData?.value ?? [];
-    final myActiveCount = myTasks
-        .where((t) => t.status.category != StatusCategory.done)
-        .length;
     final l10n = context.l10n;
 
     return Container(
@@ -462,19 +442,6 @@ class DesktopAppShell extends ConsumerWidget {
                 tooltip: l10n.shellTooltipDashboard,
                 isActive: currentRoute == '/dashboard',
                 onTap: () => openDashboardTab(context, ref),
-              ),
-              _buildActivityItem(
-                icon: Icons.dashboard_customize_outlined,
-                tooltip: l10n.shellTooltipMyTasks,
-                isActive: currentRoute.startsWith('/my-tasks'),
-                badgeText: myActiveCount > 0 ? '$myActiveCount' : null,
-                onTap: () => context.go('/my-tasks'),
-              ),
-              _buildActivityItem(
-                icon: Icons.folder_copy_outlined,
-                tooltip: l10n.shellAllProjects,
-                isActive: currentRoute == '/projects',
-                onTap: () => context.go('/projects'),
               ),
               _buildActivityItem(
                 icon: Icons.view_kanban_outlined,
@@ -600,417 +567,6 @@ class DesktopAppShell extends ConsumerWidget {
                   ),
                 ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrimarySidebar(BuildContext context, WidgetRef ref, dynamic currentProject) {
-    final projects = ref.watch(projectsListProvider).value ?? [];
-    final l10n = context.l10n;
-    final projectId = currentProject?.id as String?;
-
-    final backlogCount = projectId != null
-        ? (ref.watch(projectBacklogProvider(projectId)).asData?.value.length)
-        : null;
-    final sprints = projectId != null
-        ? (ref.watch(projectSprintsProvider(projectId)).asData?.value ?? [])
-        : const [];
-    final activeSprint = sprints
-        .where((s) => s.status == SprintStatus.active)
-        .firstOrNull;
-    final myTasks = ref.watch(myTasksProvider).asData?.value ?? [];
-    final myActiveCount = myTasks
-        .where((t) => t.status.category != StatusCategory.done)
-        .length;
-
-    final sprintMetrics = activeSprint != null
-        ? ref.watch(sprintMetricsProvider(activeSprint.id)).asData?.value
-        : null;
-
-    return Container(
-      width: 248,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF4F1EA),
-        border: Border(
-          right: BorderSide(color: NeoColors.borderWhisper, width: 1),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Sidebar Header: Switcher de projet & collapse
-          Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: NeoColors.borderWhisper, width: 1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: PopupMenuButton<String>(
-                    tooltip: l10n.shellChangeProject,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            l10n.shellProjectPlan.toUpperCase(),
-                            overflow: TextOverflow.ellipsis,
-                            style: NeoTypography.labelSm.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.6,
-                              color: NeoColors.onSurface,
-                            ),
-                          ),
-                        ),
-                        const Icon(Icons.arrow_drop_down, size: 16, color: NeoColors.muted),
-                      ],
-                    ),
-                    itemBuilder: (context) => [
-                      ...projects.map(
-                        (p) => PopupMenuItem(
-                          value: p.id,
-                          child: Text('${p.key} • ${p.name}', style: NeoTypography.bodySm),
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'NEW',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.add, size: 16),
-                            const SizedBox(width: 8),
-                            Text('+ ${l10n.projectCreateTitle}'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onSelected: (val) {
-                      if (val == 'NEW') {
-                        CreateProjectModal.show(context);
-                      } else {
-                        openProjectTab(context, ref, projectId: val);
-                      }
-                    },
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.dock, size: 15, color: NeoColors.muted),
-                  tooltip: l10n.shellCollapseSidebar,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () {
-                    ref.read(sidebarCollapsedProvider.notifier).set(true);
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Active Project Identity Card
-          if (currentProject != null)
-            Container(
-              margin: const EdgeInsets.fromLTRB(8, 8, 8, 2),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: NeoColors.surfaceContainerLowest,
-                borderRadius: NeoSpacing.roundedMd,
-                border: Border.all(color: NeoColors.borderWhisper),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: NeoColors.kineticAmber.withValues(alpha: 0.16),
-                      borderRadius: NeoSpacing.roundedSm,
-                    ),
-                    child: Text(
-                      currentProject.key,
-                      style: NeoTypography.codeSm.copyWith(
-                        color: NeoColors.secondary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentProject.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: NeoTypography.bodySm.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: NeoColors.primary,
-                          ),
-                        ),
-                        Text(
-                          activeSprint != null
-                              ? l10n.shellActiveSprintName(activeSprint.name)
-                              : l10n.sprintNoActive,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: NeoTypography.labelSm.copyWith(
-                            fontSize: 10.5,
-                            color: activeSprint != null ? NeoColors.emerald : NeoColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Sidebar Navigation Tree items
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              children: [
-                _buildSidebarSectionHeader(l10n.shellPersonalSpace.toUpperCase()),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.dashboardTitle,
-                  subtitle: l10n.shellSidebarDashboardSubtitle,
-                  icon: Icons.home_outlined,
-                  isSelected: currentRoute == '/dashboard',
-                  onTap: () => openDashboardTab(context, ref),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellSidebarMyTasks,
-                  subtitle: l10n.shellSidebarMyTasksSubtitle,
-                  icon: Icons.dashboard_customize_outlined,
-                  isSelected: currentRoute == '/my-tasks',
-                  badge: myActiveCount > 0 ? '$myActiveCount' : null,
-                  onTap: () => context.go('/my-tasks'),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellAllProjects,
-                  subtitle: l10n.shellSidebarPortfolioSubtitle,
-                  icon: Icons.folder_copy_outlined,
-                  isSelected: currentRoute == '/projects',
-                  badge: projects.isNotEmpty ? '${projects.length}' : null,
-                  onTap: () => context.go('/projects'),
-                ),
-
-                const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader(l10n.shellProjectViews.toUpperCase()),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellSidebarKanban,
-                  subtitle: activeSprint != null ? activeSprint.name : l10n.shellSidebarCurrentSprints,
-                  icon: Icons.view_kanban,
-                  isSelected: currentRoute == '/kanban',
-                  badge: activeSprint != null ? '${activeSprint.ticketCount}' : null,
-                  onTap: () => context.go('/kanban'),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellSidebarListView,
-                  subtitle: l10n.shellSidebarListSubtitle,
-                  icon: Icons.format_list_bulleted,
-                  isSelected: currentRoute == '/backlog' ||
-                      currentRoute.startsWith('/projects/'),
-                  badge: backlogCount != null ? '$backlogCount' : null,
-                  onTap: () => context.go('/backlog'),
-                ),
-
-                const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader(l10n.shellSidebarPlanning.toUpperCase()),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.sprintActive,
-                  subtitle: l10n.shellSidebarCyclesSubtitle,
-                  icon: Icons.autorenew,
-                  isSelected: currentRoute == '/cycles',
-                  badge: sprintMetrics != null && activeSprint?.endDate != null
-                      ? 'J-${sprintMetrics.daysRemaining}'
-                      : (sprints.isNotEmpty ? '${sprints.length}' : null),
-                  onTap: () => context.go('/cycles'),
-                ),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellSidebarCalendar,
-                  subtitle: l10n.shellSidebarCalendarSubtitle,
-                  icon: Icons.calendar_today,
-                  isSelected: currentRoute == '/calendar',
-                  onTap: () => context.go('/calendar'),
-                ),
-
-                const SizedBox(height: NeoSpacing.spaceSm),
-                _buildSidebarSectionHeader(l10n.shellSidebarAdmin.toUpperCase()),
-                _buildSidebarItem(
-                  context,
-                  title: l10n.shellSidebarTeamSettings,
-                  icon: Icons.settings,
-                  isSelected: currentRoute == '/settings',
-                  onTap: () => context.go('/settings'),
-                ),
-              ],
-            ),
-          ),
-
-          // En bas de la sidebar: Jauge d'avancement du sprint actif (ou état)
-          Container(
-            padding: const EdgeInsets.all(NeoSpacing.spaceSm),
-            decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(color: NeoColors.borderWhisper, width: 1),
-              ),
-            ),
-            child: InkWell(
-              onTap: () => context.go(activeSprint != null ? '/kanban' : '/cycles'),
-              borderRadius: NeoSpacing.roundedSm,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: NeoColors.surfaceContainerLowest,
-                  borderRadius: NeoSpacing.roundedSm,
-                  border: Border.all(color: NeoColors.borderWhisper),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            activeSprint != null ? l10n.shellSprintProgress : l10n.shellSprintCapacity,
-                            style: NeoTypography.labelSm.copyWith(
-                              color: NeoColors.muted,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          sprintMetrics != null
-                              ? '${sprintMetrics.completionPercentage.round()}%'
-                              : (activeSprint != null ? l10n.statuscategoryInProgress : l10n.shellSprintNoneActive),
-                          style: GoogleFonts.ibmPlexMono(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                            color: NeoColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (sprintMetrics != null) ...[
-                      const SizedBox(height: 5),
-                      ClipRRect(
-                        borderRadius: NeoSpacing.roundedFull,
-                        child: LinearProgressIndicator(
-                          value: (sprintMetrics.completionPercentage / 100.0).clamp(0.0, 1.0),
-                          minHeight: 4,
-                          backgroundColor: NeoColors.surfaceContainerHigh,
-                          valueColor: const AlwaysStoppedAnimation<Color>(NeoColors.emerald),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebarSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 8, bottom: 4),
-      child: Text(
-        title,
-        style: NeoTypography.labelSm.copyWith(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.7,
-          color: NeoColors.subdued,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSidebarItem(
-    BuildContext context, {
-    required String title,
-    String? subtitle,
-    required IconData icon,
-    required bool isSelected,
-    String? badge,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Material(
-        color: isSelected ? NeoColors.surfaceContainerHighest : Colors.transparent,
-        borderRadius: NeoSpacing.roundedMd,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: NeoSpacing.roundedMd,
-          hoverColor: NeoColors.surfaceContainerHigh,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 16,
-                  color: isSelected ? NeoColors.secondary : NeoColors.muted,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: NeoTypography.bodySm.copyWith(
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? NeoColors.primary : NeoColors.onSurfaceVariant,
-                        ),
-                      ),
-                      if (subtitle != null)
-                        Text(
-                          subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: NeoTypography.labelSm.copyWith(
-                            fontSize: 10.5,
-                            color: NeoColors.muted,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (badge != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                    decoration: BoxDecoration(
-                      color: isSelected ? NeoColors.surfaceContainerLowest : NeoColors.surfaceContainerHigh,
-                      borderRadius: NeoSpacing.roundedSm,
-                    ),
-                    child: Text(
-                      badge,
-                      style: NeoTypography.codeSm.copyWith(
-                        fontSize: 10.5,
-                        color: isSelected ? NeoColors.primary : NeoColors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
           ),
         ),
       ),
@@ -1143,7 +699,6 @@ class DesktopAppShell extends ConsumerWidget {
     if (currentRoute == '/dashboard') return l10n.dashboardTitle;
     if (currentRoute.startsWith('/backlog')) return l10n.shellCrumbBacklog;
     if (currentRoute.startsWith('/projects')) return l10n.shellCrumbBacklogList;
-    if (currentRoute.startsWith('/my-tasks')) return l10n.shellCrumbMyTasks;
     if (currentRoute.startsWith('/kanban')) return l10n.shellSidebarKanban;
     if (currentRoute.startsWith('/cycles')) return l10n.shellCrumbCycles;
     if (currentRoute.startsWith('/calendar')) return l10n.navCalendar;
@@ -1156,7 +711,6 @@ class DesktopAppShell extends ConsumerWidget {
     if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects')) {
       return Icons.inbox_outlined;
     }
-    if (currentRoute.startsWith('/my-tasks')) return Icons.dashboard_customize_outlined;
     if (currentRoute.startsWith('/kanban')) return Icons.view_kanban_outlined;
     if (currentRoute.startsWith('/cycles')) return Icons.timelapse_outlined;
     if (currentRoute.startsWith('/calendar')) return Icons.calendar_today_outlined;

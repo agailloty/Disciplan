@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SidebarCollapsedNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void toggle() => state = !state;
-  void set(bool value) => state = value;
-}
-
 class CommandPaletteOpenNotifier extends Notifier<bool> {
   @override
   bool build() => false;
@@ -35,9 +28,6 @@ class UiScaleNotifier extends Notifier<double> {
   void reset() => state = 1.0;
 }
 
-final sidebarCollapsedProvider =
-    NotifierProvider<SidebarCollapsedNotifier, bool>(SidebarCollapsedNotifier.new);
-
 final commandPaletteOpenProvider =
     NotifierProvider<CommandPaletteOpenNotifier, bool>(CommandPaletteOpenNotifier.new);
 
@@ -50,10 +40,6 @@ final uiScaleProvider =
 // Intents
 class OpenCommandPaletteIntent extends Intent {
   const OpenCommandPaletteIntent();
-}
-
-class ToggleSidebarIntent extends Intent {
-  const ToggleSidebarIntent();
 }
 
 class QuickCreateTicketIntent extends Intent {
@@ -79,10 +65,6 @@ class AppShortcutsWrapper extends ConsumerWidget {
               const OpenCommandPaletteIntent(),
           LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK):
               const OpenCommandPaletteIntent(),
-          LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyB):
-              const ToggleSidebarIntent(),
-          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyB):
-              const ToggleSidebarIntent(),
           const SingleActivator(LogicalKeyboardKey.keyC):
               const QuickCreateTicketIntent(),
         },
@@ -91,12 +73,6 @@ class AppShortcutsWrapper extends ConsumerWidget {
             OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
               onInvoke: (intent) {
                 ref.read(commandPaletteOpenProvider.notifier).toggle();
-                return null;
-              },
-            ),
-            ToggleSidebarIntent: CallbackAction<ToggleSidebarIntent>(
-              onInvoke: (intent) {
-                ref.read(sidebarCollapsedProvider.notifier).toggle();
                 return null;
               },
             ),

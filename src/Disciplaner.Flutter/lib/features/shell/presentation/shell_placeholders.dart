@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
@@ -64,18 +63,6 @@ class WorkspaceWelcomeView extends ConsumerWidget {
                     label: l10n.workspaceOpenDashboard,
                     icon: const Icon(Icons.home_outlined, size: 15),
                     onPressed: () => openDashboardTab(context, ref),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => context.go('/projects'),
-                    icon: const Icon(Icons.folder_copy_outlined, size: 15),
-                    label: Text(l10n.workspaceBrowseProjects),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: NeoColors.onSurface,
-                      side: const BorderSide(color: NeoColors.borderWhisper),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: NeoSpacing.roundedSm,
-                      ),
-                    ),
                   ),
                 ],
               ),

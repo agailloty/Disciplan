@@ -383,7 +383,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   Text('•', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
                   const SizedBox(width: NeoSpacing.spaceSm),
                   InkWell(
-                    onTap: () => context.go('/projects'),
+                    onTap: () => context.go('/dashboard'),
                     borderRadius: NeoSpacing.roundedSm,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -462,7 +462,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
           runSpacing: NeoSpacing.spaceXs,
           children: [
             OutlinedButton.icon(
-              onPressed: () => context.go('/projects'),
+              onPressed: () => context.go('/dashboard'),
               icon: const Icon(Icons.folder_copy_outlined, size: 16),
               label: Text(l10n.savedviewAllProjects),
               style: OutlinedButton.styleFrom(

@@ -3,7 +3,6 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/features/projects/data/project_repository.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
-import 'package:disciplaner_flutter/features/projects/presentation/mobile_projects_view.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -239,53 +238,6 @@ void main() {
 
       expect(mockRepo.projects.length, 1);
       expect(mockRepo.projects.first.name, 'Campagne Marque');
-    });
-  });
-
-  group('MobileProjectsView widget test', () {
-    testWidgets('renders filter pills and project cards', (WidgetTester tester) async {
-      final mockRepo = MockProjectRepository();
-      mockRepo.projects.add(
-        ProjectSummaryDto(
-          id: 'proj_demo',
-          name: 'Campagne Marque 2025',
-          key: 'CAMP',
-          description: 'Déploiement marketing',
-          ticketCount: 18,
-          sprintCount: 4,
-          createdAt: DateTime.now(),
-          requestingUserRole: MemberRole.admin,
-          isOwner: true,
-        ),
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            projectRepositoryProvider.overrideWithValue(mockRepo),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('fr'),
-            theme: NeoTheme.lightTheme,
-            home: const MobileProjectsView(),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      expect(find.text('Tous mes projets'), findsNWidgets(2));
-      expect(find.text('Tous mes projets'), findsNWidgets(2));
-      expect(find.text('Propriétaire'), findsWidgets);
-      expect(find.text('Membre d\'équipe'), findsOneWidget);
-
-      // Card
-      expect(find.text('CAMP'), findsOneWidget);
-      expect(find.text('Campagne Marque 2025'), findsOneWidget);
-      expect(find.text('18 ticket(s)'), findsOneWidget);
-      expect(find.text('4 sprint(s)'), findsOneWidget);
     });
   });
 }
