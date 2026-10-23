@@ -4,37 +4,90 @@ import 'app/theme/neo_colors.dart';
 import 'app/theme/neo_spacing.dart';
 import 'app/theme/neo_theme.dart';
 import 'app/theme/neo_typography.dart';
+import 'core/storage/server_config_storage.dart';
 import 'core/widgets/kbd_chip.dart';
 import 'core/widgets/neo_button.dart';
 import 'core/widgets/neo_card.dart';
 import 'core/widgets/priority_icon.dart';
 import 'core/widgets/status_badge.dart';
 import 'core/widgets/user_avatar.dart';
+import 'features/auth/presentation/auth_providers.dart';
+import 'features/auth/presentation/auth_state.dart';
+import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/setup_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: DisciplanApp()));
+  final serverStorage = await ServerConfigStorage.create();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        serverConfigStorageProvider.overrideWithValue(serverStorage),
+      ],
+      child: const DisciplanApp(),
+    ),
+  );
 }
 
-class DisciplanApp extends StatelessWidget {
+class DisciplanApp extends ConsumerStatefulWidget {
   const DisciplanApp({super.key});
 
   @override
+  ConsumerState<DisciplanApp> createState() => _DisciplanAppState();
+}
+
+class _DisciplanAppState extends ConsumerState<DisciplanApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authNotifierProvider.notifier).checkStatusAndSession();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+
     return MaterialApp(
       title: 'Disciplan',
       debugShowCheckedModeBanner: false,
       theme: NeoTheme.lightTheme,
-      home: const DisciplanShowcaseScreen(),
+      home: switch (authState) {
+        AuthNeedsInitialSetup() => const SetupScreen(),
+        AuthUnauthenticated() || AuthUnconfiguredServer() => const LoginScreen(),
+        AuthAuthenticated(:final session) => DisciplanShowcaseScreen(
+            userName: session.displayName,
+            userEmail: session.email,
+          ),
+        _ => const Scaffold(
+            backgroundColor: NeoColors.surface,
+            body: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          ),
+      },
     );
   }
 }
 
-class DisciplanShowcaseScreen extends StatelessWidget {
-  const DisciplanShowcaseScreen({super.key});
+class DisciplanShowcaseScreen extends ConsumerWidget {
+  final String userName;
+  final String userEmail;
+
+  const DisciplanShowcaseScreen({
+    super.key,
+    this.userName = 'Alexandre Gailloty',
+    this.userEmail = 'alexandre@disciplan.local',
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: NeoColors.surface,
       appBar: AppBar(
@@ -45,6 +98,22 @@ class DisciplanShowcaseScreen extends StatelessWidget {
             const KbdChip(label: '⌘K'),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                UserAvatar(name: userName, isOnline: true),
+                const SizedBox(width: NeoSpacing.spaceSm),
+                IconButton(
+                  icon: const Icon(Icons.logout, size: 18),
+                  tooltip: 'Déconnexion',
+                  onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -57,10 +126,10 @@ class DisciplanShowcaseScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Disciplan Design System', style: NeoTypography.headlineMd),
+                  Text('Disciplan Connecté', style: NeoTypography.headlineMd),
                   const SizedBox(height: NeoSpacing.spaceXs),
                   Text(
-                    'Socle Flutter multiplateforme initialisé avec succès.',
+                    'Connecté en tant que $userName ($userEmail).',
                     style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
                   ),
                   const SizedBox(height: NeoSpacing.spaceMd),
@@ -74,21 +143,15 @@ class DisciplanShowcaseScreen extends StatelessWidget {
                       StatusBadge(label: 'Done', category: TicketStatusCategory.done),
                       PriorityIcon(priority: TicketPriority.urgent),
                       PriorityIcon(priority: TicketPriority.high),
-                      UserAvatar(name: 'Alexandre Gailloty', isOnline: true),
                     ],
                   ),
                   const SizedBox(height: NeoSpacing.spaceLg),
                   Row(
                     children: [
                       NeoButton(
-                        label: 'Commencer',
-                        onPressed: () {},
-                      ),
-                      const SizedBox(width: NeoSpacing.spaceSm),
-                      NeoButton(
-                        label: 'En savoir plus',
+                        label: 'Se déconnecter',
                         variant: NeoButtonVariant.secondary,
-                        onPressed: () {},
+                        onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
                       ),
                     ],
                   ),

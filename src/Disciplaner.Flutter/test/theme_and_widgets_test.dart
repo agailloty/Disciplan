@@ -64,12 +64,23 @@ void main() {
     expect(clicked, isTrue);
   });
 
-  testWidgets('Renders DisciplanApp showcase without crash', (WidgetTester tester) async {
+  testWidgets('Renders DisciplanShowcaseScreen directly', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: DisciplanShowcaseScreen(userName: 'Alexandre'),
+        ),
+      ),
+    );
+    expect(find.text('Disciplan Neo-Linear'), findsOneWidget);
+    expect(find.text('Disciplan Connecté'), findsOneWidget);
+    expect(find.text('Se déconnecter'), findsOneWidget);
+  });
+
+  testWidgets('Renders DisciplanApp login on initial run', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: DisciplanApp()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Disciplan Neo-Linear'), findsOneWidget);
-    expect(find.text('Disciplan Design System'), findsOneWidget);
-    expect(find.text('Commencer'), findsOneWidget);
+    expect(find.text('Connexion à Disciplan'), findsOneWidget);
   });
 }
