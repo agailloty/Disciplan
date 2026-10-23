@@ -7,7 +7,6 @@ import 'package:disciplaner_flutter/core/models/ticket_models.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class KanbanTicketCard extends StatelessWidget {
@@ -85,9 +84,7 @@ class KanbanTicketCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         ticket.ticketRef,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                        style: NeoTypography.codeSm.copyWith(
                           color: NeoColors.muted,
                         ),
                       ),
@@ -173,7 +170,7 @@ class KanbanTicketCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           _formatDueDate(ticket.dueDate),
-                          style: GoogleFonts.jetBrainsMono(
+                          style: NeoTypography.labelSm.copyWith(
                             fontSize: 11,
                             color: NeoColors.muted,
                           ),
@@ -188,16 +185,15 @@ class KanbanTicketCard extends StatelessWidget {
                       // Story points
                       if (ticket.storyPoints != null) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
                             color: NeoColors.surfaceContainerLow,
                             borderRadius: NeoSpacing.roundedSm,
                           ),
                           child: Text(
                             '${ticket.storyPoints} pts',
-                            style: GoogleFonts.jetBrainsMono(
+                            style: NeoTypography.codeSm.copyWith(
                               fontSize: 10,
-                              fontWeight: FontWeight.w700,
                               color: NeoColors.muted,
                             ),
                           ),

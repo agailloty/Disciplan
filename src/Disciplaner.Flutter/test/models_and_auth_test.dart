@@ -242,7 +242,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final storage = ServerConfigStorage(prefs);
 
-      expect(storage.getBaseUrl(), 'http://localhost:8080');
+      expect(storage.getBaseUrl(), ServerConfigStorage.defaultBaseUrl);
 
       await storage.setBaseUrl('192.168.1.100:9000/');
       expect(storage.getBaseUrl(), 'http://192.168.1.100:9000');

@@ -23,6 +23,15 @@ class QuickCreateTicketOpenNotifier extends Notifier<bool> {
   void set(bool value) => state = value;
 }
 
+class UiScaleNotifier extends Notifier<double> {
+  @override
+  double build() => 1.0;
+  void setScale(double scale) => state = scale.clamp(0.85, 1.25);
+  void increase() => setScale(state + 0.05);
+  void decrease() => setScale(state - 0.05);
+  void reset() => state = 1.0;
+}
+
 final sidebarCollapsedProvider =
     NotifierProvider<SidebarCollapsedNotifier, bool>(SidebarCollapsedNotifier.new);
 
@@ -31,6 +40,9 @@ final commandPaletteOpenProvider =
 
 final quickCreateTicketOpenProvider =
     NotifierProvider<QuickCreateTicketOpenNotifier, bool>(QuickCreateTicketOpenNotifier.new);
+
+final uiScaleProvider =
+    NotifierProvider<UiScaleNotifier, double>(UiScaleNotifier.new);
 
 // Intents
 class OpenCommandPaletteIntent extends Intent {
@@ -52,49 +64,56 @@ class AppShortcutsWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Shortcuts(
-      shortcuts: <ShortcutActivator, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyK):
-            const OpenCommandPaletteIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK):
-            const OpenCommandPaletteIntent(),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyB):
-            const ToggleSidebarIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyB):
-            const ToggleSidebarIntent(),
-        const SingleActivator(LogicalKeyboardKey.keyC):
-            const QuickCreateTicketIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{
-          OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
-            onInvoke: (intent) {
-              ref.read(commandPaletteOpenProvider.notifier).toggle();
-              return null;
-            },
-          ),
-          ToggleSidebarIntent: CallbackAction<ToggleSidebarIntent>(
-            onInvoke: (intent) {
-              ref.read(sidebarCollapsedProvider.notifier).toggle();
-              return null;
-            },
-          ),
-          QuickCreateTicketIntent: CallbackAction<QuickCreateTicketIntent>(
-            onInvoke: (intent) {
-              final primaryFocus = FocusManager.instance.primaryFocus;
-              if (primaryFocus != null &&
-                  primaryFocus.context != null &&
-                  primaryFocus.context!.findAncestorWidgetOfExactType<EditableText>() != null) {
-                return null;
-              }
-              ref.read(quickCreateTicketOpenProvider.notifier).toggle();
-              return null;
-            },
-          ),
+    final uiScale = ref.watch(uiScaleProvider);
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(uiScale),
+      ),
+      child: Shortcuts(
+        shortcuts: <ShortcutActivator, Intent>{
+          LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyK):
+              const OpenCommandPaletteIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK):
+              const OpenCommandPaletteIntent(),
+          LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyB):
+              const ToggleSidebarIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyB):
+              const ToggleSidebarIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyC):
+              const QuickCreateTicketIntent(),
         },
-        child: Focus(
-          autofocus: true,
-          child: child,
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
+              onInvoke: (intent) {
+                ref.read(commandPaletteOpenProvider.notifier).toggle();
+                return null;
+              },
+            ),
+            ToggleSidebarIntent: CallbackAction<ToggleSidebarIntent>(
+              onInvoke: (intent) {
+                ref.read(sidebarCollapsedProvider.notifier).toggle();
+                return null;
+              },
+            ),
+            QuickCreateTicketIntent: CallbackAction<QuickCreateTicketIntent>(
+              onInvoke: (intent) {
+                final primaryFocus = FocusManager.instance.primaryFocus;
+                if (primaryFocus != null &&
+                    primaryFocus.context != null &&
+                    primaryFocus.context!.findAncestorWidgetOfExactType<EditableText>() != null) {
+                  return null;
+                }
+                ref.read(quickCreateTicketOpenProvider.notifier).toggle();
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: child,
+          ),
         ),
       ),
     );

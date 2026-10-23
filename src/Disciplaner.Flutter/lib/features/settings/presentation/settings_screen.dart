@@ -2,6 +2,7 @@ import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
+import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
@@ -209,6 +210,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
                 ),
                 const SizedBox(height: NeoSpacing.spaceXl),
+
+                // 0. Affichage & Mise à l'échelle (UI Scaling)
+                _buildCardSection(
+                  title: 'Affichage & Mise à l\'échelle (UI Scaling)',
+                  subtitle: 'Adaptez la taille des polices et des éléments visuels à la résolution de votre écran',
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final currentScale = ref.watch(uiScaleProvider);
+                      final presets = [
+                        (0.9, 'Compact (90%)'),
+                        (1.0, 'Standard (100%)'),
+                        (1.1, 'Confort (110%)'),
+                        (1.2, 'Grand écran (120%)'),
+                      ];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: NeoSpacing.spaceSm,
+                            runSpacing: NeoSpacing.spaceSm,
+                            children: presets.map((p) {
+                              final isSelected = (currentScale - p.$1).abs() < 0.03;
+                              return ChoiceChip(
+                                label: Text(
+                                  p.$2,
+                                  style: NeoTypography.labelSm.copyWith(
+                                    color: isSelected ? Colors.white : NeoColors.onSurface,
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                selectedColor: NeoColors.primary,
+                                backgroundColor: NeoColors.surfaceContainerLow,
+                                side: BorderSide(
+                                  color: isSelected ? NeoColors.primary : NeoColors.borderWhisper,
+                                ),
+                                onSelected: (_) {
+                                  ref.read(uiScaleProvider.notifier).setScale(p.$1);
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: NeoSpacing.spaceSm),
+                          Text(
+                            'Astuce : vous pouvez aussi ajuster rapidement le zoom depuis l\'icône d\'échelle dans la barre supérieure.',
+                            style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: NeoSpacing.spaceLg),
 
                 // 1. Profil Section
                 _buildCardSection(

@@ -2,9 +2,11 @@ import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
+import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'ticket_providers.dart';
 import 'widgets/dense_ticket_row.dart';
 import 'widgets/mobile_ticket_detail_sheet.dart';
@@ -28,7 +30,18 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     final selectedIds = ref.watch(selectedTicketIdsProvider);
     final savedViewsAsync = ref.watch(savedViewsListProvider);
     final selectedDetailId = ref.watch(selectedTicketDetailIdProvider);
-    final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
+    final currentProject = ref.watch(currentProjectDetailProvider).value;
+    final sprints = currentProject != null
+        ? (ref.watch(projectSprintsProvider(currentProject.id)).asData?.value ?? [])
+        : const [];
+    final activeSprint = sprints
+        .where((s) => s.status == SprintStatus.active)
+        .firstOrNull;
+    final backlogCount = currentProject != null
+        ? (ref.watch(projectBacklogProvider(currentProject.id)).asData?.value.length)
+        : null;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= NeoSpacing.mobileBreakpoint;
 
     final mainStack = Stack(
         children: [
@@ -52,8 +65,12 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
               ),
             ),
             data: (allTasks) {
-              final inProgressCount = allTasks
+              final inProgressTasks = allTasks
                   .where((t) => t.status.category == StatusCategory.inProgress)
+                  .toList();
+              final inProgressCount = inProgressTasks.length;
+              final backlogTaskCount = allTasks
+                  .where((t) => t.status.category == StatusCategory.backlog)
                   .length;
               final urgentCount = allTasks
                   .where((t) =>
@@ -86,93 +103,107 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                 color: NeoColors.primary,
                 onRefresh: () => ref.read(myTasksProvider.notifier).refresh(),
                 child: ListView(
-                  padding: const EdgeInsets.all(NeoSpacing.spaceLg),
+                  padding: NeoSpacing.responsivePagePadding(screenWidth),
                   children: [
                     // 1. Header with Breadcrumb & Title
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: NeoSpacing.spaceMd,
+                      runSpacing: NeoSpacing.spaceSm,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: NeoColors.kineticAmber.withValues(alpha: 0.15),
-                                      borderRadius: NeoSpacing.roundedSm,
-                                    ),
-                                    child: Text(
-                                      'ESPACE PERSONNEL',
-                                      style: GoogleFonts.jetBrainsMono(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: NeoColors.secondary,
-                                      ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: NeoColors.kineticAmber.withValues(alpha: 0.16),
+                                    borderRadius: NeoSpacing.roundedSm,
+                                  ),
+                                  child: Text(
+                                    'TABLEAU DE BORD PERSONNEL',
+                                    style: NeoTypography.codeSm.copyWith(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: NeoColors.secondary,
                                     ),
                                   ),
-                                  const SizedBox(width: NeoSpacing.spaceSm),
-                                  Text('•', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
-                                  const SizedBox(width: NeoSpacing.spaceSm),
-                                  Text(
-                                    'Cycle actif',
-                                    style: GoogleFonts.jetBrainsMono(
-                                      fontSize: 11,
-                                      color: NeoColors.muted,
-                                    ),
+                                ),
+                                const SizedBox(width: NeoSpacing.spaceSm),
+                                Text('•', style: NeoTypography.bodySm.copyWith(color: NeoColors.muted)),
+                                const SizedBox(width: NeoSpacing.spaceSm),
+                                Text(
+                                  activeSprint != null
+                                      ? activeSprint.name
+                                      : (currentProject?.name ?? 'Cycle actif'),
+                                  style: NeoTypography.labelSm.copyWith(
+                                    color: NeoColors.muted,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: NeoSpacing.spaceXs),
-                              Text('Mes Tâches', style: NeoTypography.headlineLg),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$inProgressCount tâche(s) en cours requièrent votre attention.',
-                                style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: NeoSpacing.spaceSm),
-
-                        // Action button: Save current view
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            SaveViewModal.show(
-                              context,
-                              initialCategory: _activeTab == 'inProgress'
-                                  ? StatusCategory.inProgress
-                                  : (_activeTab == 'backlog'
-                                      ? StatusCategory.backlog
-                                      : null),
-                              initialPriority: _activeTab == 'urgent'
-                                  ? CardPriority.critical
-                                  : null,
-                            );
-                          },
-                          icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-                          label: const Text('Sauvegarder la vue'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: NeoColors.onSurface,
-                            side: const BorderSide(color: NeoColors.borderWhisper),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: NeoSpacing.roundedMd,
+                                ),
+                              ],
                             ),
-                          ),
+                            const SizedBox(height: NeoSpacing.spaceXs),
+                            Text('Mes Tâches', style: NeoTypography.headlineLg),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$inProgressCount tâche(s) en cours requièrent votre attention.',
+                              style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
+                            ),
+                          ],
+                        ),
+
+                        // Action buttons: Quick Create + Save View
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                SaveViewModal.show(
+                                  context,
+                                  initialCategory: _activeTab == 'inProgress'
+                                      ? StatusCategory.inProgress
+                                      : (_activeTab == 'backlog'
+                                          ? StatusCategory.backlog
+                                          : null),
+                                  initialPriority: _activeTab == 'urgent'
+                                      ? CardPriority.critical
+                                      : null,
+                                );
+                              },
+                              icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+                              label: const Text('Sauvegarder la vue'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: NeoColors.onSurface,
+                                side: const BorderSide(color: NeoColors.borderWhisper),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: NeoSpacing.roundedMd,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                     const SizedBox(height: NeoSpacing.spaceLg),
 
-                    // 2. Metric Counters Cards
+                    // 1.5 Quick Workspace Navigation Hub (Kanban, Backlog, Cycles)
+                    _buildQuickNavigationHub(
+                      context,
+                      activeSprintName: activeSprint?.name,
+                      backlogCount: backlogCount,
+                      isDesktop: isDesktop,
+                    ),
+                    const SizedBox(height: NeoSpacing.spaceLg),
+
+                    // 2. Interactive Metric Counters Cards (Click to filter)
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Row(
@@ -183,6 +214,9 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 count: inProgressCount,
                                 color: NeoColors.statusAmber,
                                 icon: Icons.timelapse,
+                                isSelected: _activeTab == 'inProgress',
+                                onTap: () => setState(() =>
+                                    _activeTab = _activeTab == 'inProgress' ? 'all' : 'inProgress'),
                               ),
                             ),
                             const SizedBox(width: NeoSpacing.spaceSm),
@@ -192,6 +226,9 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 count: urgentCount,
                                 color: NeoColors.error,
                                 icon: Icons.crisis_alert,
+                                isSelected: _activeTab == 'urgent',
+                                onTap: () => setState(
+                                    () => _activeTab = _activeTab == 'urgent' ? 'all' : 'urgent'),
                               ),
                             ),
                             const SizedBox(width: NeoSpacing.spaceSm),
@@ -201,6 +238,9 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 count: doneCount,
                                 color: NeoColors.emerald,
                                 icon: Icons.check_circle_outline,
+                                isSelected: _activeTab == 'done',
+                                onTap: () => setState(
+                                    () => _activeTab = _activeTab == 'done' ? 'all' : 'done'),
                               ),
                             ),
                           ],
@@ -221,7 +261,7 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                                 const SizedBox(width: NeoSpacing.spaceXs),
                                 _buildFilterPill('En cours ($inProgressCount)', 'inProgress'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
-                                _buildFilterPill('À faire', 'backlog'),
+                                _buildFilterPill('À faire ($backlogTaskCount)', 'backlog'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
                                 _buildFilterPill('Urgentes ($urgentCount)', 'urgent'),
                                 const SizedBox(width: NeoSpacing.spaceXs),
@@ -269,53 +309,179 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
                     ),
                     const SizedBox(height: NeoSpacing.spaceMd),
 
-                    // 4. Task List Container
-                    Container(
-                      decoration: BoxDecoration(
-                        color: NeoColors.surfaceContainerLowest,
-                        borderRadius: NeoSpacing.roundedLg,
-                        border: Border.all(color: NeoColors.borderWhisper),
-                      ),
-                      child: filteredTasks.isEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.all(NeoSpacing.spaceXl),
-                              child: Center(
-                                child: Text(
-                                  'Aucune tâche ne correspond à ce filtre.',
-                                  style: NeoTypography.bodyMd.copyWith(
-                                    color: NeoColors.muted,
-                                  ),
-                                ),
+                    // 3.5 Highlighted "Tickets en cours" Focus Section (when on 'all' tab and has in-progress tasks)
+                    if (_activeTab == 'all' && inProgressTasks.isNotEmpty) ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: NeoColors.statusAmber.withValues(alpha: 0.05),
+                          borderRadius: NeoSpacing.roundedLg,
+                          border: Border.all(
+                            color: NeoColors.statusAmber.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                NeoSpacing.spaceMd,
+                                NeoSpacing.spaceSm,
+                                NeoSpacing.spaceMd,
+                                NeoSpacing.spaceXs,
                               ),
-                            )
-                          : Column(
-                              children: filteredTasks.map((ticket) {
-                                return DenseTicketRow(
-                                  ticket: ticket,
-                                  isSelected: selectedIds.contains(ticket.id),
-                                  onTap: () {
-                                    if (isDesktop) {
-                                      ref
-                                          .read(selectedTicketDetailIdProvider.notifier)
-                                          .select(ticket.id);
-                                    } else {
-                                      MobileTicketDetailSheet.show(context, ticket.id);
-                                    }
-                                  },
-                                  onSelectedChanged: (val) {
-                                    ref
-                                        .read(selectedTicketIdsProvider.notifier)
-                                        .toggle(ticket.id);
-                                  },
-                                  onDelete: () async {
-                                    await ref
-                                        .read(ticketRepositoryProvider)
-                                        .deleteTicket(ticket.id);
-                                    ref.read(myTasksProvider.notifier).refresh();
-                                  },
-                                );
-                              }).toList(),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.play_circle_fill,
+                                        size: 16,
+                                        color: NeoColors.statusAmber,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'FOCUS — VOS TICKETS EN COURS ($inProgressCount)',
+                                        style: NeoTypography.labelSm.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: NeoColors.secondary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  TextButton(
+                                    onPressed: () => setState(() => _activeTab = 'inProgress'),
+                                    style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    ),
+                                    child: Text(
+                                      'Isoler En cours →',
+                                      style: NeoTypography.labelSm.copyWith(
+                                        color: NeoColors.secondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            ...inProgressTasks.map(
+                              (ticket) => DenseTicketRow(
+                                ticket: ticket,
+                                isSelected: selectedIds.contains(ticket.id),
+                                onTap: () {
+                                  if (isDesktop) {
+                                    ref
+                                        .read(selectedTicketDetailIdProvider.notifier)
+                                        .select(ticket.id);
+                                  } else {
+                                    MobileTicketDetailSheet.show(context, ticket.id);
+                                  }
+                                },
+                                onSelectedChanged: (val) {
+                                  ref
+                                      .read(selectedTicketIdsProvider.notifier)
+                                      .toggle(ticket.id);
+                                },
+                                onDelete: () async {
+                                  await ref
+                                      .read(ticketRepositoryProvider)
+                                      .deleteTicket(ticket.id);
+                                  ref.read(myTasksProvider.notifier).refresh();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: NeoSpacing.spaceMd),
+                    ],
+
+                    // 4. Task List Container (remaining tasks when 'all', or filtered tasks on specific tab)
+                    Builder(
+                      builder: (context) {
+                        final displayedList = _activeTab == 'all'
+                            ? filteredTasks
+                                .where((t) => t.status.category != StatusCategory.inProgress)
+                                .toList()
+                            : filteredTasks;
+
+                        if (_activeTab == 'all' &&
+                            displayedList.isEmpty &&
+                            inProgressTasks.isNotEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: NeoColors.surfaceContainerLowest,
+                            borderRadius: NeoSpacing.roundedLg,
+                            border: Border.all(color: NeoColors.borderWhisper),
+                          ),
+                          child: displayedList.isEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(NeoSpacing.spaceXl),
+                                  child: Center(
+                                    child: Text(
+                                      'Aucune tâche ne correspond à ce filtre.',
+                                      style: NeoTypography.bodyMd.copyWith(
+                                        color: NeoColors.muted,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (_activeTab == 'all' && inProgressTasks.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          NeoSpacing.spaceMd,
+                                          NeoSpacing.spaceSm,
+                                          NeoSpacing.spaceMd,
+                                          NeoSpacing.spaceXs,
+                                        ),
+                                        child: Text(
+                                          'AUTRES TÂCHES ASSIGNÉES (${displayedList.length})',
+                                          style: NeoTypography.labelSm.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: NeoColors.muted,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ...displayedList.map((ticket) {
+                                      return DenseTicketRow(
+                                        ticket: ticket,
+                                        isSelected: selectedIds.contains(ticket.id),
+                                        onTap: () {
+                                          if (isDesktop) {
+                                            ref
+                                                .read(selectedTicketDetailIdProvider.notifier)
+                                                .select(ticket.id);
+                                          } else {
+                                            MobileTicketDetailSheet.show(context, ticket.id);
+                                          }
+                                        },
+                                        onSelectedChanged: (val) {
+                                          ref
+                                              .read(selectedTicketIdsProvider.notifier)
+                                              .toggle(ticket.id);
+                                        },
+                                        onDelete: () async {
+                                          await ref
+                                              .read(ticketRepositoryProvider)
+                                              .deleteTicket(ticket.id);
+                                          ref.read(myTasksProvider.notifier).refresh();
+                                        },
+                                      );
+                                    }),
+                                  ],
+                                ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 80), // Padding for batch actions bar
                   ],
@@ -365,51 +531,193 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     );
   }
 
+  Widget _buildQuickNavigationHub(
+    BuildContext context, {
+    required String? activeSprintName,
+    required int? backlogCount,
+    required bool isDesktop,
+  }) {
+    final cards = [
+      _buildNavShortcutCard(
+        icon: Icons.view_kanban_rounded,
+        title: 'Tableau Kanban',
+        subtitle: activeSprintName != null
+            ? 'Sprint actif : $activeSprintName'
+            : 'Voir les colonnes du sprint',
+        accentColor: NeoColors.kineticAmber,
+        onTap: () => context.go('/kanban'),
+      ),
+      _buildNavShortcutCard(
+        icon: Icons.inventory_2_outlined,
+        title: 'Backlog du Projet',
+        subtitle: backlogCount != null
+            ? '$backlogCount ticket(s) hors sprint à planifier'
+            : 'Lister et prioriser le backlog',
+        accentColor: NeoColors.statusBlue,
+        onTap: () => context.go('/backlog'),
+      ),
+      _buildNavShortcutCard(
+        icon: Icons.autorenew_rounded,
+        title: 'Cycles & Sprints',
+        subtitle: 'Planifier, démarrer ou clôturer un sprint',
+        accentColor: NeoColors.emerald,
+        onTap: () => context.go('/cycles'),
+      ),
+    ];
+
+    if (!isDesktop) {
+      return Column(
+        children: [
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(height: NeoSpacing.spaceXs),
+            cards[i],
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: cards[0]),
+        const SizedBox(width: NeoSpacing.spaceSm),
+        Expanded(child: cards[1]),
+        const SizedBox(width: NeoSpacing.spaceSm),
+        Expanded(child: cards[2]),
+      ],
+    );
+  }
+
+  Widget _buildNavShortcutCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: NeoSpacing.roundedMd,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: NeoSpacing.spaceMd,
+          vertical: NeoSpacing.spaceSm + 2,
+        ),
+        decoration: BoxDecoration(
+          color: NeoColors.surfaceContainerLow,
+          borderRadius: NeoSpacing.roundedMd,
+          border: Border.all(color: NeoColors.borderWhisper),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.14),
+                borderRadius: NeoSpacing.roundedSm,
+              ),
+              child: Icon(icon, size: 18, color: NeoColors.onSurface),
+            ),
+            const SizedBox(width: NeoSpacing.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: NeoTypography.labelMd.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: NeoColors.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: NeoTypography.labelSm.copyWith(
+                      color: NeoColors.muted,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 12,
+              color: NeoColors.muted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMetricCard({
     required String title,
     required int count,
     required Color color,
     required IconData icon,
+    bool isSelected = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: NeoSpacing.spaceMd,
-        vertical: NeoSpacing.spaceSm,
-      ),
-      decoration: BoxDecoration(
-        color: NeoColors.surfaceContainerLow,
-        borderRadius: NeoSpacing.roundedMd,
-        border: Border.all(color: NeoColors.borderWhisper),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: NeoSpacing.roundedSm,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: NeoSpacing.roundedMd,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          horizontal: NeoSpacing.spaceMd,
+          vertical: NeoSpacing.spaceSm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.10)
+              : NeoColors.surfaceContainerLow,
+          borderRadius: NeoSpacing.roundedMd,
+          border: Border.all(
+            color: isSelected ? color : NeoColors.borderWhisper,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.14),
+                borderRadius: NeoSpacing.roundedSm,
+              ),
+              child: Icon(icon, size: 18, color: color),
             ),
-            child: Icon(icon, size: 18, color: color),
-          ),
-          const SizedBox(width: NeoSpacing.spaceSm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
+            const SizedBox(width: NeoSpacing.spaceSm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: NeoTypography.labelSm.copyWith(
+                      color: isSelected ? NeoColors.onSurface : NeoColors.muted,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '$count',
+                    style: NeoTypography.titleMd.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: NeoColors.onSurface,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                '$count',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: NeoColors.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

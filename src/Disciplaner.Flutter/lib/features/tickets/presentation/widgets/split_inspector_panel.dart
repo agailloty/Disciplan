@@ -115,9 +115,10 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   @override
   Widget build(BuildContext context) {
     final ticketAsync = ref.watch(ticketDetailProvider(widget.ticketId));
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      width: 440,
+      width: NeoSpacing.inspectorWidth(screenWidth),
       decoration: BoxDecoration(
         color: NeoColors.surfaceContainerLowest,
         border: const Border(
@@ -458,10 +459,14 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Sous-tâches & Livrables',
-                style: NeoTypography.headlineSm.copyWith(fontSize: 14),
+              Flexible(
+                child: Text(
+                  'Sous-tâches & Livrables',
+                  overflow: TextOverflow.ellipsis,
+                  style: NeoTypography.headlineSm.copyWith(fontSize: 14),
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -572,12 +577,21 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.attach_file, size: 16, color: NeoColors.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text('Pièces jointes', style: NeoTypography.headlineSm.copyWith(fontSize: 14)),
-                ],
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.attach_file, size: 16, color: NeoColors.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Pièces jointes',
+                        overflow: TextOverflow.ellipsis,
+                        style: NeoTypography.headlineSm.copyWith(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               TextButton.icon(
                 onPressed: () {},

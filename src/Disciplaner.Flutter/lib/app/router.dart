@@ -55,6 +55,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProjectsAdaptiveScreen(),
           ),
           GoRoute(
+            path: '/backlog',
+            builder: (context, state) => const ProjectsAdaptiveScreen(),
+          ),
+          GoRoute(
             path: '/projects/:id/list',
             builder: (context, state) {
               final id = state.pathParameters['id'] ?? '';

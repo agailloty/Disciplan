@@ -36,6 +36,7 @@ abstract final class NeoColors {
   static const Color kineticAmber = Color(0xFFE5A800);
   static const Color emerald = Color(0xFF10B981);
   static const Color statusAmber = Color(0xFFF59E0B);
+  static const Color statusBlue = Color(0xFF3B82F6);
   static const Color statusSlate = Color(0xFF9CA3AF);
   static const Color error = Color(0xFFBA1A1A);
   static const Color onError = Color(0xFFFFFFFF);

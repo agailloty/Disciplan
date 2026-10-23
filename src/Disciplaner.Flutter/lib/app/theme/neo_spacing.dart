@@ -7,6 +7,7 @@ abstract final class NeoSpacing {
   static const double spaceMd = 12.0;
   static const double spaceLg = 20.0;
   static const double spaceXl = 32.0;
+  static const double space2Xl = 48.0;
 
   // Gutter & Marges de layout
   static const double gutter = 16.0;
@@ -31,4 +32,22 @@ abstract final class NeoSpacing {
   static const BorderRadius roundedLg = BorderRadius.all(Radius.circular(radiusLg));
   static const BorderRadius roundedXl = BorderRadius.all(Radius.circular(radiusXl));
   static const BorderRadius roundedFull = BorderRadius.all(Radius.circular(radiusFull));
+
+  /// Responsive page padding adapted to screen width
+  static EdgeInsets responsivePagePadding(double width) {
+    if (width < mobileBreakpoint) {
+      return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+    }
+    if (width < desktopLargeBreakpoint) {
+      return const EdgeInsets.symmetric(horizontal: 24, vertical: 20);
+    }
+    return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+  }
+
+  /// Responsive split inspector width (shrinks gracefully on medium laptops)
+  static double inspectorWidth(double screenWidth) {
+    if (screenWidth < 1024) return 380.0;
+    if (screenWidth < 1440) return 440.0;
+    return 460.0;
+  }
 }

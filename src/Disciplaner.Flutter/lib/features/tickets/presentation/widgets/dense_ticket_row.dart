@@ -7,7 +7,6 @@ import 'package:disciplaner_flutter/core/widgets/priority_icon.dart';
 import 'package:disciplaner_flutter/core/widgets/status_badge.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'dense_checkbox.dart';
 
@@ -120,9 +119,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
               // 3. Ticket Ref (Monospace)
               Text(
                 ticket.ticketRef,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                style: NeoTypography.codeSm.copyWith(
                   color: isDone ? NeoColors.muted : NeoColors.onSurfaceVariant,
                 ),
               ),
@@ -156,7 +153,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                     return Container(
                       margin: const EdgeInsets.only(right: 4),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
+                        horizontal: 7,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
@@ -169,8 +166,8 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                       ),
                       child: Text(
                         label.name,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 10,
+                        style: NeoTypography.labelSm.copyWith(
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: color,
                         ),
@@ -184,16 +181,15 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
               // 6. Story Points Chip (if any)
               if (ticket.storyPoints != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
                     color: NeoColors.surfaceContainerHigh,
                     borderRadius: NeoSpacing.roundedSm,
                   ),
                   child: Text(
                     '${ticket.storyPoints} pts',
-                    style: GoogleFonts.jetBrainsMono(
+                    style: NeoTypography.codeSm.copyWith(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
                       color: NeoColors.muted,
                     ),
                   ),
@@ -214,7 +210,7 @@ class _DenseTicketRowState extends State<DenseTicketRow> {
                     const SizedBox(width: 4),
                     Text(
                       _formatDueDate(ticket.dueDate),
-                      style: GoogleFonts.jetBrainsMono(
+                      style: NeoTypography.labelSm.copyWith(
                         fontSize: 11,
                         color: NeoColors.muted,
                       ),
