@@ -6,6 +6,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/create_project_modal.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/shell/presentation/workspace_tabs.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -705,7 +706,13 @@ class _MyTasksViewState extends ConsumerState<MyTasksView> {
     final l10n = context.l10n;
     return InkWell(
       onTap: () {
-        ref.read(selectedProjectIdProvider.notifier).select(project.id);
+        openProjectTab(
+          context,
+          ref,
+          projectId: project.id,
+          title: project.name,
+          projectKey: project.key,
+        );
       },
       borderRadius: NeoSpacing.roundedMd,
       child: AnimatedContainer(

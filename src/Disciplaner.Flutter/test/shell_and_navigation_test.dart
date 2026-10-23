@@ -230,7 +230,7 @@ void main() {
     // Mobile shell bottom navigation items
     expect(find.text('Sprint'), findsOneWidget);
     expect(find.text('Projets'), findsWidgets);
-    expect(find.text('Tâches'), findsOneWidget);
+    expect(find.text('Accueil'), findsOneWidget);
     expect(find.text('Paramètres'), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });

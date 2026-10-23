@@ -114,6 +114,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authErrorInvalid => 'Invalid credentials.';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Hello $name';
+  }
+
+  @override
+  String get dashboardTitle => 'Dashboard';
+
+  @override
+  String get dashboardSubtitle =>
+      'An overview of your projects and your assigned tickets';
+
+  @override
+  String get dashboardProjectsSection => 'Your projects';
+
+  @override
+  String get dashboardNoProjects =>
+      'No project yet. Create one to get started.';
+
+  @override
+  String get dashboardOpenProject => 'Open';
+
+  @override
+  String get dashboardMyTicketsSection => 'My tickets';
+
+  @override
+  String get dashboardStatusFilterTooltip => 'Displayed statuses';
+
+  @override
+  String get dashboardNoTickets => 'No ticket matches the selected statuses.';
+
+  @override
   String get boardCreateTitle => 'New board';
 
   @override
@@ -1750,6 +1781,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shellPersonalSpace => 'Personal space';
 
   @override
+  String get shellSidebarDashboardSubtitle => 'Projects and my tickets';
+
+  @override
+  String get shellTooltipDashboard => 'Dashboard';
+
+  @override
   String get shellProjectPlan => 'Project plan';
 
   @override
@@ -2511,6 +2548,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketsYesterday => 'Yesterday';
+
+  @override
+  String get tabCloseTooltip => 'Close tab';
+
+  @override
+  String get workspaceWelcomeTitle => 'Welcome to Disciplan';
+
+  @override
+  String get workspaceWelcomeHint =>
+      'Open the dashboard or browse your projects to get started.';
+
+  @override
+  String get workspaceOpenDashboard => 'Open the dashboard';
+
+  @override
+  String get workspaceBrowseProjects => 'Browse projects';
 
   @override
   String get typeBug => 'Bug';

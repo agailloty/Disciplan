@@ -13,6 +13,7 @@ import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
 import 'create_project_modal.dart';
 import 'project_providers.dart';
+import 'package:disciplaner_flutter/features/shell/presentation/workspace_tabs.dart';
 
 class MobileProjectsView extends ConsumerStatefulWidget {
   const MobileProjectsView({super.key});
@@ -470,8 +471,13 @@ class _MobileProjectsViewState extends ConsumerState<MobileProjectsView> {
       child: InkWell(
         borderRadius: NeoSpacing.roundedLg,
         onTap: () {
-          ref.read(selectedProjectIdProvider.notifier).select(project.id);
-          context.go('/backlog');
+          openProjectTab(
+            context,
+            ref,
+            projectId: project.id,
+            title: project.name,
+            projectKey: project.key,
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(NeoSpacing.spaceMd),

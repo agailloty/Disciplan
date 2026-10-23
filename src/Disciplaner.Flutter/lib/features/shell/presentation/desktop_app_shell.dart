@@ -20,6 +20,8 @@ import 'package:disciplaner_flutter/features/sprints/presentation/sprint_provide
 import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
+import 'package:disciplaner_flutter/features/shell/presentation/workspace_tab_bar.dart';
+import 'package:disciplaner_flutter/features/shell/presentation/workspace_tabs.dart';
 
 class DesktopAppShell extends ConsumerWidget {
   final Widget child;
@@ -51,6 +53,8 @@ class DesktopAppShell extends ConsumerWidget {
     final isSidebarCollapsed = ref.watch(sidebarCollapsedProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
+    final openTabs = ref.watch(workspaceTabsProvider);
+    _syncTabsWithRoute(ref, openTabs);
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -69,11 +73,17 @@ class DesktopAppShell extends ConsumerWidget {
                 // B. Primary Sidebar repliable (240px fond #F4F1EA)
                 if (!isSidebarCollapsed) _buildPrimarySidebar(context, ref, currentProject),
 
-                // C. Zone centrale de travail (Workspace)
+                // C. Zone centrale de travail (Workspace + onglets VS Code)
                 Expanded(
                   child: Container(
                     color: NeoColors.surface,
-                    child: child,
+                    child: Column(
+                      children: [
+                        if (openTabs.isNotEmpty)
+                          WorkspaceTabBar(currentRoute: currentRoute),
+                        Expanded(child: child),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -82,6 +92,35 @@ class DesktopAppShell extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Keeps the open tabs in sync with the current route: navigating to the
+  /// dashboard or a project workspace opens (or focuses) its tab, exactly
+  /// like opening a file in VS Code.
+  void _syncTabsWithRoute(WidgetRef ref, List<WorkspaceTab> tabs) {
+    if (currentRoute == '/dashboard') {
+      if (!tabs.any((t) => t.type == WorkspaceTabType.dashboard)) {
+        Future.microtask(
+          () => ref.read(workspaceTabsProvider.notifier).openDashboard(),
+        );
+      }
+      return;
+    }
+
+    final routeProjectId = projectIdFromRoute(currentRoute);
+    if (routeProjectId != null) {
+      final projects = ref.read(projectsListProvider).value ?? const [];
+      final project = projects
+          .where((p) => p.id == routeProjectId)
+          .firstOrNull;
+      Future.microtask(
+        () => ref.read(workspaceTabsProvider.notifier).openProject(
+              projectId: routeProjectId,
+              title: project?.name ?? routeProjectId,
+              projectKey: project?.key,
+            ),
+      );
+    }
   }
 
   Widget _buildTopBar(
@@ -119,7 +158,7 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               const SizedBox(width: NeoSpacing.spaceSm),
               InkWell(
-                onTap: () => context.go('/my-tasks'),
+                onTap: () => openDashboardTab(context, ref),
                 borderRadius: NeoSpacing.roundedSm,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -143,7 +182,7 @@ class DesktopAppShell extends ConsumerWidget {
                   if (val == 'NEW') {
                     CreateProjectModal.show(context);
                   } else {
-                    ref.read(selectedProjectIdProvider.notifier).select(val);
+                    openProjectTab(context, ref, projectId: val);
                   }
                 },
                 itemBuilder: (context) => [
@@ -419,6 +458,12 @@ class DesktopAppShell extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               _buildActivityItem(
+                icon: Icons.home_outlined,
+                tooltip: l10n.shellTooltipDashboard,
+                isActive: currentRoute == '/dashboard',
+                onTap: () => openDashboardTab(context, ref),
+              ),
+              _buildActivityItem(
                 icon: Icons.dashboard_customize_outlined,
                 tooltip: l10n.shellTooltipMyTasks,
                 isActive: currentRoute.startsWith('/my-tasks'),
@@ -649,7 +694,7 @@ class DesktopAppShell extends ConsumerWidget {
                       if (val == 'NEW') {
                         CreateProjectModal.show(context);
                       } else {
-                        ref.read(selectedProjectIdProvider.notifier).select(val);
+                        openProjectTab(context, ref, projectId: val);
                       }
                     },
                   ),
@@ -730,6 +775,14 @@ class DesktopAppShell extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               children: [
                 _buildSidebarSectionHeader(l10n.shellPersonalSpace.toUpperCase()),
+                _buildSidebarItem(
+                  context,
+                  title: l10n.dashboardTitle,
+                  subtitle: l10n.shellSidebarDashboardSubtitle,
+                  icon: Icons.home_outlined,
+                  isSelected: currentRoute == '/dashboard',
+                  onTap: () => openDashboardTab(context, ref),
+                ),
                 _buildSidebarItem(
                   context,
                   title: l10n.shellSidebarMyTasks,
@@ -1087,6 +1140,7 @@ class DesktopAppShell extends ConsumerWidget {
   }
 
   String _breadcrumbSectionName(AppLocalizations l10n) {
+    if (currentRoute == '/dashboard') return l10n.dashboardTitle;
     if (currentRoute.startsWith('/backlog')) return l10n.shellCrumbBacklog;
     if (currentRoute.startsWith('/projects')) return l10n.shellCrumbBacklogList;
     if (currentRoute.startsWith('/my-tasks')) return l10n.shellCrumbMyTasks;
@@ -1098,6 +1152,7 @@ class DesktopAppShell extends ConsumerWidget {
   }
 
   IconData _breadcrumbSectionIcon() {
+    if (currentRoute == '/dashboard') return Icons.home_outlined;
     if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects')) {
       return Icons.inbox_outlined;
     }

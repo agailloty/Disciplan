@@ -35,6 +35,22 @@
   "authSubmit": "Se connecter",
   "authSubmitting": "Connexion…",
   "authErrorInvalid": "Identifiants incorrects.",
+  "dashboardGreeting": "Bonjour {name}",
+  "@dashboardGreeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardTitle": "Tableau de bord",
+  "dashboardSubtitle": "Vue d'ensemble de vos projets et de vos tickets assignés",
+  "dashboardProjectsSection": "Vos projets",
+  "dashboardNoProjects": "Aucun projet pour le moment. Créez-en un pour démarrer.",
+  "dashboardOpenProject": "Ouvrir",
+  "dashboardMyTicketsSection": "Mes tickets",
+  "dashboardStatusFilterTooltip": "Statuts affichés",
+  "dashboardNoTickets": "Aucun ticket ne correspond aux statuts sélectionnés.",
   "boardCreateTitle": "Nouveau tableau",
   "boardAddColumn": "Ajouter une colonne",
   "boardDropHere": "Déposer ici",
@@ -877,6 +893,8 @@
   "shellMobileTasks": "Tâches",
   "shellNewTask": "Nouvelle tâche",
   "shellPersonalSpace": "Espace personnel",
+  "shellSidebarDashboardSubtitle": "Projets et mes tickets",
+  "shellTooltipDashboard": "Tableau de bord",
   "shellProjectPlan": "Plan du projet",
   "shellProjectViews": "Vues du projet",
   "shellScaleComfort": "Confort (110%)",
@@ -1418,6 +1436,11 @@
   "ticketsViewSaved": "Vue sauvegardée avec succès !",
   "ticketsViewSprintColumns": "Voir les colonnes du sprint",
   "ticketsYesterday": "Hier",
+  "tabCloseTooltip": "Fermer l'onglet",
+  "workspaceWelcomeTitle": "Bienvenue sur Disciplan",
+  "workspaceWelcomeHint": "Ouvrez le tableau de bord ou parcourez vos projets pour commencer.",
+  "workspaceOpenDashboard": "Ouvrir le tableau de bord",
+  "workspaceBrowseProjects": "Parcourir les projets",
   "typeBug": "Bug",
   "typeEpic": "Épopée",
   "typeStory": "Story",

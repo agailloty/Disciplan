@@ -1,8 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:disciplaner_flutter/app/theme/neo_colors.dart';
 import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
+import 'package:disciplaner_flutter/core/l10n/l10n.dart';
+import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_card.dart';
+import 'workspace_tabs.dart';
+
+/// VS Code style "welcome" view shown when the workspace has no open tab.
+class WorkspaceWelcomeView extends ConsumerWidget {
+  const WorkspaceWelcomeView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Padding(
+          padding: const EdgeInsets.all(NeoSpacing.space2Xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: NeoColors.sidebarDark,
+                  borderRadius: NeoSpacing.roundedMd,
+                  border: Border.all(color: NeoColors.sidebarDarkBorder),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'D',
+                  style: GoogleFonts.ibmPlexMono(
+                    color: const Color(0xFFFFD21E),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: NeoSpacing.spaceLg),
+              Text(
+                l10n.workspaceWelcomeTitle,
+                style: NeoTypography.headlineLg,
+              ),
+              const SizedBox(height: NeoSpacing.spaceXs),
+              Text(
+                l10n.workspaceWelcomeHint,
+                style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
+              ),
+              const SizedBox(height: NeoSpacing.spaceLg),
+              Wrap(
+                spacing: NeoSpacing.spaceSm,
+                runSpacing: NeoSpacing.spaceSm,
+                children: [
+                  NeoButton(
+                    label: l10n.workspaceOpenDashboard,
+                    icon: const Icon(Icons.home_outlined, size: 15),
+                    onPressed: () => openDashboardTab(context, ref),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => context.go('/projects'),
+                    icon: const Icon(Icons.folder_copy_outlined, size: 15),
+                    label: Text(l10n.workspaceBrowseProjects),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: NeoColors.onSurface,
+                      side: const BorderSide(color: NeoColors.borderWhisper),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: NeoSpacing.roundedSm,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class ShellPlaceholderView extends StatelessWidget {
   final String title;

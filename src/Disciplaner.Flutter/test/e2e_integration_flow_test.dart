@@ -158,7 +158,7 @@ void main() {
 
       expect(find.byType(MobileAppShell), findsOneWidget);
       expect(find.byType(DesktopAppShell), findsNothing);
-      expect(find.text('Tâches'), findsOneWidget);
+      expect(find.text('Accueil'), findsOneWidget);
       expect(find.text('Mobile Content'), findsOneWidget);
     });
 

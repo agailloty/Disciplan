@@ -114,6 +114,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authErrorInvalid => 'Identifiants incorrects.';
 
   @override
+  String dashboardGreeting(String name) {
+    return 'Bonjour $name';
+  }
+
+  @override
+  String get dashboardTitle => 'Tableau de bord';
+
+  @override
+  String get dashboardSubtitle =>
+      'Vue d\'ensemble de vos projets et de vos tickets assignés';
+
+  @override
+  String get dashboardProjectsSection => 'Vos projets';
+
+  @override
+  String get dashboardNoProjects =>
+      'Aucun projet pour le moment. Créez-en un pour démarrer.';
+
+  @override
+  String get dashboardOpenProject => 'Ouvrir';
+
+  @override
+  String get dashboardMyTicketsSection => 'Mes tickets';
+
+  @override
+  String get dashboardStatusFilterTooltip => 'Statuts affichés';
+
+  @override
+  String get dashboardNoTickets =>
+      'Aucun ticket ne correspond aux statuts sélectionnés.';
+
+  @override
   String get boardCreateTitle => 'Nouveau tableau';
 
   @override
@@ -1755,6 +1787,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shellPersonalSpace => 'Espace personnel';
 
   @override
+  String get shellSidebarDashboardSubtitle => 'Projets et mes tickets';
+
+  @override
+  String get shellTooltipDashboard => 'Tableau de bord';
+
+  @override
   String get shellProjectPlan => 'Plan du projet';
 
   @override
@@ -2526,6 +2564,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ticketsYesterday => 'Hier';
+
+  @override
+  String get tabCloseTooltip => 'Fermer l\'onglet';
+
+  @override
+  String get workspaceWelcomeTitle => 'Bienvenue sur Disciplan';
+
+  @override
+  String get workspaceWelcomeHint =>
+      'Ouvrez le tableau de bord ou parcourez vos projets pour commencer.';
+
+  @override
+  String get workspaceOpenDashboard => 'Ouvrir le tableau de bord';
+
+  @override
+  String get workspaceBrowseProjects => 'Parcourir les projets';
 
   @override
   String get typeBug => 'Bug';

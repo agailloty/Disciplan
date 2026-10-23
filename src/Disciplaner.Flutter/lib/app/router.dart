@@ -4,9 +4,11 @@ import '../features/auth/presentation/auth_providers.dart';
 import '../features/auth/presentation/auth_state.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/setup_screen.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/kanban/presentation/kanban_adaptive_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
+import '../features/shell/presentation/shell_placeholders.dart';
 import '../features/sprints/presentation/cycles_overview_screen.dart';
 import '../features/tickets/presentation/my_tasks_view.dart';
 import '../features/tickets/presentation/project_list_view.dart';
@@ -18,7 +20,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/my-tasks',
+    initialLocation: '/dashboard',
     redirect: (context, state) {
       final loc = state.matchedLocation;
       if (authState is AuthNeedsInitialSetup) {
@@ -30,7 +32,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
       if (authState is AuthAuthenticated) {
-        if (loc == '/login' || loc == '/setup' || loc == '/') return '/my-tasks';
+        if (loc == '/login' || loc == '/setup' || loc == '/') return '/dashboard';
         return null;
       }
       return null;
@@ -50,6 +52,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: child,
         ),
         routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/welcome',
+            builder: (context, state) => const WorkspaceWelcomeView(),
+          ),
           GoRoute(
             path: '/projects',
             builder: (context, state) => const ProjectsAdaptiveScreen(

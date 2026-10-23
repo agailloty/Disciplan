@@ -308,6 +308,60 @@ abstract class AppLocalizations {
   /// **'Identifiants incorrects.'**
   String get authErrorInvalid;
 
+  /// No description provided for @dashboardGreeting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour {name}'**
+  String dashboardGreeting(String name);
+
+  /// No description provided for @dashboardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tableau de bord'**
+  String get dashboardTitle;
+
+  /// No description provided for @dashboardSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vue d\'ensemble de vos projets et de vos tickets assignés'**
+  String get dashboardSubtitle;
+
+  /// No description provided for @dashboardProjectsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos projets'**
+  String get dashboardProjectsSection;
+
+  /// No description provided for @dashboardNoProjects.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun projet pour le moment. Créez-en un pour démarrer.'**
+  String get dashboardNoProjects;
+
+  /// No description provided for @dashboardOpenProject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir'**
+  String get dashboardOpenProject;
+
+  /// No description provided for @dashboardMyTicketsSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes tickets'**
+  String get dashboardMyTicketsSection;
+
+  /// No description provided for @dashboardStatusFilterTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statuts affichés'**
+  String get dashboardStatusFilterTooltip;
+
+  /// No description provided for @dashboardNoTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun ticket ne correspond aux statuts sélectionnés.'**
+  String get dashboardNoTickets;
+
   /// No description provided for @boardCreateTitle.
   ///
   /// In fr, this message translates to:
@@ -3290,6 +3344,18 @@ abstract class AppLocalizations {
   /// **'Espace personnel'**
   String get shellPersonalSpace;
 
+  /// No description provided for @shellSidebarDashboardSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Projets et mes tickets'**
+  String get shellSidebarDashboardSubtitle;
+
+  /// No description provided for @shellTooltipDashboard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tableau de bord'**
+  String get shellTooltipDashboard;
+
   /// No description provided for @shellProjectPlan.
   ///
   /// In fr, this message translates to:
@@ -4621,6 +4687,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Hier'**
   String get ticketsYesterday;
+
+  /// No description provided for @tabCloseTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer l\'onglet'**
+  String get tabCloseTooltip;
+
+  /// No description provided for @workspaceWelcomeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue sur Disciplan'**
+  String get workspaceWelcomeTitle;
+
+  /// No description provided for @workspaceWelcomeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrez le tableau de bord ou parcourez vos projets pour commencer.'**
+  String get workspaceWelcomeHint;
+
+  /// No description provided for @workspaceOpenDashboard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir le tableau de bord'**
+  String get workspaceOpenDashboard;
+
+  /// No description provided for @workspaceBrowseProjects.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parcourir les projets'**
+  String get workspaceBrowseProjects;
 
   /// No description provided for @typeBug.
   ///

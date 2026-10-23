@@ -172,10 +172,10 @@ class MobileAppShell extends ConsumerWidget {
                 Expanded(
                   child: _buildNavItem(
                     context,
-                    icon: Icons.check_circle_outline,
-                    label: l10n.shellMobileTasks,
-                    isSelected: currentRoute.startsWith('/my-tasks'),
-                    onTap: () => context.go('/my-tasks'),
+                    icon: Icons.home_outlined,
+                    label: l10n.navHome,
+                    isSelected: currentRoute.startsWith('/dashboard'),
+                    onTap: () => context.go('/dashboard'),
                   ),
                 ),
                 Expanded(
@@ -238,6 +238,7 @@ class MobileAppShell extends ConsumerWidget {
 
   String _titleForRoute(AppLocalizations l10n) {
     if (currentRoute == '/projects') return l10n.shellMobileProjects;
+    if (currentRoute == '/dashboard') return l10n.dashboardTitle;
     if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects/')) {
       return l10n.shellCrumbBacklog;
     }
