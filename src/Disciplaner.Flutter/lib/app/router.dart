@@ -8,6 +8,7 @@ import '../features/auth/presentation/setup_screen.dart';
 import '../features/projects/presentation/projects_adaptive_screen.dart';
 import '../features/shell/presentation/adaptive_app_shell.dart';
 import '../features/shell/presentation/shell_placeholders.dart';
+import '../features/sprints/presentation/cycles_overview_screen.dart';
 import '../features/tickets/presentation/my_tasks_view.dart';
 import '../features/tickets/presentation/project_list_view.dart';
 
@@ -72,11 +73,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/cycles',
-            builder: (context, state) => const ShellPlaceholderView(
-              title: 'Cycles & Sprints',
-              subtitle: 'Planification temporelle et métriques de progression.',
-              icon: Icons.timelapse,
-            ),
+            builder: (context, state) => const CyclesOverviewScreen(),
           ),
           GoRoute(
             path: '/calendar',
