@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'labels_modals.dart';
 
 class MobileTicketDetailSheet extends ConsumerStatefulWidget {
   final String ticketId;
@@ -636,6 +637,34 @@ class _MobileTicketDetailSheetState
                 ),
                 label: l10n.ticketsCycleSprint,
                 value: ticket.sprintName ?? l10n.projectBacklog,
+              ),
+            ),
+
+            // Labels (interactive)
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => LabelPickerModal.show(context, ticket),
+              child: _buildPropCard(
+                avatar: CircleAvatar(
+                  radius: 15,
+                  backgroundColor: ticket.labels.isEmpty
+                      ? NeoColors.surfaceContainerHigh
+                      : parseLabelColor(ticket.labels.first.color)
+                          .withValues(alpha: 0.15),
+                  child: Icon(
+                    Icons.label_outline,
+                    size: 16,
+                    color: ticket.labels.isEmpty
+                        ? NeoColors.muted
+                        : parseLabelColor(ticket.labels.first.color),
+                  ),
+                ),
+                label: l10n.labelField.toUpperCase(),
+                value: ticket.labels.isEmpty
+                    ? l10n.ticketsNoLabel
+                    : (ticket.labels.length == 1
+                        ? ticket.labels.first.name
+                        : '${ticket.labels.first.name} +${ticket.labels.length - 1}'),
               ),
             ),
           ],

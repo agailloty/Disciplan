@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'labels_modals.dart';
 
 class SplitInspectorPanel extends ConsumerStatefulWidget {
   final String ticketId;
@@ -881,15 +882,22 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              l10n.labelField.toUpperCase(),
-              style: NeoTypography.labelSm.copyWith(
-                fontWeight: FontWeight.w600,
-                color: NeoColors.onSurfaceVariant,
-                letterSpacing: 0.6,
+            Expanded(
+              child: Text(
+                l10n.labelField.toUpperCase(),
+                style: NeoTypography.labelSm.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: NeoColors.onSurfaceVariant,
+                  letterSpacing: 0.6,
+                ),
               ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add, size: 16),
+              tooltip: l10n.labelTitle,
+              visualDensity: VisualDensity.compact,
+              onPressed: () => LabelPickerModal.show(context, ticket),
             ),
           ],
         ),
@@ -904,15 +912,32 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
             spacing: 6,
             runSpacing: 4,
             children: ticket.labels.map((label) {
-              return Chip(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                backgroundColor: NeoColors.surfaceContainerHigh,
-                label: Text(
-                  label.name,
-                  style: NeoTypography.labelSm.copyWith(fontSize: 11),
+              final color = parseLabelColor(label.color);
+              return InkWell(
+                borderRadius: BorderRadius.circular(6),
+                onTap: () => LabelPickerModal.show(context, ticket),
+                child: Chip(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  backgroundColor: color.withValues(alpha: 0.12),
+                  avatar: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  label: Text(
+                    label.name,
+                    style: NeoTypography.labelSm.copyWith(
+                      fontSize: 11,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               );
             }).toList(),
           ),

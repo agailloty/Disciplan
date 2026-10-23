@@ -182,10 +182,10 @@ class TicketRepository {
     }
   }
 
-  // Labels
+  // Labels (attachment gérée via /api/labels/{labelId}/tickets/{ticketId})
   Future<void> addLabel(String ticketId, String labelId) async {
     try {
-      await _dio.post('/api/tickets/$ticketId/labels/$labelId');
+      await _dio.post('/api/labels/$labelId/tickets/$ticketId');
     } catch (e) {
       throw DioClient.handleError(e);
     }
@@ -193,7 +193,7 @@ class TicketRepository {
 
   Future<void> removeLabel(String ticketId, String labelId) async {
     try {
-      await _dio.delete('/api/tickets/$ticketId/labels/$labelId');
+      await _dio.delete('/api/labels/$labelId/tickets/$ticketId');
     } catch (e) {
       throw DioClient.handleError(e);
     }

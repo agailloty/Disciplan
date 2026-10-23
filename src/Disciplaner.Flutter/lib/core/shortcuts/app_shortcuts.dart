@@ -46,6 +46,30 @@ class QuickCreateTicketIntent extends Intent {
   const QuickCreateTicketIntent();
 }
 
+/// Action de création rapide : désactivée quand un champ texte a le focus,
+/// sinon le raccourci « c » consommerait la touche et empêcherait la saisie
+/// du caractère dans le champ.
+class _QuickCreateAction extends Action<QuickCreateTicketIntent> {
+  _QuickCreateAction(this.onInvoke);
+
+  final void Function() onInvoke;
+
+  @override
+  bool isEnabled(QuickCreateTicketIntent intent) {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus?.context == null) return true;
+    return primaryFocus!.context!
+            .findAncestorWidgetOfExactType<EditableText>() ==
+        null;
+  }
+
+  @override
+  Object? invoke(QuickCreateTicketIntent intent) {
+    onInvoke();
+    return null;
+  }
+}
+
 class AppShortcutsWrapper extends ConsumerWidget {
   final Widget child;
 
@@ -76,18 +100,9 @@ class AppShortcutsWrapper extends ConsumerWidget {
                 return null;
               },
             ),
-            QuickCreateTicketIntent: CallbackAction<QuickCreateTicketIntent>(
-              onInvoke: (intent) {
-                final primaryFocus = FocusManager.instance.primaryFocus;
-                if (primaryFocus != null &&
-                    primaryFocus.context != null &&
-                    primaryFocus.context!.findAncestorWidgetOfExactType<EditableText>() != null) {
-                  return null;
-                }
-                ref.read(quickCreateTicketOpenProvider.notifier).toggle();
-                return null;
-              },
-            ),
+            QuickCreateTicketIntent: _QuickCreateAction(() {
+              ref.read(quickCreateTicketOpenProvider.notifier).toggle();
+            }),
           },
           child: Focus(
             autofocus: true,

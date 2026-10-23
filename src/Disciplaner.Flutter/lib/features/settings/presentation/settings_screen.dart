@@ -6,11 +6,14 @@ import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/l10n/locale_providers.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
+import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
 import 'package:disciplaner_flutter/features/settings/presentation/settings_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/label_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/labels_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1121,6 +1124,161 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         );
                       },
                     ),
+                  ),
+                  const SizedBox(height: NeoSpacing.spaceLg),
+
+                  // 6. Administration — Étiquettes (CRUD réservé aux admins)
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final labelsAsync = ref.watch(labelsListProvider);
+
+                      return _buildCardSection(
+                        title: l10n.labelTitle,
+                        subtitle: l10n.labelCount(labelsAsync.value?.length ?? 0),
+                        child: labelsAsync.when(
+                          loading: () => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          error: (e, _) => Text(
+                            e.toString(),
+                            style: NeoTypography.bodySm
+                                .copyWith(color: NeoColors.error),
+                          ),
+                          data: (labels) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (labels.isEmpty) ...[
+                                  Text(
+                                    l10n.labelEmpty,
+                                    style: NeoTypography.bodySm
+                                        .copyWith(color: NeoColors.muted),
+                                  ),
+                                  const SizedBox(height: NeoSpacing.spaceSm),
+                                  NeoButton(
+                                    label: l10n.labelCreateFirst,
+                                    icon: const Icon(Icons.add, size: 16),
+                                    onPressed: () =>
+                                        LabelEditModal.show(context, onSaved: (_) {}),
+                                  ),
+                                ] else ...[
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: labels.length,
+                                    separatorBuilder: (context, index) =>
+                                        const Divider(
+                                      height: 1,
+                                      color: NeoColors.surfaceContainerHigh,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final label = labels[index];
+                                      final color = parseLabelColor(label.color);
+                                      return ListTile(
+                                        dense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          label.name,
+                                          style: NeoTypography.labelMd,
+                                        ),
+                                        trailing: Wrap(
+                                          spacing: 4,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.edit_outlined,
+                                                size: 18,
+                                                color: NeoColors.muted,
+                                              ),
+                                              tooltip: l10n.edit,
+                                              onPressed: () => LabelEditModal.show(
+                                                context,
+                                                existing: label,
+                                                onSaved: (_) {},
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.delete_outline,
+                                                size: 18,
+                                                color: NeoColors.error,
+                                              ),
+                                              tooltip: l10n.delete,
+                                              onPressed: () async {
+                                                final confirmed = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (dialogContext) =>
+                                                      AlertDialog(
+                                                    backgroundColor:
+                                                        NeoColors
+                                                            .surfaceContainerLowest,
+                                                    title: Text(
+                                                      l10n.labelDeleteTitle,
+                                                      style:
+                                                          NeoTypography.headlineSm,
+                                                    ),
+                                                    content: Text(
+                                                      l10n.labelDeleteConfirm(
+                                                        label.name,
+                                                      ),
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop(false),
+                                                        child: Text(l10n.cancel),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop(true),
+                                                        child: Text(l10n.delete),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirmed != true) return;
+                                                final repo = ref
+                                                    .read(labelRepositoryProvider);
+                                                await repo.deleteLabel(label.id);
+                                                ref.invalidate(labelsListProvider);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: NeoSpacing.spaceSm),
+                                  NeoButton(
+                                    label: l10n.labelCreateTitle,
+                                    variant: NeoButtonVariant.secondary,
+                                    isDense: true,
+                                    icon: const Icon(Icons.add, size: 16),
+                                    onPressed: () =>
+                                        LabelEditModal.show(context, onSaved: (_) {}),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
                 const SizedBox(height: NeoSpacing.spaceXl),
