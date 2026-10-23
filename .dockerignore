@@ -13,3 +13,13 @@ Dockerfile*
 **/*.db-wal
 build-client.log
 server-test*.log
+src/Disciplaner.Flutter/.dart_tool
+src/Disciplaner.Flutter/build
+src/Disciplaner.Flutter/.idea
+src/Disciplaner.Flutter/*.iml
+src/Disciplaner.Flutter/android
+src/Disciplaner.Flutter/ios
+src/Disciplaner.Flutter/linux
+src/Disciplaner.Flutter/macos
+src/Disciplaner.Flutter/windows
+src/Disciplaner.Flutter/test

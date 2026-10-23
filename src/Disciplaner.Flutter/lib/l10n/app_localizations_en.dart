@@ -2579,4 +2579,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get typeTask => 'Task';
+
+  @override
+  String get landingHeroTitle => 'Project management, clear and fast.';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Disciplan brings your projects, sprints, tickets and calendars together in a self-hostable app, available on web, mobile and desktop.';
+
+  @override
+  String get landingCtaLogin => 'Sign in';
+
+  @override
+  String get landingCtaSubtitle => 'Log in to access your projects.';
+
+  @override
+  String get landingOpenApp => 'Open the app';
+
+  @override
+  String get landingOpenAppSubtitle => 'You are already signed in.';
+
+  @override
+  String get landingFeatureProjectsTitle => 'Projects & tickets';
+
+  @override
+  String get landingFeatureProjectsDescription =>
+      'Projects, tickets, sprints and a complete history of every change.';
+
+  @override
+  String get landingFeatureKanbanTitle => 'Kanban & cycles';
+
+  @override
+  String get landingFeatureKanbanDescription =>
+      'Drag & drop boards, saved views and cycle metrics.';
+
+  @override
+  String get landingFeatureCalendarTitle => 'Team calendar';
+
+  @override
+  String get landingFeatureCalendarDescription =>
+      'Monthly sprint roadmap and deadlines, with a private iCal feed.';
+
+  @override
+  String get landingFooter =>
+      'Self-hosted · One single API for web, mobile and desktop.';
 }

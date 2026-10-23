@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/auth_providers.dart';
 import '../features/auth/presentation/auth_state.dart';
+import '../features/auth/presentation/landing_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/setup_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
@@ -19,7 +20,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/dashboard',
+    initialLocation: '/',
     redirect: (context, state) {
       final loc = state.matchedLocation;
       if (authState is AuthNeedsInitialSetup) {
@@ -27,16 +28,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
       if (authState is AuthUnauthenticated || authState is AuthUnconfiguredServer) {
-        if (loc != '/login' && loc != '/setup') return '/login';
+        // La page d'accueil, la connexion et l'installation restent publiques.
+        if (loc != '/' && loc != '/login' && loc != '/setup') return '/';
         return null;
       }
       if (authState is AuthAuthenticated) {
-        if (loc == '/login' || loc == '/setup' || loc == '/') return '/dashboard';
+        if (loc == '/' || loc == '/login' || loc == '/setup') return '/dashboard';
         return null;
       }
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const LandingScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),

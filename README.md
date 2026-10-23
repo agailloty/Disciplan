@@ -82,7 +82,7 @@ For full development, compilation commands, and Homelab reverse-proxy guides, se
 
 ## Quick Start with Docker
 
-The image is published to GitHub Container Registry on every `vX.Y.Z` tag.
+The image is published to GitHub Container Registry on every `vX.Y.Z` tag. It bundles **both the REST API and the Flutter web client**: a single container serves the web front from the same origin as the API (no CORS needed), while mobile and desktop clients consume the same REST API.
 
 ```bash
 docker run -d \
@@ -95,17 +95,16 @@ docker run -d \
   ghcr.io/agailloty/disciplan:latest
 ```
 
-The API is then available at [http://localhost:8080](http://localhost:8080). The image is API-only; the web front is built from the Flutter client:
+The application is then available at [http://localhost:8080](http://localhost:8080): a public home page presents the product and invites the visitor to authenticate; the REST API (`/api/…`) is served by the same process for the mobile and desktop clients.
+
+To serve the web front from a separate static host instead (advanced setup):
 
 ```bash
 cd src/Disciplaner.Flutter
 flutter build web --release
 ```
 
-Two supported ways to serve it:
-
-1. **Same origin (single container):** copy the `build/web/` output into the API container's `wwwroot/` (e.g. a `COPY` in a downstream Dockerfile, or a bind mount). The server serves it as a static SPA with an `index.html` fallback for deep links — no CORS needed.
-2. **Separate static host:** serve `build/web/` with nginx or any static server behind the same reverse proxy, and set `Cors__Origins__0` to the client origin on the API container.
+Serve `build/web/` with nginx or any static server behind the same reverse proxy, and set `Cors__Origins__0` to the client origin on the API container.
 
 > **Note:** the `/data` volume holds the SQLite database. Mount it to a named volume or host directory to persist data across container restarts.
 
@@ -142,29 +141,14 @@ openssl rand -base64 48
 
 ## Docker Compose
 
-Example `compose.yml` for a full deployment:
+A ready-to-use `compose.yml` is provided at the repository root. It builds the local image (API + web front) and persists data to a named volume:
 
-```yaml
-services:
-  disciplaner:
-    image: ghcr.io/agailloty/disciplan:latest
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - disciplaner-data:/data
-    environment:
-      Jwt__SecretKey: "${JWT_SECRET_KEY}"
-      Jwt__Issuer: "Disciplaner"
-      Jwt__Audience: "Disciplaner"
-      AdminSeed__Email: "${ADMIN_EMAIL}"
-      AdminSeed__Password: "${ADMIN_PASSWORD}"
-      # Uncomment if a reverse proxy terminates TLS upstream
-      # ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-
-volumes:
-  disciplaner-data:
+```bash
+cp .env.example .env   # then fill in JWT_SECRET_KEY
+docker compose up -d
 ```
+
+The stack is then available at [http://localhost:8080](http://localhost:8080).
 
 Create a `.env` file alongside it (never commit this file):
 
@@ -172,12 +156,6 @@ Create a `.env` file alongside it (never commit this file):
 JWT_SECRET_KEY=replace_with_a_random_string_of_at_least_48_characters
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=YourStr0ngPassword!
-```
-
-Then start the stack:
-
-```bash
-docker compose up -d
 ```
 
 ### Behind a reverse proxy (Nginx, Traefik…)
@@ -203,6 +181,29 @@ labels:
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (Web, Desktop & Mobile client)
 
 ### Running the application
+
+#### One-command dev script
+
+The repository root provides a script that starts both the API and the Flutter client, waits for the API to be up, and tears everything down on `Ctrl+C`:
+
+```bash
+# Windows (PowerShell) — opens the Flutter web client in Chrome
+./dev.ps1
+
+# Windows (cmd)
+dev.cmd
+
+# Git Bash / Linux / macOS
+./dev.sh
+
+# Options: desktop client instead of the web, custom ports
+./dev.ps1 -Device windows
+API_PORT=5027 WEB_PORT=5000 ./dev.sh
+```
+
+The script injects a development JWT secret (your `dotnet user-secrets` take precedence if set) and points the client at the local API via `DISCIPLAN_API_URL`.
+
+#### Manual setup
 
 ```bash
 cd src/Disciplaner.Web/Server
@@ -244,11 +245,13 @@ dotnet ef migrations add MigrationName \
 
 ## Building the Docker Image
 
+The multi-stage `Dockerfile` builds the Flutter web client, publishes the .NET API, and assembles a single runtime image serving both:
+
 ```bash
 # From the repository root
 docker build -t disciplaner:local .
 
-# Quick smoke test
+# Quick smoke test (API + web front at http://localhost:8080)
 docker run --rm \
   -p 8080:8080 \
   -v disciplaner-data:/data \

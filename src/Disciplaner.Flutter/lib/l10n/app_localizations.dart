@@ -4747,6 +4747,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tâche'**
   String get typeTask;
+
+  /// No description provided for @landingHeroTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La gestion de projet, claire et rapide.'**
+  String get landingHeroTitle;
+
+  /// No description provided for @landingHeroSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disciplan réunit vos projets, sprints, tickets et calendriers dans une application auto-hébergeable, accessible depuis le web, le mobile et le desktop.'**
+  String get landingHeroSubtitle;
+
+  /// No description provided for @landingCtaLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'authentifier'**
+  String get landingCtaLogin;
+
+  /// No description provided for @landingCtaSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour accéder à vos projets.'**
+  String get landingCtaSubtitle;
+
+  /// No description provided for @landingOpenApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir l\'application'**
+  String get landingOpenApp;
+
+  /// No description provided for @landingOpenAppSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes déjà connecté.'**
+  String get landingOpenAppSubtitle;
+
+  /// No description provided for @landingFeatureProjectsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Projets & tickets'**
+  String get landingFeatureProjectsTitle;
+
+  /// No description provided for @landingFeatureProjectsDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Projets, tickets, sprints et historique complet de chaque modification.'**
+  String get landingFeatureProjectsDescription;
+
+  /// No description provided for @landingFeatureKanbanTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Kanban & cycles'**
+  String get landingFeatureKanbanTitle;
+
+  /// No description provided for @landingFeatureKanbanDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tableaux drag & drop, vues sauvegardées et métriques de cycle.'**
+  String get landingFeatureKanbanDescription;
+
+  /// No description provided for @landingFeatureCalendarTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier d\'équipe'**
+  String get landingFeatureCalendarTitle;
+
+  /// No description provided for @landingFeatureCalendarDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Roadmap mensuelle des sprints et de vos échéances, flux iCal privé.'**
+  String get landingFeatureCalendarDescription;
+
+  /// No description provided for @landingFooter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.'**
+  String get landingFooter;
 }
 
 class _AppLocalizationsDelegate

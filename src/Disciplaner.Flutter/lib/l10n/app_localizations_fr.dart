@@ -2595,4 +2595,48 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get typeTask => 'Tâche';
+
+  @override
+  String get landingHeroTitle => 'La gestion de projet, claire et rapide.';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Disciplan réunit vos projets, sprints, tickets et calendriers dans une application auto-hébergeable, accessible depuis le web, le mobile et le desktop.';
+
+  @override
+  String get landingCtaLogin => 'S\'authentifier';
+
+  @override
+  String get landingCtaSubtitle => 'Connectez-vous pour accéder à vos projets.';
+
+  @override
+  String get landingOpenApp => 'Ouvrir l\'application';
+
+  @override
+  String get landingOpenAppSubtitle => 'Vous êtes déjà connecté.';
+
+  @override
+  String get landingFeatureProjectsTitle => 'Projets & tickets';
+
+  @override
+  String get landingFeatureProjectsDescription =>
+      'Projets, tickets, sprints et historique complet de chaque modification.';
+
+  @override
+  String get landingFeatureKanbanTitle => 'Kanban & cycles';
+
+  @override
+  String get landingFeatureKanbanDescription =>
+      'Tableaux drag & drop, vues sauvegardées et métriques de cycle.';
+
+  @override
+  String get landingFeatureCalendarTitle => 'Calendrier d\'équipe';
+
+  @override
+  String get landingFeatureCalendarDescription =>
+      'Roadmap mensuelle des sprints et de vos échéances, flux iCal privé.';
+
+  @override
+  String get landingFooter =>
+      'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.';
 }

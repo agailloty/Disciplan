@@ -774,5 +774,18 @@
   "typeEpic": "Epic",
   "typeStory": "Story",
   "typeSubtask": "Subtask",
-  "typeTask": "Task"
+  "typeTask": "Task",
+  "landingHeroTitle": "Project management, clear and fast.",
+  "landingHeroSubtitle": "Disciplan brings your projects, sprints, tickets and calendars together in a self-hostable app, available on web, mobile and desktop.",
+  "landingCtaLogin": "Sign in",
+  "landingCtaSubtitle": "Log in to access your projects.",
+  "landingOpenApp": "Open the app",
+  "landingOpenAppSubtitle": "You are already signed in.",
+  "landingFeatureProjectsTitle": "Projects & tickets",
+  "landingFeatureProjectsDescription": "Projects, tickets, sprints and a complete history of every change.",
+  "landingFeatureKanbanTitle": "Kanban & cycles",
+  "landingFeatureKanbanDescription": "Drag & drop boards, saved views and cycle metrics.",
+  "landingFeatureCalendarTitle": "Team calendar",
+  "landingFeatureCalendarDescription": "Monthly sprint roadmap and deadlines, with a private iCal feed.",
+  "landingFooter": "Self-hosted · One single API for web, mobile and desktop."
 }

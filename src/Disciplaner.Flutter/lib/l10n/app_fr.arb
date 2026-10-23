@@ -1445,5 +1445,18 @@
   "typeEpic": "Épopée",
   "typeStory": "Story",
   "typeSubtask": "Sous-tâche",
-  "typeTask": "Tâche"
+  "typeTask": "Tâche",
+  "landingHeroTitle": "La gestion de projet, claire et rapide.",
+  "landingHeroSubtitle": "Disciplan réunit vos projets, sprints, tickets et calendriers dans une application auto-hébergeable, accessible depuis le web, le mobile et le desktop.",
+  "landingCtaLogin": "S'authentifier",
+  "landingCtaSubtitle": "Connectez-vous pour accéder à vos projets.",
+  "landingOpenApp": "Ouvrir l'application",
+  "landingOpenAppSubtitle": "Vous êtes déjà connecté.",
+  "landingFeatureProjectsTitle": "Projets & tickets",
+  "landingFeatureProjectsDescription": "Projets, tickets, sprints et historique complet de chaque modification.",
+  "landingFeatureKanbanTitle": "Kanban & cycles",
+  "landingFeatureKanbanDescription": "Tableaux drag & drop, vues sauvegardées et métriques de cycle.",
+  "landingFeatureCalendarTitle": "Calendrier d'équipe",
+  "landingFeatureCalendarDescription": "Roadmap mensuelle des sprints et de vos échéances, flux iCal privé.",
+  "landingFooter": "Auto-hébergé · Une API unique pour le web, le mobile et le desktop."
 }

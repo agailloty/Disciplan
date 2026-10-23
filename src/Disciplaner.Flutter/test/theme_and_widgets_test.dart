@@ -7,6 +7,7 @@ import 'package:disciplaner_flutter/core/widgets/neo_text_field.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart';
 import 'package:disciplaner_flutter/core/widgets/status_badge.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
+import 'package:disciplaner_flutter/features/auth/presentation/landing_screen.dart';
 import 'package:disciplaner_flutter/features/shell/presentation/shell_placeholders.dart';
 import 'package:disciplaner_flutter/main.dart';
 import 'package:flutter/material.dart';
@@ -88,10 +89,17 @@ void main() {
     expect(find.text('Navigation dans les projets.'), findsOneWidget);
   });
 
-  testWidgets('Renders DisciplanApp login on initial unauthenticated run', (WidgetTester tester) async {
+  testWidgets('Renders landing page on initial unauthenticated run', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: DisciplanApp()));
     await tester.pumpAndSettle();
 
+    // La page d'accueil publique invite l'utilisateur à s'authentifier.
+    expect(find.byType(LandingScreen), findsOneWidget);
+    expect(find.text("S'authentifier"), findsOneWidget);
+
+    // Le bouton mène vers l'écran de connexion.
+    await tester.tap(find.text("S'authentifier"));
+    await tester.pumpAndSettle();
     expect(find.text('Connexion à Disciplan'), findsOneWidget);
   });
 }
