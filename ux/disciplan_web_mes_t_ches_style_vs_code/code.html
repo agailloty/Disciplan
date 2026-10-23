@@ -1,0 +1,627 @@
+<!DOCTYPE html><html lang="fr"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="web_dashboard" name="shell-type">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+    @layer base {
+      html, body { margin:0; padding:0; height: 100%; overflow: hidden; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d7d4ce; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #b8b3aa; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f5f3ee",
+            "surface-container": "#f0eee9",
+            "surface-container-high": "#eae8e3",
+            "surface-container-highest": "#e4e2dd",
+            "surface": "#fbf9f4",
+            "background": "#fbf9f4",
+            "on-surface": "#1b1c19",
+            "on-surface-variant": "#5a574f",
+            "outline": "#7a776f",
+            "outline-variant": "#cbc6bd",
+            "primary": "#000000",
+            "on-primary": "#ffffff",
+            "primary-container": "#1c1b19",
+            "on-primary-container": "#868380",
+            "secondary": "#7b5900",
+            "secondary-container": "#ffbf28",
+            "on-secondary-container": "#6e4f00",
+            "secondary-fixed": "#ffdea4",
+            "tertiary": "#006242",
+            "tertiary-fixed-dim": "#4edea3",
+            "vscode-activity": "#191918",
+            "vscode-active-border": "#f59e0b"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Plus Jakarta Sans", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body text-on-surface antialiased h-screen flex flex-col select-none" style="font-family: Outfit, sans-serif;">
+<!-- TOP HEADER COMPACT STYLE VS CODE -->
+<header class="h-10 bg-surface border-b border-surface-container-highest/70 flex items-center justify-between px-3 z-40 select-none flex-shrink-0">
+<div class="flex items-center gap-2">
+<!-- Window traffic dots decoration (VS Code vibe) -->
+<div class="flex items-center gap-1.5 mr-2">
+<span class="w-2.5 h-2.5 rounded-full bg-red-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-amber-400/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+</div>
+<!-- Breadcrumb -->
+<div class="flex items-center gap-1 text-[12px] font-mono text-on-surface-variant"><span class="hover:text-on-surface cursor-pointer font-medium">Disciplan</span><span class="text-outline-variant">/</span><span class="hover:text-on-surface cursor-pointer">Espace Personnel</span><span class="text-outline-variant">/</span><span class="text-on-surface font-semibold flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded text-[12px]"><span class="material-symbols-outlined text-[14px] text-amber-600">task_alt</span>Mes Tâches</span></div>
+</div>
+<!-- Center Command Palette Trigger -->
+<div class="w-1/3 max-w-md hidden md:block">
+<button class="w-full flex items-center justify-between px-2.5 py-1 bg-surface-container-low hover:bg-surface-container rounded-md border border-outline-variant/50 text-[12px] text-on-surface-variant hover:text-on-surface transition-all shadow-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px]">search</span>
+<span class="font-body">Rechercher une tâche, fichier, tag...</span>
+</div>
+<kbd class="font-mono text-[10px] bg-surface-container-lowest px-1.5 py-0.5 rounded border border-outline-variant/60 font-semibold shadow-2xs">⌘K</kbd>
+</button>
+</div>
+<!-- Header Actions -->
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 px-2.5 py-1 bg-primary text-on-primary hover:bg-neutral-800 rounded font-body text-[12px] font-medium shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[15px]">add</span>
+<span class="">Tâche</span>
+<kbd class="ml-1 px-1 py-0.2 bg-white/20 text-[10px] rounded font-mono">C</kbd>
+</button>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="Changer l'affichage">
+<span class="material-symbols-outlined text-[18px]">view_sidebar</span>
+</button>
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary font-mono text-[11px] font-bold flex items-center justify-center">
+        AM
+      </div>
+</div>
+</header>
+<!-- WORKSPACE BODY WITH DUAL SIDEBAR + MAIN AREA -->
+<div class="flex-1 flex overflow-hidden">
+<!-- 1. ACTIVITY BAR ULTRA-FINE VS CODE (52px) -->
+<aside class="w-[52px] bg-vscode-activity flex flex-col justify-between items-center py-2.5 z-30 select-none flex-shrink-0 text-neutral-400">
+<!-- Top Primary Icons -->
+<div class="flex flex-col items-center gap-2 w-full">
+<!-- Logo minimal Disciplan -->
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest text-primary flex items-center justify-center font-mono font-bold text-base mb-2 shadow-sm cursor-pointer hover:scale-105 transition-transform" title="Disciplan Core">
+          D
+        </div>
+<!-- Explorer / Workspace Files -->
+<button class="w-full h-10 flex items-center justify-center relative hover:text-white transition-colors group" title="Explorateur de Projets">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">folder_open</span>
+</button>
+<!-- Mes Tâches (Actif avec border indicateur VS Code amber/linear) -->
+<button class="w-full h-10 flex items-center justify-center relative text-white bg-white/5 transition-colors group" title="Mes Tâches (Actif)">
+<span class="absolute left-0 top-1 bottom-1 w-[3px] bg-vscode-active-border rounded-r"></span>
+<span class="material-symbols-outlined text-[20px] text-amber-400">check_circle</span>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-vscode-active-border"></span>
+</button>
+<!-- Tableau Kanban -->
+<button class="w-full h-10 flex items-center justify-center relative hover:text-white transition-colors group" title="Tableau Kanban">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">view_kanban</span>
+</button>
+<!-- Cycles / Sprints -->
+<button class="w-full h-10 flex items-center justify-center relative hover:text-white transition-colors group" title="Sprint 4 (En cours)">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">timelapse</span>
+</button>
+<!-- Recherche Globale -->
+<button class="w-full h-10 flex items-center justify-center relative hover:text-white transition-colors group" title="Recherche rapide">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">search</span>
+</button>
+</div>
+<!-- Bottom Profile & Settings Icons -->
+<div class="flex flex-col items-center gap-3 w-full">
+<button class="w-full h-9 flex items-center justify-center hover:text-white transition-colors" title="Alexandre M. (Chef de Projet)">
+<div class="w-6 h-6 rounded-full bg-neutral-700 text-neutral-200 text-[10px] font-mono font-semibold flex items-center justify-center border border-neutral-600">
+            AM
+          </div>
+</button>
+<button class="w-full h-9 flex items-center justify-center hover:text-white transition-colors" title="Paramètres &amp; Raccourcis">
+<span class="material-symbols-outlined text-[19px]">settings</span>
+</button>
+</div>
+</aside>
+<!-- 2. SIDEBAR SECONDAIRE "MES TÂCHES & FILTRES" (largeur 240px) -->
+<aside class="w-60 bg-surface-container-low border-r border-surface-container-highest/80 flex flex-col justify-between select-none flex-shrink-0">
+<div class="flex-1 overflow-y-auto p-3 space-y-4">
+<!-- Sidebar Header -->
+<div class="flex items-center justify-between px-1">
+<span class="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Mes Tâches &amp; Filtres</span>
+<button class="text-on-surface-variant hover:text-on-surface p-0.5 rounded hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+</button>
+</div>
+<!-- Section: Vues sauvegardées -->
+<div class="space-y-1">
+<div class="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant/70 px-2 font-medium">Vues temporelles</div>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-surface-container-highest text-on-surface font-medium text-[13px] group" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-amber-600">wb_sunny</span>
+<span class="">Aujourd'hui</span>
+</div>
+<span class="font-mono text-[11px] px-1.5 py-0.5 rounded-full bg-amber-200/60 text-amber-900 font-semibold">2</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-[13px] group" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">date_range</span>
+<span class="">Cette semaine</span>
+</div>
+<span class="font-mono text-[11px] px-1.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant group-hover:bg-surface-container-high font-medium">2</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-[13px] group" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">hourglass_empty</span>
+<span class="">En attente</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">1</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors text-[13px] group" href="#">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-outline">task_alt</span>
+<span class="">Complétées</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">12</span>
+</a>
+</div>
+<!-- Section: Filtres par projet -->
+<div class="space-y-1">
+<div class="flex items-center justify-between px-2">
+<span class="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant/70 font-medium">Projets Associés</span>
+<span class="material-symbols-outlined text-[13px] text-outline hover:text-on-surface cursor-pointer">add</span>
+</div>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" href="#">
+<div class="flex items-center gap-2 truncate">
+<!-- Visual Project Dot / Figma Mini Pill -->
+<span class="w-2.5 h-2.5 rounded-sm bg-purple-500 flex-shrink-0"></span>
+<span class="truncate">Campagne de Marque</span>
+</div>
+<span class="font-mono text-[11px] text-outline">2</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" href="#">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2.5 h-2.5 rounded-sm bg-blue-500 flex-shrink-0"></span>
+<span class="truncate">Onboarding Client</span>
+</div>
+<span class="font-mono text-[11px] text-outline">1</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" href="#">
+<div class="flex items-center gap-2 truncate">
+<span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 flex-shrink-0"></span>
+<span class="truncate">Refonte Design System</span>
+</div>
+<span class="font-mono text-[11px] text-outline">1</span>
+</a>
+</div>
+<!-- Section: Outils & Connecteurs Liés -->
+<div class="space-y-1.5 pt-1">
+<div class="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant/70 px-2 font-medium">Intégrations Actives</div>
+<div class="flex items-center gap-2 px-2.5 py-1.5 bg-surface-container-lowest rounded-md border border-surface-container-highest">
+<!-- Figma Icon SVG -->
+<svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 38 57">
+<path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"></path>
+<path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"></path>
+<path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"></path>
+<path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"></path>
+<path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"></path>
+</svg>
+<span class="text-[12px] font-medium text-on-surface truncate">Figma UI Kit v3</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto"></span>
+</div>
+<div class="flex items-center gap-2 px-2.5 py-1.5 bg-surface-container-lowest rounded-md border border-surface-container-highest">
+<!-- Notion / Document SVG -->
+<svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H18a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6.5A2.5 2.5 0 0 1 4 19.5v-15zM6.5 3.5A1 1 0 0 0 5.5 4.5v15a1 1 0 0 0 1 1H18a.5.5 0 0 0 .5-.5V4a.5.5 0 0 0-.5-.5H6.5zM8 7h8v1.5H8V7zm0 3.5h8V12H8v-1.5zm0 3.5h5v1.5H8V14z"></path>
+</svg>
+<span class="text-[12px] font-medium text-on-surface truncate">Docs &amp; Spécifications</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto"></span>
+</div>
+</div>
+</div>
+<!-- Quick VS Code Keyboard cheat footer -->
+<div class="p-2.5 border-t border-surface-container-highest/80 bg-surface-container/50">
+<div class="text-[11px] font-mono text-on-surface-variant flex items-center justify-between"><span class="">Cycle 4 · 75% complété</span><span class="text-amber-700 font-semibold">J-3</span></div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-amber-500 h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</aside>
+<!-- 3. MAIN CONTENT: TASK STREAMS + FOCUS INSPECTOR -->
+<main class="flex-1 flex overflow-hidden bg-surface">
+<!-- STREAMS LIST (SCROLLABLE) -->
+<section class="flex-1 overflow-y-auto px-6 py-6 border-r border-surface-container-highest/70">
+<div class="max-w-3xl mx-auto space-y-6">
+<!-- EN-TÊTE DE SECTION AGRANDI -->
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-mono text-[11px] uppercase tracking-wider text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded font-semibold">Workspace Focus</span>
+<span class="text-outline-variant">•</span>
+<span class="font-mono text-[11px] text-on-surface-variant">Cycle 4 (Semaine 19)</span>
+</div>
+<h1 class="text-[26px] font-headline font-bold text-on-surface tracking-tight">Mes Tâches</h1>
+<p class="text-on-surface-variant text-[14px] mt-0.5">4 priorités requièrent votre validation avant le déploiement.</p>
+</div>
+<!-- Boutons de filtres compacts style VS code tabs -->
+<div class="flex items-center gap-1.5 bg-surface-container-low p-1 rounded-lg border border-surface-container-highest">
+<button class="px-2.5 py-1 text-[12px] font-medium bg-surface-container-lowest text-on-surface rounded shadow-2xs">Toutes (4)</button>
+<button class="px-2.5 py-1 text-[12px] font-medium text-on-surface-variant hover:text-on-surface">À moi (3)</button>
+<button class="px-2.5 py-1 text-[12px] font-medium text-on-surface-variant hover:text-on-surface">Revue (1)</button>
+</div>
+</div>
+<!-- GROUPE 1 : AUJOURD'HUI (Cartes agrandies avec icônes visuelles) -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+<h2 class="font-headline text-[15px] font-bold text-on-surface uppercase tracking-wide">Aujourd'hui</h2>
+<span class="font-mono text-[11px] bg-surface-container-high px-2 py-0.2 rounded-full font-semibold text-on-surface-variant">2</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">Livraison impérative</span>
+</div>
+<!-- Tâche 1 : ACTIVE -->
+<div class="task-card group relative p-4 rounded-xl bg-surface-container-lowest border-2 border-primary shadow-sm cursor-pointer transition-all hover:shadow-md" id="card-DISC-14" onclick="selectTask('DISC-14')">
+<div class="flex items-start gap-3.5">
+<!-- Checkbox interactif style Linear -->
+<button class="mt-1 w-5 h-5 rounded-md border-2 border-amber-500 bg-amber-50 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105" title="Marquer comme fait">
+<span class="w-2 h-2 rounded bg-amber-500"></span>
+</button>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="font-mono text-[12px] font-bold text-on-surface-variant">DISC-14</span>
+<!-- Tag Figma graphique -->
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-medium border border-purple-200/50">
+<svg class="w-3 h-3" fill="none" viewBox="0 0 38 57">
+<path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"></path>
+<path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"></path>
+<path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"></path>
+<path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"></path>
+<path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"></path>
+</svg>
+                      Figma Brand
+                    </span>
+<!-- Pastille urgence -->
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-red-700 text-[11px] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                      Urgent
+                    </span>
+</div>
+<h3 class="text-[16px] font-headline font-semibold text-on-surface leading-snug">
+                    Finaliser le kit de communication pour le lancement Q3
+                  </h3>
+<p class="text-[13px] text-on-surface-variant mt-1.5 line-clamp-1">
+                    Exportation des assets SVG haute résolution, bannières Linkedin et vérification colorimétrique.
+                  </p>
+<div class="flex items-center gap-4 mt-3 pt-2.5 border-t border-surface-container">
+<div class="flex items-center gap-1.5 text-amber-700 font-mono text-[12px] font-medium">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="">17:00</span>
+</div>
+<div class="flex items-center gap-1 text-[12px] text-on-surface-variant font-mono">
+<span class="material-symbols-outlined text-[15px]">checklist</span>
+<span class="">2/3 sous-tâches</span>
+</div>
+<div class="ml-auto flex items-center gap-1.5">
+<span class="text-[11px] font-mono text-on-surface-variant hidden sm:inline">Alexandre M.</span>
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary text-[10px] font-mono font-bold flex items-center justify-center">
+                        AM
+                      </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tâche 2 -->
+<div class="task-card group relative p-4 rounded-xl bg-surface-container-lowest border border-surface-container-highest shadow-2xs cursor-pointer transition-all hover:border-outline-variant hover:shadow-sm" id="card-DISC-19" onclick="selectTask('DISC-19')">
+<div class="flex items-start gap-3.5">
+<button class="mt-1 w-5 h-5 rounded-md border-2 border-outline-variant hover:border-on-surface flex items-center justify-center flex-shrink-0 transition-colors" title="Marquer comme fait">
+<span class="w-2 h-2 rounded bg-transparent"></span>
+</button>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="font-mono text-[12px] text-on-surface-variant">DISC-19</span>
+<!-- Notion Tag SVG -->
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-stone-100 text-stone-800 text-[11px] font-medium border border-stone-200">
+<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H18a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6.5A2.5 2.5 0 0 1 4 19.5v-15zM6.5 3.5A1 1 0 0 0 5.5 4.5v15a1 1 0 0 0 1 1H18a.5.5 0 0 0 .5-.5V4a.5.5 0 0 0-.5-.5H6.5zM8 7h8v1.5H8V7zm0 3.5h8V12H8v-1.5z"></path>
+</svg>
+                      Notion Spec
+                    </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[11px] font-medium">
+                      Moyenne
+                    </span>
+</div>
+<h3 class="text-[16px] font-headline font-semibold text-on-surface leading-snug">
+                    Relecture du document d'onboarding partenaires
+                  </h3>
+<div class="flex items-center gap-4 mt-3 pt-2.5 border-t border-surface-container">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-mono text-[12px]">
+<span class="material-symbols-outlined text-[15px]">event</span>
+<span class="">Ce soir</span>
+</div>
+<div class="ml-auto flex items-center gap-1.5">
+<span class="text-[11px] font-mono text-on-surface-variant hidden sm:inline">Sophie L.</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest text-on-surface text-[10px] font-mono font-bold flex items-center justify-center">
+                        SL
+                      </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- GROUPE 2 : CETTE SEMAINE -->
+<div class="space-y-3 pt-2">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-outline-variant"></span>
+<h2 class="font-headline text-[15px] font-bold text-on-surface uppercase tracking-wide">Cette semaine</h2>
+<span class="font-mono text-[11px] bg-surface-container-high px-2 py-0.2 rounded-full font-semibold text-on-surface-variant">2</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">Échéances sprint</span>
+</div>
+<!-- Tâche 3 -->
+<div class="task-card group relative p-4 rounded-xl bg-surface-container-lowest border border-surface-container-highest shadow-2xs cursor-pointer transition-all hover:border-outline-variant hover:shadow-sm" id="card-DISC-22" onclick="selectTask('DISC-22')">
+<div class="flex items-start gap-3.5">
+<button class="mt-1 w-5 h-5 rounded-md border-2 border-outline-variant hover:border-on-surface flex items-center justify-center flex-shrink-0 transition-colors" title="Marquer comme fait">
+<span class="w-2 h-2 rounded bg-transparent"></span>
+</button>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="font-mono text-[12px] text-on-surface-variant">DISC-22</span>
+<!-- Web App Tag SVG -->
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-medium border border-blue-200">
+<span class="material-symbols-outlined text-[13px]">slideshow</span>
+                      Keynote Stratégie
+                    </span>
+<span class="text-[11px] font-mono text-outline">Basse</span>
+</div>
+<h3 class="text-[16px] font-headline font-semibold text-on-surface leading-snug">
+                    Préparer le pitch de revue trimestrielle
+                  </h3>
+<div class="flex items-center gap-4 mt-3 pt-2.5 border-t border-surface-container">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-mono text-[12px]">
+<span class="material-symbols-outlined text-[15px]">event</span>
+<span class="">Jeu 15 mai</span>
+</div>
+<div class="ml-auto flex items-center gap-1.5">
+<span class="text-[11px] font-mono text-on-surface-variant hidden sm:inline">Alexandre M.</span>
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary text-[10px] font-mono font-bold flex items-center justify-center">
+                        AM
+                      </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tâche 4 -->
+<div class="task-card group relative p-4 rounded-xl bg-surface-container-lowest border border-surface-container-highest shadow-2xs cursor-pointer transition-all hover:border-outline-variant hover:shadow-sm" id="card-DISC-28" onclick="selectTask('DISC-28')">
+<div class="flex items-start gap-3.5">
+<button class="mt-1 w-5 h-5 rounded-md border-2 border-outline-variant hover:border-on-surface flex items-center justify-center flex-shrink-0 transition-colors" title="Marquer comme fait">
+<span class="w-2 h-2 rounded bg-transparent"></span>
+</button>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1.5">
+<span class="font-mono text-[12px] text-on-surface-variant">DISC-28</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200">
+<span class="material-symbols-outlined text-[13px]">videocam</span>
+                      Vidéo Brand
+                    </span>
+<span class="text-[11px] font-mono text-outline">Normale</span>
+</div>
+<h3 class="text-[16px] font-headline font-semibold text-on-surface leading-snug">
+                    Organiser le point d'étape avec les prestataires vidéo
+                  </h3>
+<div class="flex items-center gap-4 mt-3 pt-2.5 border-t border-surface-container">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-mono text-[12px]">
+<span class="material-symbols-outlined text-[15px]">event</span>
+<span class="">Ven 16 mai</span>
+</div>
+<div class="ml-auto flex items-center gap-1.5">
+<span class="text-[11px] font-mono text-on-surface-variant hidden sm:inline">Nathalie B.</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest text-on-surface text-[10px] font-mono font-bold flex items-center justify-center">
+                        NB
+                      </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick capture line inline -->
+<div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-surface-container-highest/80 hover:border-outline-variant transition-colors">
+<span class="material-symbols-outlined text-outline text-[18px]">add</span>
+<input class="bg-transparent border-none outline-none font-body text-[14px] text-on-surface placeholder:text-on-surface-variant/70 flex-1 min-w-0 focus:ring-0 p-0" placeholder="Ajouter une tâche rapidement... (Entrée pour valider)" type="text">
+<kbd class="font-mono text-[11px] text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded border border-outline-variant/50">↵ Entrée</kbd>
+</div>
+</div>
+</section>
+<!-- 4. PANNEAU DROIT D'INSPECTION AGRANDI & ULTRA CONFORTABLE (380px) -->
+<aside class="w-96 bg-surface-container-lowest overflow-y-auto flex flex-col justify-between flex-shrink-0 select-text p-6 border-l border-surface-container-highest/70">
+<div class="space-y-6">
+<!-- Top Meta Bar -->
+<div class="flex items-center justify-between pb-3 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="font-mono text-[13px] font-bold text-on-surface bg-surface-container px-2 py-0.5 rounded" id="inspect-code">DISC-14</span>
+<span class="text-outline-variant">•</span>
+<span class="text-[12px] font-mono text-on-surface-variant">Créé il y a 2j</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Ouvrir en plein écran">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Plus d'actions">
+<span class="material-symbols-outlined text-[16px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Statut & Titre Agrandis -->
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-mono text-[11px] font-semibold">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                En cours
+              </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-purple-50 text-purple-800 text-[11px] font-medium border border-purple-200">
+<svg class="w-3 h-3" fill="none" viewBox="0 0 38 57">
+<path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"></path>
+<path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"></path>
+<path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"></path>
+<path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"></path>
+<path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"></path>
+</svg>
+                Figma Brand Book v3.2
+              </span>
+</div>
+<h2 class="text-[20px] font-headline font-bold text-on-surface leading-tight" id="inspect-title">
+              Finaliser le kit de communication pour le lancement Q3
+            </h2>
+</div>
+<!-- Description Block -->
+<div class="bg-surface-container-low rounded-xl p-4 text-[13px] text-on-surface-variant leading-relaxed space-y-2.5">
+<p class="">
+              Harmoniser les formats exportés pour les régies publicitaires et vérifier la cohérence colorimétrique sur les déclinaisons sombres et claires.
+            </p>
+<div class="p-2.5 bg-surface-container-lowest rounded-lg border border-surface-container-highest text-on-surface text-[12px] font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-amber-600">attachment</span>
+<span class="">Livrables : Master ZIP, carrousels LinkedIn &amp; newsletter</span>
+</div>
+</div>
+<!-- Sous-tâches interactives -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Sous-tâches (2/3 complétées)</span>
+<span class="font-mono text-[11px] text-amber-700 font-bold">66%</span>
+</div>
+<div class="space-y-1.5">
+<label class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group border border-transparent hover:border-surface-container-highest">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox">
+<span class="text-[13px] text-on-surface-variant line-through flex-1 group-hover:text-on-surface">Export des assets SVG et WebP</span>
+<span class="font-mono text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold">OK</span>
+</label>
+<label class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group border border-transparent hover:border-surface-container-highest">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox">
+<span class="text-[13px] text-on-surface-variant line-through flex-1 group-hover:text-on-surface">Validation contrastes WCAG AAA</span>
+<span class="font-mono text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold">OK</span>
+</label>
+<label class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer group border border-transparent hover:border-surface-container-highest bg-surface-container-low/50">
+<input class="w-4 h-4 rounded text-primary focus:ring-0 cursor-pointer" type="checkbox">
+<span class="text-[13px] text-on-surface font-medium flex-1">Dépôt sur le cloud partagé et lien Notion</span>
+<span class="font-mono text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-semibold">À faire</span>
+</label>
+</div>
+</div>
+<!-- Métriques & Attributions -->
+<div class="bg-surface-container-low rounded-xl p-4 space-y-3 font-mono text-[12px]">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant font-sans">Assigné à</span>
+<div class="flex items-center gap-2 text-on-surface">
+<div class="w-5 h-5 rounded-full bg-primary text-on-primary font-mono text-[10px] flex items-center justify-center font-bold">AM</div>
+<span class="font-sans font-medium text-[13px]">Alexandre M.</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant font-sans">Échéance finale</span>
+<span class="text-amber-800 font-semibold bg-amber-100/80 px-2 py-0.5 rounded">Aujourd'hui, 17:00</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant font-sans">Temps estimé</span>
+<span class="text-on-surface font-medium">2h 30m restantes</span>
+</div>
+</div>
+<!-- Raccourcis VS Code Linear Guide -->
+<div class="pt-2">
+<span class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant/80 block font-semibold mb-2">Raccourcis productivité</span>
+<div class="grid grid-cols-3 gap-2 text-center">
+<div class="p-2 rounded bg-surface-container-low border border-surface-container-highest">
+<kbd class="font-mono text-[11px] font-bold text-on-surface">X</kbd>
+<span class="block text-[10px] text-on-surface-variant mt-0.5 font-sans">Cocher</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-surface-container-highest">
+<kbd class="font-mono text-[11px] font-bold text-on-surface">P</kbd>
+<span class="block text-[10px] text-on-surface-variant mt-0.5 font-sans">Priorité</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low border border-surface-container-highest">
+<kbd class="font-mono text-[11px] font-bold text-on-surface">D</kbd>
+<span class="block text-[10px] text-on-surface-variant mt-0.5 font-sans">Échéance</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer inspecteur -->
+<div class="pt-4 border-t border-surface-container mt-6 flex items-center justify-between">
+<button class="px-3 py-1.5 rounded text-[12px] font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span class="">Copier le lien</span>
+</button>
+<button class="px-3.5 py-1.5 bg-primary text-on-primary rounded text-[12px] font-medium hover:bg-neutral-800 transition-colors flex items-center gap-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-[15px]">send</span>
+<span class="">Commenter</span>
+</button>
+</div>
+</aside>
+</main>
+</div>
+<!-- SCRIPT INTERACTIF DE SÉLECTION DE TÂCHE -->
+<script>
+    const taskDetails = {
+      'DISC-14': {
+        code: 'DISC-14',
+        title: 'Finaliser le kit de communication pour le lancement Q3'
+      },
+      'DISC-19': {
+        code: 'DISC-19',
+        title: "Relecture du document d'onboarding partenaires"
+      },
+      'DISC-22': {
+        code: 'DISC-22',
+        title: 'Préparer le pitch de revue trimestrielle'
+      },
+      'DISC-28': {
+        code: 'DISC-28',
+        title: "Organiser le point d'étape avec les prestataires vidéo"
+      }
+    };
+
+    function selectTask(id) {
+      const data = taskDetails[id];
+      if (!data) return;
+
+      document.getElementById('inspect-code').textContent = data.code;
+      document.getElementById('inspect-title').textContent = data.title;
+
+      // Update styling highlight
+      document.querySelectorAll('.task-card').forEach(card => {
+        card.classList.remove('border-2', 'border-primary', 'shadow-sm');
+        card.classList.add('border', 'border-surface-container-highest');
+      });
+
+      const activeCard = document.getElementById('card-' + id);
+      if (activeCard) {
+        activeCard.classList.remove('border-surface-container-highest');
+        activeCard.classList.add('border-2', 'border-primary', 'shadow-sm');
+      }
+    }
+  </script>
+
+
+</body></html>
