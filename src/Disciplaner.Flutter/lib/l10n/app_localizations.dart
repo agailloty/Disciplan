@@ -4826,6 +4826,36 @@ abstract class AppLocalizations {
   /// **'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.'**
   String get landingFooter;
 
+  /// No description provided for @landingBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Auto-hébergé · Web · Mobile · Desktop'**
+  String get landingBadge;
+
+  /// No description provided for @landingCtaDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir les fonctionnalités'**
+  String get landingCtaDiscover;
+
+  /// No description provided for @landingFeaturesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout ce qu\'il faut pour piloter vos projets'**
+  String get landingFeaturesTitle;
+
+  /// No description provided for @landingFeatureHomelabTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Auto-hébergé'**
+  String get landingFeatureHomelabTitle;
+
+  /// No description provided for @landingFeatureHomelabDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déployez Disciplan sur votre propre serveur : vos données restent chez vous.'**
+  String get landingFeatureHomelabDescription;
+
   /// No description provided for @setupServerTitle.
   ///
   /// In fr, this message translates to:

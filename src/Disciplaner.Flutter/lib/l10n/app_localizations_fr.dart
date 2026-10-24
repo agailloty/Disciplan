@@ -2641,6 +2641,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Auto-hébergé · Une API unique pour le web, le mobile et le desktop.';
 
   @override
+  String get landingBadge => 'Auto-hébergé · Web · Mobile · Desktop';
+
+  @override
+  String get landingCtaDiscover => 'Découvrir les fonctionnalités';
+
+  @override
+  String get landingFeaturesTitle =>
+      'Tout ce qu\'il faut pour piloter vos projets';
+
+  @override
+  String get landingFeatureHomelabTitle => 'Auto-hébergé';
+
+  @override
+  String get landingFeatureHomelabDescription =>
+      'Déployez Disciplan sur votre propre serveur : vos données restent chez vous.';
+
+  @override
   String get setupServerTitle => 'Configuration du serveur';
 
   @override

@@ -788,6 +788,11 @@
   "landingFeatureCalendarTitle": "Team calendar",
   "landingFeatureCalendarDescription": "Monthly sprint roadmap and deadlines, with a private iCal feed.",
   "landingFooter": "Self-hosted · One single API for web, mobile and desktop.",
+  "landingBadge": "Self-hosted · Web · Mobile · Desktop",
+  "landingCtaDiscover": "Explore the features",
+  "landingFeaturesTitle": "Everything you need to run your projects",
+  "landingFeatureHomelabTitle": "Self-hosted",
+  "landingFeatureHomelabDescription": "Deploy Disciplan on your own server: your data stays with you.",
   "setupServerTitle": "Server configuration",
   "setupServerSubtitle": "Point the app to another Disciplan API server. The web build uses its own origin by default."
 }

@@ -2625,6 +2625,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Self-hosted · One single API for web, mobile and desktop.';
 
   @override
+  String get landingBadge => 'Self-hosted · Web · Mobile · Desktop';
+
+  @override
+  String get landingCtaDiscover => 'Explore the features';
+
+  @override
+  String get landingFeaturesTitle => 'Everything you need to run your projects';
+
+  @override
+  String get landingFeatureHomelabTitle => 'Self-hosted';
+
+  @override
+  String get landingFeatureHomelabDescription =>
+      'Deploy Disciplan on your own server: your data stays with you.';
+
+  @override
   String get setupServerTitle => 'Server configuration';
 
   @override

@@ -102,4 +102,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Connexion à Disciplan'), findsOneWidget);
   });
+
+  testWidgets('Landing page presents badge, feature grid and discover action',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const ProviderScope(child: DisciplanApp()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LandingScreen), findsOneWidget);
+    expect(find.text('Auto-hébergé · Web · Mobile · Desktop'), findsOneWidget);
+    expect(find.text('Découvrir les fonctionnalités'), findsOneWidget);
+    expect(find.text('Projets & tickets'), findsOneWidget);
+    expect(find.text('Kanban & cycles'), findsOneWidget);
+    expect(find.text("Calendrier d'équipe"), findsOneWidget);
+    expect(find.text('Auto-hébergé'), findsOneWidget);
+
+    // Le CTA secondaire déplace la page vers la section des fonctionnalités.
+    await tester.tap(find.text('Découvrir les fonctionnalités'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LandingScreen), findsOneWidget);
+  });
 }
