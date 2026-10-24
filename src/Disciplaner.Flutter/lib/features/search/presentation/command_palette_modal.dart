@@ -44,12 +44,14 @@ class CommandPaletteModal extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<CommandPaletteModal> createState() => _CommandPaletteModalState();
+  ConsumerState<CommandPaletteModal> createState() =>
+      _CommandPaletteModalState();
 }
 
 class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+  final _keyboardFocusNode = FocusNode();
   int _selectedIndex = 0;
   String _query = '';
 
@@ -63,12 +65,14 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
   void dispose() {
     _searchController.dispose();
     _focusNode.dispose();
+    _keyboardFocusNode.dispose();
     super.dispose();
   }
 
   List<CommandPaletteItem> _buildItems(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final isDesktop = MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
+    final isDesktop =
+        MediaQuery.of(context).size.width >= NeoSpacing.mobileBreakpoint;
     final items = <CommandPaletteItem>[];
 
     // 1. Actions rapides
@@ -232,12 +236,17 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
     }
 
     return KeyboardListener(
-      focusNode: FocusNode(),
+      focusNode: _keyboardFocusNode,
       onKeyEvent: _handleKeyEvent,
       child: Center(
         child: Container(
           width: 640,
-          margin: const EdgeInsets.only(top: 60, left: 16, right: 16, bottom: 40),
+          margin: const EdgeInsets.only(
+            top: 60,
+            left: 16,
+            right: 16,
+            bottom: 40,
+          ),
           constraints: const BoxConstraints(maxHeight: 520),
           decoration: BoxDecoration(
             color: NeoColors.surfaceContainerLowest,
@@ -256,240 +265,279 @@ class _CommandPaletteModalState extends ConsumerState<CommandPaletteModal> {
             ],
             border: Border.all(color: NeoColors.borderWhisper),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Search Input Row
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: NeoColors.borderWhisper, width: 1),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Search Input Row
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search, size: 20, color: NeoColors.muted),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        focusNode: _focusNode,
-                        style: NeoTypography.headlineSm.copyWith(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: l10n.cmdSearchHint,
-                          hintStyle: NeoTypography.headlineSm.copyWith(
-                            color: NeoColors.muted.withValues(alpha: 0.6),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: NeoColors.borderWhisper,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: NeoColors.muted,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _focusNode,
+                          style: NeoTypography.headlineSm.copyWith(
+                            fontWeight: FontWeight.w500,
                             fontSize: 16,
-                            fontWeight: FontWeight.w400,
                           ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onChanged: (val) {
-                          setState(() {
-                            _query = val;
-                            _selectedIndex = 0;
-                          });
-                        },
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: NeoColors.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        l10n.cmdEscapeKey.toUpperCase(),
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 10,
-                          color: NeoColors.muted,
-                          fontWeight: FontWeight.w600,
+                          decoration: InputDecoration(
+                            hintText: l10n.cmdSearchHint,
+                            hintStyle: NeoTypography.headlineSm.copyWith(
+                              color: NeoColors.muted.withValues(alpha: 0.6),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _query = val;
+                              _selectedIndex = 0;
+                            });
+                          },
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Filtered Results
-              Flexible(
-                child: filteredItems.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(NeoSpacing.spaceXl),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: NeoColors.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                         child: Text(
-                          l10n.cmdNoResults(_query),
-                          style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
-                          textAlign: TextAlign.center,
+                          l10n.cmdEscapeKey.toUpperCase(),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 10,
+                            color: NeoColors.muted,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: filteredItems.length,
-                        itemBuilder: (context, index) {
-                          final item = filteredItems[index];
-                          final isSelected = index == _selectedIndex;
-
-                          final showCategoryHeader = index == 0 ||
-                              filteredItems[index - 1].category != item.category;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (showCategoryHeader)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    top: 10,
-                                    bottom: 4,
-                                  ),
-                                  child: Text(
-                                    item.category.toUpperCase(),
-                                    style: NeoTypography.labelSm.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 10,
-                                      color: NeoColors.muted,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
-                                ),
-                              InkWell(
-                                onTap: item.onSelect,
-                                onHover: (hovered) {
-                                  if (hovered) {
-                                    setState(() => _selectedIndex = index);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? NeoColors.surfaceContainer
-                                        : Colors.transparent,
-                                    border: Border(
-                                      left: BorderSide(
-                                        color: isSelected
-                                            ? NeoColors.kineticAmber
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        item.icon,
-                                        size: 18,
-                                        color: isSelected
-                                            ? NeoColors.primary
-                                            : NeoColors.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          item.title,
-                                          style: NeoTypography.bodyMd.copyWith(
-                                            fontWeight: isSelected
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                            color: NeoColors.primary,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      if (item.shortcut != null) ...[
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? NeoColors.surfaceContainerLowest
-                                                : NeoColors.surfaceContainerLow,
-                                            borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(
-                                              color: NeoColors.borderWhisper,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item.shortcut!,
-                                            style: GoogleFonts.jetBrainsMono(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: isSelected
-                                                  ? NeoColors.primary
-                                                  : NeoColors.muted,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
                       ),
-              ),
-
-              // Footer Bar with navigation shortcuts hints
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: NeoColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
-                  border: Border(
-                    top: BorderSide(color: NeoColors.borderWhisper, width: 1),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          l10n.cmdNavigate,
-                          style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
+
+                // Filtered Results
+                Flexible(
+                  child: filteredItems.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(NeoSpacing.spaceXl),
+                          child: Text(
+                            l10n.cmdNoResults(_query),
+                            style: NeoTypography.bodyMd.copyWith(
+                              color: NeoColors.muted,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredItems.length,
+                          itemBuilder: (context, index) {
+                            final item = filteredItems[index];
+                            final isSelected = index == _selectedIndex;
+
+                            final showCategoryHeader =
+                                index == 0 ||
+                                filteredItems[index - 1].category !=
+                                    item.category;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (showCategoryHeader)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 16,
+                                      right: 16,
+                                      top: 10,
+                                      bottom: 4,
+                                    ),
+                                    child: Text(
+                                      item.category.toUpperCase(),
+                                      style: NeoTypography.labelSm.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 10,
+                                        color: NeoColors.muted,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                InkWell(
+                                  onTap: item.onSelect,
+                                  onHover: (hovered) {
+                                    if (hovered) {
+                                      setState(() => _selectedIndex = index);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? NeoColors.surfaceContainer
+                                          : Colors.transparent,
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: isSelected
+                                              ? NeoColors.kineticAmber
+                                              : Colors.transparent,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          item.icon,
+                                          size: 18,
+                                          color: isSelected
+                                              ? NeoColors.primary
+                                              : NeoColors.onSurfaceVariant,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            item.title,
+                                            style: NeoTypography.bodyMd
+                                                .copyWith(
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w400,
+                                                  color: NeoColors.primary,
+                                                ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (item.shortcut != null) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? NeoColors
+                                                        .surfaceContainerLowest
+                                                  : NeoColors
+                                                        .surfaceContainerLow,
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              border: Border.all(
+                                                color: NeoColors.borderWhisper,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              item.shortcut!,
+                                              style: GoogleFonts.jetBrainsMono(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: isSelected
+                                                    ? NeoColors.primary
+                                                    : NeoColors.muted,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '↑↓',
-                          style: GoogleFonts.jetBrainsMono(fontSize: 11, color: NeoColors.primary),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          l10n.cmdOpen,
-                          style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '↵',
-                          style: GoogleFonts.jetBrainsMono(fontSize: 11, color: NeoColors.primary),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      l10n.cmdFooterBrand,
-                      style: NeoTypography.labelSm.copyWith(
-                        color: NeoColors.muted.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-            ],
+
+                // Footer Bar with navigation shortcuts hints
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: NeoColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(12),
+                    ),
+                    border: Border(
+                      top: BorderSide(color: NeoColors.borderWhisper, width: 1),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            l10n.cmdNavigate,
+                            style: NeoTypography.labelSm.copyWith(
+                              color: NeoColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '↑↓',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11,
+                              color: NeoColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            l10n.cmdOpen,
+                            style: NeoTypography.labelSm.copyWith(
+                              color: NeoColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '↵',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11,
+                              color: NeoColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        l10n.cmdFooterBrand,
+                        style: NeoTypography.labelSm.copyWith(
+                          color: NeoColors.muted.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -120,13 +120,24 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('fr'),
             theme: NeoTheme.lightTheme,
-            home: const Scaffold(
-              body: CommandPaletteModal(),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: ElevatedButton(
+                    onPressed: () => CommandPaletteModal.show(context),
+                    child: const Text('Ouvrir la palette'),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
       );
 
+      // Ouvre la palette via showDialog, comme le raccourci Ctrl+K :
+      // la route de dialogue ne fournit pas de Material ancestor,
+      // c'est la régression « No Material widget found ».
+      await tester.tap(find.text('Ouvrir la palette'));
       await tester.pumpAndSettle();
 
       // Search input and initial items should be visible
@@ -144,6 +155,11 @@ void main() {
       // Keyboard navigation with ArrowDown
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pumpAndSettle();
+
+      // Escape closes the palette
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsNothing);
     });
   });
 
