@@ -1,10 +1,11 @@
 # Disciplaner
 
-Disciplaner is a self-hostable project management application inspired by Jira and Linear, built with **Blazor WebAssembly** (client) and **ASP.NET Core 10** (API + host). Data is persisted in a **SQLite** database. The UI is styled with **Tailwind CSS** and **Bootstrap Icons** and is available in **French** (default) and **English**.
+Disciplaner is a self-hostable project management application inspired by Jira and Linear, powered by a robust **ASP.NET Core 10** REST API backend and a **modern multiplatform Flutter client** (Web, Desktop Windows/macOS/Linux, and Mobile Android/iOS). Data is persisted in a **SQLite** database. The Flutter client implements the **Neo-Linear** design system with a clean, high-density keyboard-first UX.
 
 ## Table of Contents
 
 - [Architecture](#architecture)
+- [Multiplatform Flutter Client](#multiplatform-flutter-client)
 - [Features](#features)
 - [Quick Start with Docker](#quick-start-with-docker)
 - [Environment Variables](#environment-variables)
@@ -21,11 +22,25 @@ Disciplaner.Domain          ← Entities, business rules, value objects, domain 
 Disciplaner.Application     ← Services, DTOs, mappings (MediatR-free CQRS-lite)
 Disciplaner.Infrastructure  ← EF Core + SQLite, ASP.NET Core Identity, repositories
 Disciplaner.Web/
-  Client/                   ← Blazor WebAssembly SPA (Tailwind CSS, Bootstrap Icons)
-  Server/                   ← ASP.NET Core (REST API + static WASM host)
+  Server/                   ← ASP.NET Core 10 REST API (+ optional static host for the Flutter web build)
+src/Disciplaner.Flutter/    ← Multiplatform Flutter client (Web, Desktop & Mobile)
 ```
 
-The application is a **hosted Blazor WASM** project: the server serves both the REST API and the compiled client-side SPA. On first startup EF Core migrations are applied automatically. If no admin seed credentials are supplied, the application enters **setup mode** and exposes a `/setup` wizard to create the first administrator account.
+The application is powered by an ASP.NET Core 10 REST API and consumed seamlessly by the Flutter client (`src/Disciplaner.Flutter`), the single frontend of the project. On first startup EF Core migrations are applied automatically. If no admin seed credentials are supplied, the application enters **setup mode** and exposes a `/setup` wizard (also available in the Flutter client) to create the first administrator account.
+
+---
+
+## Multiplatform Flutter Client
+
+The unified Flutter client is located in `src/Disciplaner.Flutter/`. It features:
+- **Neo-Linear Design System**: High-density typography (*Plus Jakarta Sans* / *JetBrains Mono*), minimal borders, subtle shadows and warm cream tones (`#FDFBF7` / `#1A1917` / `#E5A800`).
+- **Adaptive Shell**: Responsive switching between the VS Code style activity bar with workspace tabs (desktop) and mobile ergonomics with bottom navigation.
+- **Speed & Shortcuts**: Global Command Palette (`⌘K` / `Ctrl+K`), quick ticket creation modal (`C`).
+- **Interactive Kanban**: Drag & drop multiplatform board with cycle filters and real-time WIP metrics.
+- **Team Calendar & iCal**: Monthly sprint roadmap, ticket deadlines, and private iCal feed subscription (`/ical/{token}`).
+- **Administration & Homelab**: Server base URL discovery, invitation link generation (7 days), and account management.
+
+For full development, compilation commands, and Homelab reverse-proxy guides, see [Flutter Client Documentation](docs/flutter-migration/README.md).
 
 ---
 
@@ -61,13 +76,13 @@ The application is a **hosted Blazor WASM** project: the server serves both the 
 - **JWT authentication** — stateless Bearer tokens; configurable issuer, audience, expiry
 - **Swagger UI** — available in development mode at `/swagger`
 - **Docker** — multi-stage Dockerfile, single container, SQLite database persisted to a named volume
-- **Internationalisation** — resource files for French (default) and English (`AppResources.resx` / `AppResources.en.resx`)
+- **Internationalisation** — French (default) and English ARB resources in the Flutter client (`app_fr.arb` / `app_en.arb`)
 
 ---
 
 ## Quick Start with Docker
 
-The image is published to GitHub Container Registry on every `vX.Y.Z` tag.
+The image is published to GitHub Container Registry on every `vX.Y.Z` tag. It bundles **both the REST API and the Flutter web client**: a single container serves the web front from the same origin as the API (no CORS needed), while mobile and desktop clients consume the same REST API.
 
 ```bash
 docker run -d \
@@ -80,7 +95,16 @@ docker run -d \
   ghcr.io/agailloty/disciplan:latest
 ```
 
-The application is then available at [http://localhost:8080](http://localhost:8080).
+The application is then available at [http://localhost:8080](http://localhost:8080): a public home page presents the product and invites the visitor to authenticate; the REST API (`/api/…`) is served by the same process for the mobile and desktop clients.
+
+To serve the web front from a separate static host instead (advanced setup):
+
+```bash
+cd src/Disciplaner.Flutter
+flutter build web --release
+```
+
+Serve `build/web/` with nginx or any static server behind the same reverse proxy, and set `Cors__Origins__0` to the client origin on the API container.
 
 > **Note:** the `/data` volume holds the SQLite database. Mount it to a named volume or host directory to persist data across container restarts.
 
@@ -117,29 +141,14 @@ openssl rand -base64 48
 
 ## Docker Compose
 
-Example `compose.yml` for a full deployment:
+A ready-to-use `compose.yml` is provided at the repository root. It builds the local image (API + web front) and persists data to a named volume:
 
-```yaml
-services:
-  disciplaner:
-    image: ghcr.io/agailloty/disciplan:latest
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - disciplaner-data:/data
-    environment:
-      Jwt__SecretKey: "${JWT_SECRET_KEY}"
-      Jwt__Issuer: "Disciplaner"
-      Jwt__Audience: "Disciplaner"
-      AdminSeed__Email: "${ADMIN_EMAIL}"
-      AdminSeed__Password: "${ADMIN_PASSWORD}"
-      # Uncomment if a reverse proxy terminates TLS upstream
-      # ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-
-volumes:
-  disciplaner-data:
+```bash
+cp .env.example .env   # then fill in JWT_SECRET_KEY
+docker compose up -d
 ```
+
+The stack is then available at [http://localhost:8080](http://localhost:8080).
 
 Create a `.env` file alongside it (never commit this file):
 
@@ -147,12 +156,6 @@ Create a `.env` file alongside it (never commit this file):
 JWT_SECRET_KEY=replace_with_a_random_string_of_at_least_48_characters
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=YourStr0ngPassword!
-```
-
-Then start the stack:
-
-```bash
-docker compose up -d
 ```
 
 ### Behind a reverse proxy (Nginx, Traefik…)
@@ -175,9 +178,32 @@ labels:
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Blazor WASM workload: `dotnet workload install wasm-tools`
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Web, Desktop & Mobile client)
 
 ### Running the application
+
+#### One-command dev script
+
+The repository root provides a script that starts both the API and the Flutter client, waits for the API to be up, and tears everything down on `Ctrl+C`:
+
+```bash
+# Windows (PowerShell) — opens the Flutter web client in Chrome
+./dev.ps1
+
+# Windows (cmd)
+dev.cmd
+
+# Git Bash / Linux / macOS
+./dev.sh
+
+# Options: desktop client instead of the web, custom ports
+./dev.ps1 -Device windows
+API_PORT=5027 WEB_PORT=5000 ./dev.sh
+```
+
+The script injects a development JWT secret (your `dotnet user-secrets` take precedence if set) and points the client at the local API via `DISCIPLAN_API_URL`.
+
+#### Manual setup
 
 ```bash
 cd src/Disciplaner.Web/Server
@@ -193,9 +219,16 @@ dotnet user-secrets set "AdminSeed:Password" "Admin1234!"
 dotnet run
 ```
 
-The API and the Blazor client are available at `https://localhost:<port>` (the exact port is printed on startup).
+The API is then available at `http://localhost:<port>` (the exact port is printed on startup; the Flutter client defaults to `http://localhost:5000`).
 
-> **First run without seed credentials:** navigate to `/setup` and complete the wizard to create the first administrator account. The endpoint is disabled once an admin user exists.
+Start the Flutter client against it:
+
+```bash
+cd src/Disciplaner.Flutter
+flutter run -d chrome   # or: -d windows / -d macos / -d linux
+```
+
+> **First run without seed credentials:** the Flutter client opens its `/setup` wizard to create the first administrator account. The endpoint is disabled once an admin user exists.
 
 ### EF Core migrations
 
@@ -212,11 +245,13 @@ dotnet ef migrations add MigrationName \
 
 ## Building the Docker Image
 
+The multi-stage `Dockerfile` builds the Flutter web client, publishes the .NET API, and assembles a single runtime image serving both:
+
 ```bash
 # From the repository root
 docker build -t disciplaner:local .
 
-# Quick smoke test
+# Quick smoke test (API + web front at http://localhost:8080)
 docker run --rm \
   -p 8080:8080 \
   -v disciplaner-data:/data \

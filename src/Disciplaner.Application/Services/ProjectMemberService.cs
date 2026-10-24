@@ -21,7 +21,7 @@ public sealed class ProjectMemberService : IProjectMemberService
         if (!project.HasAccess(requestingUserId))
             throw new ForbiddenException($"User '{requestingUserId}' does not have access to project '{projectId}'.");
 
-        return await ResolveMembers(project.Members, cancellationToken);
+        return await ResolveMembers(project, cancellationToken);
     }
 
     public async Task<MemberDto> AddMemberAsync(
@@ -84,11 +84,23 @@ public sealed class ProjectMemberService : IProjectMemberService
     }
 
     private async Task<IReadOnlyList<MemberDto>> ResolveMembers(
-        IReadOnlyCollection<ProjectMember> members, CancellationToken cancellationToken)
+        Project project, CancellationToken cancellationToken)
     {
-        var result = new List<MemberDto>(members.Count);
-        foreach (var m in members)
+        var result = new List<MemberDto>(project.Members.Count + 1);
+        var owner = await _uow.Users.GetByIdAsync(project.OwnerId, cancellationToken);
+        if (owner is not null)
         {
+            result.Add(new MemberDto(
+                owner.Id,
+                owner.DisplayName,
+                owner.Email,
+                Domain.Enums.MemberRole.Admin,
+                project.CreatedAt));
+        }
+
+        foreach (var m in project.Members)
+        {
+            if (m.UserId == project.OwnerId) continue;
             var user = await _uow.Users.GetByIdAsync(m.UserId, cancellationToken);
             if (user is null) continue;
             result.Add(new MemberDto(m.UserId, user.DisplayName, user.Email, m.Role, m.JoinedAt));

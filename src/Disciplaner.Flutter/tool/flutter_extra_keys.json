@@ -1,0 +1,1852 @@
+{
+  "authDisplayNameHint": {
+    "fr": "ex. Marie Curie",
+    "en": "e.g. Marie Curie"
+  },
+  "authEmailHint": {
+    "fr": "vous@exemple.com",
+    "en": "you@example.com"
+  },
+  "authHaveAccount": {
+    "fr": "Déjà un compte ? Se connecter",
+    "en": "Already have an account? Sign in"
+  },
+  "authHomelabServer": {
+    "fr": "Serveur Homelab",
+    "en": "Homelab server"
+  },
+  "authInvitationSubtitle": {
+    "fr": "Complétez votre inscription via votre jeton d'invitation.",
+    "en": "Complete your registration with your invitation token."
+  },
+  "authInvitationTokenHint": {
+    "fr": "ex. inv_8f93ab...",
+    "en": "e.g. inv_8f93ab..."
+  },
+  "authInvitationTokenLabel": {
+    "fr": "Jeton d'invitation",
+    "en": "Invitation token"
+  },
+  "authJoinTeam": {
+    "fr": "Rejoindre une Équipe",
+    "en": "Join a team"
+  },
+  "authLoginTagline": {
+    "fr": "Pilotez vos sprints et tickets en haute vélocité.",
+    "en": "Drive your sprints and tickets at high velocity."
+  },
+  "authLoginTitle": {
+    "fr": "Connexion à Disciplan",
+    "en": "Sign in to Disciplan"
+  },
+  "authReceivedInvitation": {
+    "fr": "Vous avez reçu une invitation ?",
+    "en": "Received an invitation?"
+  },
+  "authServerTest": {
+    "fr": "Tester",
+    "en": "Test"
+  },
+  "authServerTestFailed": {
+    "fr": "Échec de connexion au serveur Homelab.",
+    "en": "Failed to connect to the Homelab server."
+  },
+  "authServerTestSuccess": {
+    "fr": "Connexion établie avec succès.",
+    "en": "Connection established successfully."
+  },
+  "authSetupDisplayNameHint": {
+    "fr": "ex. Alexandre Gailloty",
+    "en": "e.g. Alexandre Gailloty"
+  },
+  "authSetupFillAllFields": {
+    "fr": "Veuillez remplir tous les champs.",
+    "en": "Please fill in all fields."
+  },
+  "authSetupIntro": {
+    "fr": "Initialisez votre instance Homelab en créant le compte administrateur racine.",
+    "en": "Initialize your Homelab instance by creating the root administrator account."
+  },
+  "authSetupPasswordLabel": {
+    "fr": "Mot de passe (min. 8 caractères)",
+    "en": "Password (min. 8 characters)"
+  },
+  "authSetupPasswordTooShort": {
+    "fr": "Le mot de passe doit comporter au moins 8 caractères.",
+    "en": "The password must be at least 8 characters long."
+  },
+  "authSetupTitle": {
+    "fr": "Premier Démarrage",
+    "en": "First launch"
+  },
+  "authValidateInvitation": {
+    "fr": "Valider l'invitation",
+    "en": "Accept invitation"
+  },
+  "calCopyIcalUrl": {
+    "fr": "Copier l'URL iCal",
+    "en": "Copy iCal URL"
+  },
+  "calFilterAll": {
+    "fr": "Tout voir",
+    "en": "View all"
+  },
+  "calFilterSprints": {
+    "fr": "Sprints",
+    "en": "Sprints"
+  },
+  "calGenerateToken": {
+    "fr": "Générer le jeton",
+    "en": "Generate token"
+  },
+  "calIcalNoFeed": {
+    "fr": "Aucun flux actif. Générez votre jeton privé pour synchroniser votre calendrier.",
+    "en": "No active feed. Generate your private token to sync your calendar."
+  },
+  "calIcalSyncTitle": {
+    "fr": "Synchronisation iCal / Agenda externe",
+    "en": "iCal / external calendar sync"
+  },
+  "calIcalUrlCopied": {
+    "fr": "URL du flux iCal copiée",
+    "en": "iCal feed URL copied"
+  },
+  "calNoMilestones": {
+    "fr": "Aucun jalon ou ticket daté pour ce filtre.",
+    "en": "No milestones or dated tickets for this filter."
+  },
+  "calRegenerateToken": {
+    "fr": "Régénérer le jeton",
+    "en": "Regenerate token"
+  },
+  "calSprintMilestone": {
+    "fr": "Jalon de cycle",
+    "en": "Cycle milestone"
+  },
+  "calTeamCalendarSubtitle": {
+    "fr": "Jalons de sprint, échéances de tickets et synchronisation iCal",
+    "en": "Sprint milestones, ticket due dates and iCal sync"
+  },
+  "calTeamCalendarTitle": {
+    "fr": "Calendrier d'Équipe",
+    "en": "Team Calendar"
+  },
+  "calTokenError": {
+    "fr": "Erreur token: {error}",
+    "en": "Token error: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "cmdCategoryActions": {
+    "fr": "Actions rapides",
+    "en": "Quick actions"
+  },
+  "cmdCategoryNavigation": {
+    "fr": "Navigation",
+    "en": "Navigation"
+  },
+  "cmdCategoryTickets": {
+    "fr": "Tickets",
+    "en": "Tickets"
+  },
+  "cmdCreateTask": {
+    "fr": "Créer une tâche",
+    "en": "Create a task"
+  },
+  "cmdEscapeKey": {
+    "fr": "Échap",
+    "en": "Esc"
+  },
+  "cmdFooterBrand": {
+    "fr": "Disciplan Neo-Linear",
+    "en": "Disciplan Neo-Linear"
+  },
+  "cmdNavCalendar": {
+    "fr": "Calendrier d'Équipe",
+    "en": "Team calendar"
+  },
+  "cmdNavCycles": {
+    "fr": "Cycles & Sprints",
+    "en": "Cycles & Sprints"
+  },
+  "cmdNavSettings": {
+    "fr": "Paramètres & Administration",
+    "en": "Settings & Administration"
+  },
+  "cmdNavSprintKanban": {
+    "fr": "Tableau Kanban du Sprint",
+    "en": "Sprint Kanban board"
+  },
+  "cmdNavigate": {
+    "fr": "Naviguer",
+    "en": "Navigate"
+  },
+  "cmdNoResults": {
+    "fr": "Aucun résultat correspondant à “{query}”",
+    "en": "No results matching “{query}”",
+    "placeholders": {
+      "query": "String"
+    }
+  },
+  "cmdOpen": {
+    "fr": "Ouvrir",
+    "en": "Open"
+  },
+  "cmdSearchHint": {
+    "fr": "Rechercher un ticket, une action ou naviguer...",
+    "en": "Search for a ticket, an action, or navigate..."
+  },
+  "errorBadRequest": {
+    "fr": "Requête invalide.",
+    "en": "Invalid request."
+  },
+  "errorConflict": {
+    "fr": "Un conflit est survenu (élément déjà existant ou modifié).",
+    "en": "A conflict occurred (item already exists or was modified)."
+  },
+  "errorForbidden": {
+    "fr": "Accès refusé pour cette opération.",
+    "en": "Access denied for this operation."
+  },
+  "errorGenericNetwork": {
+    "fr": "Une erreur réseau est survenue.",
+    "en": "A network error occurred."
+  },
+  "errorNetwork": {
+    "fr": "Impossible de joindre le serveur. Vérifiez votre connexion et l'URL du serveur.",
+    "en": "Unable to reach the server. Check your connection and the server URL."
+  },
+  "errorNotFound": {
+    "fr": "Ressource introuvable.",
+    "en": "Resource not found."
+  },
+  "errorServer": {
+    "fr": "Une erreur interne est survenue sur le serveur.",
+    "en": "An internal error occurred on the server."
+  },
+  "errorUnauthorized": {
+    "fr": "Identifiants invalides ou session expirée.",
+    "en": "Invalid credentials or expired session."
+  },
+  "kanbanBoardLoadError": {
+    "fr": "Erreur de chargement du tableau: {error}",
+    "en": "Failed to load the board: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "kanbanDropTicketHere": {
+    "fr": "Glisser une tâche ici",
+    "en": "Drag a task here"
+  },
+  "kanbanDueToday": {
+    "fr": "Aujourd'hui",
+    "en": "Today"
+  },
+  "kanbanDueTomorrow": {
+    "fr": "Demain",
+    "en": "Tomorrow"
+  },
+  "kanbanDueYesterday": {
+    "fr": "Hier",
+    "en": "Yesterday"
+  },
+  "kanbanErrorWithDetail": {
+    "fr": "Erreur: {error}",
+    "en": "Error: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "kanbanFilterCardsHint": {
+    "fr": "Filtrer les cartes...",
+    "en": "Filter cards..."
+  },
+  "kanbanHideMetrics": {
+    "fr": "Masquer en-tête",
+    "en": "Hide header"
+  },
+  "kanbanMoveToStatus": {
+    "fr": "Déplacer vers...",
+    "en": "Move to..."
+  },
+  "kanbanNoStatuses": {
+    "fr": "Aucun statut défini pour ce projet.",
+    "en": "No statuses defined for this project."
+  },
+  "kanbanNoStatusesAvailable": {
+    "fr": "Aucun statut disponible.",
+    "en": "No statuses available."
+  },
+  "kanbanNoTicketsInStatus": {
+    "fr": "Aucune tâche dans \"{status}\"",
+    "en": "No tasks in \"{status}\"",
+    "placeholders": {
+      "status": "String"
+    }
+  },
+  "kanbanOpenSprintBoard": {
+    "fr": "Ouvrir le Kanban de \"{name}\"",
+    "en": "Open the Kanban of \"{name}\"",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "kanbanPriorityHighFilter": {
+    "fr": "Priorité Haute",
+    "en": "High priority"
+  },
+  "kanbanSelectProject": {
+    "fr": "Sélectionnez un projet pour afficher son tableau Kanban.",
+    "en": "Select a project to display its Kanban board."
+  },
+  "kanbanShowMetrics": {
+    "fr": "Afficher métriques",
+    "en": "Show metrics"
+  },
+  "kanbanStartNamed": {
+    "fr": "Démarrer \"{name}\"",
+    "en": "Start \"{name}\"",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "kanbanSwitchSprintTooltip": {
+    "fr": "Changer de sprint affiché",
+    "en": "Switch the displayed sprint"
+  },
+  "kanbanViewBacklog": {
+    "fr": "Voir le Backlog",
+    "en": "View backlog"
+  },
+  "priorityCritical": {
+    "fr": "Urgente",
+    "en": "Critical"
+  },
+  "priorityHigh": {
+    "fr": "Haute",
+    "en": "High"
+  },
+  "priorityLow": {
+    "fr": "Basse",
+    "en": "Low"
+  },
+  "priorityMedium": {
+    "fr": "Moyenne",
+    "en": "Medium"
+  },
+  "projActiveProjects": {
+    "fr": "Projets actifs",
+    "en": "Active projects"
+  },
+  "projActiveSpace": {
+    "fr": "Espace actif : {key} — {name}",
+    "en": "Active space: {key} — {name}",
+    "placeholders": {
+      "key": "String",
+      "name": "String"
+    }
+  },
+  "projActiveSpaceBadge": {
+    "fr": "Espace actif",
+    "en": "Active space"
+  },
+  "projAllMyProjects": {
+    "fr": "Tous mes projets",
+    "en": "All my projects"
+  },
+  "projCardDescriptionFallback": {
+    "fr": "Espace projet encapsulé — cliquez pour accéder à ses tickets et cycles.",
+    "en": "Encapsulated project space — click to access its tickets and cycles."
+  },
+  "projCreateNew": {
+    "fr": "Créer un projet",
+    "en": "Create a project"
+  },
+  "projCreateSubmit": {
+    "fr": "Créer le projet",
+    "en": "Create project"
+  },
+  "projCreateSubtitle": {
+    "fr": "Configurez un espace de travail collaboratif pour aligner vos sprints et tickets.",
+    "en": "Set up a collaborative workspace to align your sprints and tickets."
+  },
+  "projCycles": {
+    "fr": "Cycles",
+    "en": "Cycles"
+  },
+  "projDashboardGeneral": {
+    "fr": "Dashboard Général",
+    "en": "General dashboard"
+  },
+  "projDescriptionHint": {
+    "fr": "Résumez les objectifs stratégiques et le périmètre...",
+    "en": "Summarize the strategic goals and scope..."
+  },
+  "projDescriptionLabel": {
+    "fr": "Description & vision",
+    "en": "Description & vision"
+  },
+  "projEmptyHint": {
+    "fr": "Créez votre premier projet pour organiser vos tickets et sprints.",
+    "en": "Create your first project to organize your tickets and sprints."
+  },
+  "projExplorerSubtitle": {
+    "fr": "Sélectionnez ou créez un projet pour afficher sa vue liste et son backlog.",
+    "en": "Select or create a project to display its list view and backlog."
+  },
+  "projExplorerTitle": {
+    "fr": "Explorateur de Projets",
+    "en": "Project Explorer"
+  },
+  "projFilterMember": {
+    "fr": "Membre d'équipe",
+    "en": "Team member"
+  },
+  "projInitiationAgile": {
+    "fr": "Initiation agile",
+    "en": "Agile initiation"
+  },
+  "projKeyAuto": {
+    "fr": "Auto",
+    "en": "Auto"
+  },
+  "projLoadError": {
+    "fr": "Erreur: {error}",
+    "en": "Error: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "projMember": {
+    "fr": "Membre du projet",
+    "en": "Project member"
+  },
+  "projNameHint": {
+    "fr": "ex. Campagne de Marque 2025",
+    "en": "e.g. Brand Campaign 2025"
+  },
+  "projNameLabel": {
+    "fr": "Nom du projet *",
+    "en": "Project name *"
+  },
+  "projNameRequired": {
+    "fr": "Veuillez saisir le nom du projet.",
+    "en": "Please enter the project name."
+  },
+  "projNoMatch": {
+    "fr": "Aucun projet ne correspond à ce filtre.",
+    "en": "No project matches this filter."
+  },
+  "projOwner": {
+    "fr": "Propriétaire",
+    "en": "Owner"
+  },
+  "projPortfolio": {
+    "fr": "Portefeuille de projets",
+    "en": "Project portfolio"
+  },
+  "projSearchHint": {
+    "fr": "Rechercher un projet (nom, clé)...",
+    "en": "Search for a project (name, key)..."
+  },
+  "projSelectSubtitle": {
+    "fr": "Sélectionnez un projet pour encapsuler votre espace de travail ou accédez directement à son Backlog, Kanban ou Cycles.",
+    "en": "Select a project to encapsulate your workspace, or jump straight to its Backlog, Kanban or Cycles."
+  },
+  "projSprintsCycles": {
+    "fr": "Sprints & Cycles",
+    "en": "Sprints & Cycles"
+  },
+  "projTotalTickets": {
+    "fr": "Tickets cumulés",
+    "en": "Total tickets"
+  },
+  "roleAdmin": {
+    "fr": "Administrateur",
+    "en": "Admin"
+  },
+  "roleGuest": {
+    "fr": "Invité",
+    "en": "Guest"
+  },
+  "roleMember": {
+    "fr": "Membre",
+    "en": "Member"
+  },
+  "roleSupervisor": {
+    "fr": "Superviseur",
+    "en": "Supervisor"
+  },
+  "settingsActive": {
+    "fr": "Actif",
+    "en": "Active"
+  },
+  "settingsAdminInvitationsSubtitle": {
+    "fr": "Générez des liens d'invitation à usage unique pour intégrer de nouveaux membres",
+    "en": "Generate single-use invitation links to onboard new members"
+  },
+  "settingsAdminInvitationsTitle": {
+    "fr": "Administration — Invitations (7 jours)",
+    "en": "Administration — Invitations (7 days)"
+  },
+  "settingsAdminUsersSubtitle": {
+    "fr": "Activer, désactiver ou changer les rôles des utilisateurs de l'instance",
+    "en": "Activate, deactivate or change the roles of the instance users"
+  },
+  "settingsAdminUsersTitle": {
+    "fr": "Administration — Gestion des Comptes",
+    "en": "Administration — Account Management"
+  },
+  "settingsAll": {
+    "fr": "Tous",
+    "en": "All"
+  },
+  "settingsApply": {
+    "fr": "Appliquer",
+    "en": "Apply"
+  },
+  "settingsCopyToken": {
+    "fr": "Copier le jeton",
+    "en": "Copy token"
+  },
+  "settingsDefaultUser": {
+    "fr": "Utilisateur",
+    "en": "User"
+  },
+  "settingsGenerateInviteLink": {
+    "fr": "Générer un lien (7j)",
+    "en": "Generate a link (7d)"
+  },
+  "settingsHeaderSubtitle": {
+    "fr": "Préférences utilisateur, configuration Homelab et gestion des accès",
+    "en": "User preferences, Homelab configuration and access management"
+  },
+  "settingsInactive": {
+    "fr": "Inactif",
+    "en": "Inactive"
+  },
+  "settingsInvitationsError": {
+    "fr": "Erreur chargement invitations: {error}",
+    "en": "Error loading invitations: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "settingsInviteEmailHint": {
+    "fr": "adresse@entreprise.com",
+    "en": "name@company.com"
+  },
+  "settingsInviteEmailInvalid": {
+    "fr": "Veuillez saisir une adresse email valide.",
+    "en": "Please enter a valid email address."
+  },
+  "settingsInviteError": {
+    "fr": "Erreur lors de la création de l'invitation : {error}",
+    "en": "Error while creating the invitation: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "settingsInviteExpired": {
+    "fr": "Expirée",
+    "en": "Expired"
+  },
+  "settingsInviteGenerated": {
+    "fr": "Invitation générée pour {email} !",
+    "en": "Invitation generated for {email}!",
+    "placeholders": {
+      "email": "String"
+    }
+  },
+  "settingsInviteLinkCopied": {
+    "fr": "Lien d'invitation copié dans le presse-papiers",
+    "en": "Invitation link copied to the clipboard"
+  },
+  "settingsInviteUsed": {
+    "fr": "Déjà utilisée",
+    "en": "Already used"
+  },
+  "settingsInviteValid": {
+    "fr": "Valide",
+    "en": "Valid"
+  },
+  "settingsLanguageEn": {
+    "fr": "English",
+    "en": "English"
+  },
+  "settingsLanguageFr": {
+    "fr": "Français",
+    "en": "Français"
+  },
+  "settingsNotConnected": {
+    "fr": "Non connecté",
+    "en": "Not signed in"
+  },
+  "settingsPendingInvitations": {
+    "fr": "Invitations en attente ou récentes",
+    "en": "Pending or recent invitations"
+  },
+  "settingsPin": {
+    "fr": "Épingler",
+    "en": "Pin"
+  },
+  "settingsProfileSubtitle": {
+    "fr": "Gérez vos informations de compte Disciplan",
+    "en": "Manage your Disciplan account information"
+  },
+  "settingsProfileTitle": {
+    "fr": "Profil & Compte",
+    "en": "Profile & Account"
+  },
+  "settingsSavedViewSummary": {
+    "fr": "Projet: {project} • Type: {type}",
+    "en": "Project: {project} • Type: {type}",
+    "placeholders": {
+      "project": "String",
+      "type": "String"
+    }
+  },
+  "settingsSavedViewsEmpty": {
+    "fr": "Aucune vue sauvegardée pour le moment. Vous pouvez en créer depuis la Vue Liste.",
+    "en": "No saved views yet. You can create one from the List View."
+  },
+  "settingsSavedViewsError": {
+    "fr": "Impossible de charger les vues : {error}",
+    "en": "Unable to load views: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "settingsSavedViewsSubtitle": {
+    "fr": "Gérez vos filtres et vues personnalisées épinglées à la barre latérale",
+    "en": "Manage your filters and custom views pinned to the sidebar"
+  },
+  "settingsSavedViewsTitle": {
+    "fr": "Vues Sauvegardées",
+    "en": "Saved Views"
+  },
+  "settingsScaleComfort": {
+    "fr": "Confort (110%)",
+    "en": "Comfortable (110%)"
+  },
+  "settingsScaleCompact": {
+    "fr": "Compact (90%)",
+    "en": "Compact (90%)"
+  },
+  "settingsScaleDecrease": {
+    "fr": "Réduire (-5%)",
+    "en": "Decrease (-5%)"
+  },
+  "settingsScaleFactor": {
+    "fr": "Facteur de mise à l'échelle",
+    "en": "Scale factor"
+  },
+  "settingsScaleHint": {
+    "fr": "Astuce : vous pouvez saisir n'importe quel pourcentage entre 50% et 200%, ou ajuster le facteur depuis la barre supérieure.",
+    "en": "Tip: you can enter any percentage between 50% and 200%, or adjust the scale factor from the top bar."
+  },
+  "settingsScaleIncrease": {
+    "fr": "Augmenter (+5%)",
+    "en": "Increase (+5%)"
+  },
+  "settingsScaleLarge": {
+    "fr": "Grand écran (120%)",
+    "en": "Large screen (120%)"
+  },
+  "settingsScaleReset": {
+    "fr": "Réinitialiser (100%)",
+    "en": "Reset (100%)"
+  },
+  "settingsScaleStandard": {
+    "fr": "Standard (100%)",
+    "en": "Standard (100%)"
+  },
+  "settingsScalingSubtitle": {
+    "fr": "Adaptez la taille des polices et des éléments visuels à la résolution de votre écran",
+    "en": "Adjust the size of fonts and visual elements to your screen resolution"
+  },
+  "settingsScalingTitle": {
+    "fr": "Affichage & Mise à l'échelle (UI Scaling)",
+    "en": "Display & Scaling (UI Scaling)"
+  },
+  "settingsServerHint": {
+    "fr": "Les requêtes HTTP et l'abonnement iCal s'appuient sur cette URL de base.",
+    "en": "HTTP requests and the iCal subscription rely on this base URL."
+  },
+  "settingsServerSubtitle": {
+    "fr": "Adresse de votre instance Disciplan sur le réseau local ou distant",
+    "en": "Address of your Disciplan instance on the local or remote network"
+  },
+  "settingsServerTitle": {
+    "fr": "Serveur Homelab",
+    "en": "Homelab server"
+  },
+  "settingsServerUnreachable": {
+    "fr": "Impossible de contacter le serveur",
+    "en": "Unable to reach the server"
+  },
+  "settingsServerUrlUpdated": {
+    "fr": "URL du serveur Homelab mise à jour",
+    "en": "Homelab server URL updated"
+  },
+  "settingsSessionSubtitle": {
+    "fr": "Déconnecte ce poste de votre instance Disciplan",
+    "en": "Signs this device out of your Disciplan instance"
+  },
+  "settingsSessionTitle": {
+    "fr": "Session active",
+    "en": "Active session"
+  },
+  "settingsTokenCopied": {
+    "fr": "Jeton d'invitation copié",
+    "en": "Invitation token copied"
+  },
+  "settingsUnpin": {
+    "fr": "Détacher",
+    "en": "Unpin"
+  },
+  "settingsUpdateError": {
+    "fr": "Erreur lors de la mise à jour : {error}",
+    "en": "Error while updating: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "settingsUsersError": {
+    "fr": "Erreur chargement utilisateurs: {error}",
+    "en": "Error loading users: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "settingsYou": {
+    "fr": "(vous)",
+    "en": "(you)"
+  },
+  "shellActiveSprintName": {
+    "fr": "Sprint actif : {name}",
+    "en": "Active sprint: {name}",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "shellActivityError": {
+    "fr": "Erreur: {error}",
+    "en": "Error: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "shellAllProjects": {
+    "fr": "Tous mes Projets",
+    "en": "All my projects"
+  },
+  "shellApply": {
+    "fr": "Appliquer",
+    "en": "Apply"
+  },
+  "shellChangeProject": {
+    "fr": "Changer de projet",
+    "en": "Change project"
+  },
+  "shellCollapseSidebar": {
+    "fr": "Replier la barre latérale (⌘B)",
+    "en": "Collapse the sidebar (⌘B)"
+  },
+  "shellCrumbBacklog": {
+    "fr": "Backlog du Projet",
+    "en": "Project backlog"
+  },
+  "shellCrumbBacklogList": {
+    "fr": "Backlog & Vue Liste",
+    "en": "Backlog & List view"
+  },
+  "shellCrumbCycles": {
+    "fr": "Cycles & Sprints",
+    "en": "Cycles & Sprints"
+  },
+  "shellCrumbMyTasks": {
+    "fr": "Mon Dashboard & Tâches",
+    "en": "My dashboard & tasks"
+  },
+  "shellCrumbWorkspace": {
+    "fr": "Espace",
+    "en": "Workspace"
+  },
+  "shellDisplaySize": {
+    "fr": "Taille d'affichage ({percent}%)",
+    "en": "Display size ({percent}%)",
+    "placeholders": {
+      "percent": "int"
+    }
+  },
+  "shellMobileCycles": {
+    "fr": "Cycles",
+    "en": "Cycles"
+  },
+  "shellMobileDashboard": {
+    "fr": "Dashboard",
+    "en": "Dashboard"
+  },
+  "shellMobileProjects": {
+    "fr": "Mes Projets",
+    "en": "My projects"
+  },
+  "shellMobileTasks": {
+    "fr": "Tâches",
+    "en": "Tasks"
+  },
+  "shellNewTask": {
+    "fr": "Nouvelle tâche",
+    "en": "New task"
+  },
+  "shellPersonalSpace": {
+    "fr": "Espace personnel",
+    "en": "Personal space"
+  },
+  "shellProjectPlan": {
+    "fr": "Plan du projet",
+    "en": "Project plan"
+  },
+  "shellProjectViews": {
+    "fr": "Vues du projet",
+    "en": "Project views"
+  },
+  "shellScaleComfort": {
+    "fr": "Confort (110%)",
+    "en": "Comfort (110%)"
+  },
+  "shellScaleCompact": {
+    "fr": "Compact (90%)",
+    "en": "Compact (90%)"
+  },
+  "shellScaleCustom": {
+    "fr": "Facteur personnalisé ({percent}%)...",
+    "en": "Custom factor ({percent}%)...",
+    "placeholders": {
+      "percent": "int"
+    }
+  },
+  "shellScaleCustomHint": {
+    "fr": "Choisissez un facteur entre 50% et 200% (ou utilisez les préréglages 90%, 100%, 110%, 120%).",
+    "en": "Choose a factor between 50% and 200% (or use the 90%, 100%, 110%, 120% presets)."
+  },
+  "shellScaleCustomTitle": {
+    "fr": "Facteur de mise à l'échelle personnalisé",
+    "en": "Custom scale factor"
+  },
+  "shellScaleLarge": {
+    "fr": "Grand écran (120%)",
+    "en": "Large screen (120%)"
+  },
+  "shellScaleReset": {
+    "fr": "100% (Défaut)",
+    "en": "100% (Default)"
+  },
+  "shellScaleStandard": {
+    "fr": "Standard (100%)",
+    "en": "Standard (100%)"
+  },
+  "shellSearchPlaceholder": {
+    "fr": "Rechercher une tâche, aller au Kanban, Backlog...",
+    "en": "Search for a task, go to Kanban, Backlog..."
+  },
+  "shellSelectProject": {
+    "fr": "Sélectionner un projet",
+    "en": "Select a project"
+  },
+  "shellSidebarAdmin": {
+    "fr": "Administration",
+    "en": "Administration"
+  },
+  "shellSidebarCalendar": {
+    "fr": "Calendrier & Jalons",
+    "en": "Calendar & milestones"
+  },
+  "shellSidebarCalendarSubtitle": {
+    "fr": "Échéances & flux iCal",
+    "en": "Deadlines & iCal feeds"
+  },
+  "shellSidebarCurrentSprints": {
+    "fr": "Sprints en cours",
+    "en": "Current sprints"
+  },
+  "shellSidebarCyclesSubtitle": {
+    "fr": "Cycles, vélocité & roadmap",
+    "en": "Cycles, velocity & roadmap"
+  },
+  "shellSidebarKanban": {
+    "fr": "Tableau Kanban",
+    "en": "Kanban board"
+  },
+  "shellSidebarListSubtitle": {
+    "fr": "Backlog & tickets du projet",
+    "en": "Backlog & project tickets"
+  },
+  "shellSidebarListView": {
+    "fr": "Vue Liste",
+    "en": "List view"
+  },
+  "shellSidebarMyTasks": {
+    "fr": "Dashboard & Mes Tâches",
+    "en": "Dashboard & My Tasks"
+  },
+  "shellSidebarMyTasksSubtitle": {
+    "fr": "Vue globale & tickets assignés",
+    "en": "Global view & assigned tickets"
+  },
+  "shellSidebarPlanning": {
+    "fr": "Planning & Cycles",
+    "en": "Planning & Cycles"
+  },
+  "shellSidebarPortfolioSubtitle": {
+    "fr": "Portefeuille & espaces projets",
+    "en": "Portfolio & project spaces"
+  },
+  "shellSidebarTeamSettings": {
+    "fr": "Paramètres d'équipe",
+    "en": "Team settings"
+  },
+  "shellSprintCapacity": {
+    "fr": "Capacité Sprint",
+    "en": "Sprint capacity"
+  },
+  "shellSprintNoneActive": {
+    "fr": "Aucun actif",
+    "en": "None active"
+  },
+  "shellSprintProgress": {
+    "fr": "Avancement Sprint",
+    "en": "Sprint progress"
+  },
+  "shellSwitchProject": {
+    "fr": "Changer de projet actif",
+    "en": "Switch active project"
+  },
+  "shellToggleSidebar": {
+    "fr": "Basculer la barre latérale (⌘B)",
+    "en": "Toggle the sidebar (⌘B)"
+  },
+  "shellTooltipBacklog": {
+    "fr": "Backlog & Tickets du projet",
+    "en": "Backlog & project tickets"
+  },
+  "shellTooltipCalendar": {
+    "fr": "Calendrier d'équipe",
+    "en": "Team calendar"
+  },
+  "shellTooltipCycles": {
+    "fr": "Cycles & Feuille de route",
+    "en": "Cycles & roadmap"
+  },
+  "shellTooltipKanban": {
+    "fr": "Tableau Kanban des Sprints",
+    "en": "Sprints Kanban board"
+  },
+  "shellTooltipMyTasks": {
+    "fr": "Tableau de bord & Mes Tâches",
+    "en": "Dashboard & My Tasks"
+  },
+  "shellTooltipSearch": {
+    "fr": "Recherche globale (⌘K)",
+    "en": "Global search (⌘K)"
+  },
+  "shellTooltipSettings": {
+    "fr": "Paramètres (⌘,)",
+    "en": "Settings (⌘,)"
+  },
+  "sprintBacklogTicketsTitle": {
+    "fr": "Tickets du Backlog à inclure",
+    "en": "Backlog tickets to include"
+  },
+  "sprintCadenceFlash": {
+    "fr": "Flash (7j)",
+    "en": "Flash (7d)"
+  },
+  "sprintCadenceOneMonth": {
+    "fr": "1 mois",
+    "en": "1 mo."
+  },
+  "sprintCadenceOneWeek": {
+    "fr": "1 sem.",
+    "en": "1 wk."
+  },
+  "sprintCadenceOptimal": {
+    "fr": "Optimal (14j)",
+    "en": "Optimal (14d)"
+  },
+  "sprintCadenceProject": {
+    "fr": "Projet (30j)",
+    "en": "Project (30d)"
+  },
+  "sprintCadenceTitle": {
+    "fr": "Rythme & Fréquence",
+    "en": "Cadence & Frequency"
+  },
+  "sprintCadenceTwoWeeks": {
+    "fr": "2 sem.",
+    "en": "2 wk."
+  },
+  "sprintCadenceWeeks": {
+    "fr": "{weeks} semaine(s) ({days}j)",
+    "en": "{weeks} week(s) ({days}d)",
+    "placeholders": {
+      "weeks": "int",
+      "days": "int"
+    }
+  },
+  "sprintClosedCyclesSection": {
+    "fr": "Cycles clôturés & historique",
+    "en": "Closed cycles & history"
+  },
+  "sprintClosedTicketsProgress": {
+    "fr": "{closed}/{total} terminées",
+    "en": "{closed}/{total} done",
+    "placeholders": {
+      "closed": "int",
+      "total": "int"
+    }
+  },
+  "sprintContributorsCount": {
+    "fr": "{count} contributeurs",
+    "en": "{count} contributors",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "sprintCreateCycle": {
+    "fr": "Créer un cycle",
+    "en": "Create a cycle"
+  },
+  "sprintCreateModalTitle": {
+    "fr": "Créer et planifier un cycle",
+    "en": "Create and schedule a cycle"
+  },
+  "sprintCreatedSuccess": {
+    "fr": "Sprint créé avec succès !",
+    "en": "Sprint created successfully!"
+  },
+  "sprintCyclesSubtitle": {
+    "fr": "Planification temporelle et métriques de vélocité du projet {name}.",
+    "en": "Time planning and velocity metrics for project {name}.",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "sprintCyclesTitle": {
+    "fr": "Cycles & Sprints",
+    "en": "Cycles & Sprints"
+  },
+  "sprintDatesNotDefined": {
+    "fr": "Dates non définies",
+    "en": "Dates not defined"
+  },
+  "sprintDatesUndefined": {
+    "fr": "Dates indéfinies",
+    "en": "Undefined dates"
+  },
+  "sprintDaysRemaining": {
+    "fr": "J-{count} restants",
+    "en": "D-{count} remaining",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "sprintDaysRemainingBadge": {
+    "fr": "J-{count}",
+    "en": "D-{count}",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "sprintDefaultName": {
+    "fr": "Sprint {month} — Optimisations & Livrables",
+    "en": "Sprint {month} — Optimizations & Deliverables",
+    "placeholders": {
+      "month": "int"
+    }
+  },
+  "sprintEndDate": {
+    "fr": "Date de fin",
+    "en": "End date"
+  },
+  "sprintFinish": {
+    "fr": "Terminer le sprint",
+    "en": "Finish the sprint"
+  },
+  "sprintGoalHint": {
+    "fr": "Ex: Finaliser la refonte graphique et valider la campagne de marque...",
+    "en": "e.g. Finalize the graphic redesign and validate the brand campaign..."
+  },
+  "sprintGoalLabel": {
+    "fr": "Objectif principal du cycle (Sprint Goal)",
+    "en": "Main cycle objective (Sprint Goal)"
+  },
+  "sprintLoadError": {
+    "fr": "Erreur de chargement: {error}",
+    "en": "Loading error: {error}",
+    "placeholders": {
+      "error": "String"
+    }
+  },
+  "sprintNameHint": {
+    "fr": "Ex: Sprint 5 — Production & Lancement",
+    "en": "e.g. Sprint 5 — Production & Launch"
+  },
+  "sprintNameLabel": {
+    "fr": "Nom du cycle / sprint",
+    "en": "Cycle / sprint name"
+  },
+  "sprintNameRequired": {
+    "fr": "Veuillez saisir un nom de sprint.",
+    "en": "Please enter a sprint name."
+  },
+  "sprintNewTask": {
+    "fr": "Nouvelle tâche",
+    "en": "New task"
+  },
+  "sprintNoActiveCycleDesc": {
+    "fr": "Démarrez un cycle planifié, prévisualisez son Kanban ou créez un nouveau sprint.",
+    "en": "Start a planned cycle, preview its Kanban, or create a new sprint."
+  },
+  "sprintNoBacklogTickets": {
+    "fr": "Aucun ticket disponible dans le backlog.",
+    "en": "No tickets available in the backlog."
+  },
+  "sprintNoClosedCycles": {
+    "fr": "Aucun cycle clôturé.",
+    "en": "No closed cycles."
+  },
+  "sprintNoPlannedCycles": {
+    "fr": "Aucun cycle planifié pour le moment.",
+    "en": "No planned cycles yet."
+  },
+  "sprintPercentCompleted": {
+    "fr": "{percent}% complété",
+    "en": "{percent}% complete",
+    "placeholders": {
+      "percent": "int"
+    }
+  },
+  "sprintPlannedCyclesSection": {
+    "fr": "Cycles planifiés",
+    "en": "Planned cycles"
+  },
+  "sprintPointsShort": {
+    "fr": "{points} pts",
+    "en": "{points} pts",
+    "placeholders": {
+      "points": "int"
+    }
+  },
+  "sprintRemainingTickets": {
+    "fr": "{count} restantes",
+    "en": "{count} remaining",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "sprintRemainingTicketsSub": {
+    "fr": "en cours / à faire",
+    "en": "in progress / to do"
+  },
+  "sprintSelectProject": {
+    "fr": "Sélectionnez un projet pour afficher ses cycles.",
+    "en": "Select a project to view its cycles."
+  },
+  "sprintSelectedTicketsSummary": {
+    "fr": "{count} tâche(s) · {points} pts",
+    "en": "{count} task(s) · {points} pts",
+    "placeholders": {
+      "count": "int",
+      "points": "int"
+    }
+  },
+  "sprintStartCycle": {
+    "fr": "Démarrer le cycle",
+    "en": "Start the cycle"
+  },
+  "sprintStartDate": {
+    "fr": "Date de début",
+    "en": "Start date"
+  },
+  "sprintStartImmediately": {
+    "fr": "Démarrer immédiatement ce sprint",
+    "en": "Start this sprint immediately"
+  },
+  "sprintStartImmediatelyHint": {
+    "fr": "Le sprint passera au statut Actif dès sa création.",
+    "en": "The sprint will become Active as soon as it is created."
+  },
+  "sprintStatusActive": {
+    "fr": "Actif",
+    "en": "Active"
+  },
+  "sprintStatusClosed": {
+    "fr": "Clos",
+    "en": "Closed"
+  },
+  "sprintStatusPlanned": {
+    "fr": "Planifié",
+    "en": "Planned"
+  },
+  "sprintSuggested": {
+    "fr": "Suggéré :",
+    "en": "Suggested:"
+  },
+  "sprintSuggestion1": {
+    "fr": "Déploiement Capsule Q3",
+    "en": "Capsule Q3 Deployment"
+  },
+  "sprintSuggestion2": {
+    "fr": "Optimisations & Recette",
+    "en": "Optimizations & QA"
+  },
+  "sprintTaskCount": {
+    "fr": "{count} tâche(s)",
+    "en": "{count} task(s)",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "sprintTeamBurndown": {
+    "fr": "Burn-down d'équipe",
+    "en": "Team burn-down"
+  },
+  "ticketsActiveCycle": {
+    "fr": "Cycle actif",
+    "en": "Active cycle"
+  },
+  "ticketsActiveSprintName": {
+    "fr": "Sprint actif : {name}",
+    "en": "Active sprint: {name}",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "ticketsAddFirstQuickTask": {
+    "fr": "Ajoutez votre première tâche rapide ci-dessous.",
+    "en": "Add your first quick task below."
+  },
+  "ticketsAddNoteHint": {
+    "fr": "Ajouter une note...",
+    "en": "Add a note..."
+  },
+  "ticketsAddSubtaskHint": {
+    "fr": "+ Ajouter une sous-tâche...",
+    "en": "+ Add a subtask..."
+  },
+  "ticketsAssign": {
+    "fr": "Assigner",
+    "en": "Assign"
+  },
+  "ticketsAssignMember": {
+    "fr": "Assigner à un membre du projet",
+    "en": "Assign to a project member"
+  },
+  "ticketsAssignSelectionToSprint": {
+    "fr": "Affecter la sélection à un sprint",
+    "en": "Assign selection to a sprint"
+  },
+  "ticketsAssignTo": {
+    "fr": "Assigner à",
+    "en": "Assign to"
+  },
+  "ticketsAssignToSprint": {
+    "fr": "Affecter à un sprint",
+    "en": "Assign to a sprint"
+  },
+  "ticketsAssignToSprintFailed": {
+    "fr": "Erreur lors de l'affectation au sprint : {detail}",
+    "en": "Error while assigning to sprint: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsAssignedLabel": {
+    "fr": "ASSIGNÉ",
+    "en": "ASSIGNED"
+  },
+  "ticketsAssigneeLabel": {
+    "fr": "Assigné",
+    "en": "Assignee"
+  },
+  "ticketsBacklogHeaderDesc": {
+    "fr": "Tickets hors sprint en attente de planification. Affectez-les à un sprint ou modifiez leur priorité.",
+    "en": "Tickets outside a sprint awaiting planning. Assign them to a sprint or change their priority."
+  },
+  "ticketsBacklogListView": {
+    "fr": "Backlog & Vue Liste",
+    "en": "Backlog & List view"
+  },
+  "ticketsBacklogNoSprint": {
+    "fr": "Backlog (sans sprint)",
+    "en": "Backlog (no sprint)"
+  },
+  "ticketsBacklogPrioritize": {
+    "fr": "Lister et prioriser le backlog",
+    "en": "List and prioritize the backlog"
+  },
+  "ticketsBacklogProjectBadge": {
+    "fr": "BACKLOG DU PROJET",
+    "en": "PROJECT BACKLOG"
+  },
+  "ticketsBacklogScopeChip": {
+    "fr": "Backlog (Hors sprint)",
+    "en": "Backlog (no sprint)"
+  },
+  "ticketsBacklogSectionSubtitle": {
+    "fr": "Tickets du backlog prêts à être planifiés ou démarrés",
+    "en": "Backlog tickets ready to be planned or started"
+  },
+  "ticketsBacklogToPlan": {
+    "fr": "{count} ticket(s) hors sprint à planifier",
+    "en": "{count} ticket(s) outside a sprint to plan",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsChangeStatus": {
+    "fr": "Changer le statut",
+    "en": "Change status"
+  },
+  "ticketsCommentAddFailed": {
+    "fr": "Erreur ajout commentaire: {detail}",
+    "en": "Error adding comment: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsCommentPosted": {
+    "fr": "Commentaire publié",
+    "en": "Comment posted"
+  },
+  "ticketsCopyLink": {
+    "fr": "Copier le lien",
+    "en": "Copy link"
+  },
+  "ticketsCreateAnother": {
+    "fr": "Créer une autre tâche",
+    "en": "Create another task"
+  },
+  "ticketsCreateAnotherNext": {
+    "fr": "Créer une autre tâche ensuite",
+    "en": "Create another task next"
+  },
+  "ticketsCreateFailed": {
+    "fr": "Erreur lors de la création : {detail}",
+    "en": "Error while creating: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsCreateTask": {
+    "fr": "Créer la tâche",
+    "en": "Create task"
+  },
+  "ticketsCreateTicket": {
+    "fr": "Créer un ticket",
+    "en": "Create a ticket"
+  },
+  "ticketsCycleSprint": {
+    "fr": "CYCLE / SPRINT",
+    "en": "CYCLE / SPRINT"
+  },
+  "ticketsCycles": {
+    "fr": "Cycles",
+    "en": "Cycles"
+  },
+  "ticketsCyclesOf": {
+    "fr": "Cycles de {name}",
+    "en": "Cycles of {name}",
+    "placeholders": {
+      "name": "String"
+    }
+  },
+  "ticketsCyclesSprints": {
+    "fr": "Cycles & Sprints",
+    "en": "Cycles & Sprints"
+  },
+  "ticketsDescriptionHint": {
+    "fr": "Ajouter une description détaillée (Markdown supporté)...",
+    "en": "Add a detailed description (Markdown supported)..."
+  },
+  "ticketsDoneSubtitle": {
+    "fr": "Tickets livrés et validés",
+    "en": "Tickets delivered and validated"
+  },
+  "ticketsEditPriority": {
+    "fr": "Modifier la priorité",
+    "en": "Edit priority"
+  },
+  "ticketsEditableAnytime": {
+    "fr": "Modifiable à tout moment",
+    "en": "Editable at any time"
+  },
+  "ticketsEnterKey": {
+    "fr": "Entrée",
+    "en": "Enter"
+  },
+  "ticketsErrorDetail": {
+    "fr": "Erreur: {detail}",
+    "en": "Error: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsFilterAll": {
+    "fr": "Toutes ({count})",
+    "en": "All ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFilterByPriority": {
+    "fr": "Filtrer par priorité",
+    "en": "Filter by priority"
+  },
+  "ticketsFilterDone": {
+    "fr": "Terminées ({count})",
+    "en": "Done ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFilterInProgress": {
+    "fr": "En cours ({count})",
+    "en": "In progress ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFilterTicketsHint": {
+    "fr": "Filtrer les tickets (titre, réf, assigné)...",
+    "en": "Filter tickets (title, ref, assignee)..."
+  },
+  "ticketsFilterTodo": {
+    "fr": "À faire ({count})",
+    "en": "To do ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFilterUrgent": {
+    "fr": "Urgentes ({count})",
+    "en": "Urgent ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFocusInProgress": {
+    "fr": "FOCUS — VOS TICKETS EN COURS ({count})",
+    "en": "FOCUS — YOUR TICKETS IN PROGRESS ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsFullPortfolio": {
+    "fr": "Portefeuille complet",
+    "en": "Full portfolio"
+  },
+  "ticketsHistoryTab": {
+    "fr": "Historique",
+    "en": "History"
+  },
+  "ticketsInProgressAttention": {
+    "fr": "{count} tâche(s) en cours requièrent votre attention.",
+    "en": "{count} task(s) in progress require your attention.",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsInProgressSubtitle": {
+    "fr": "Tickets activement travaillés",
+    "en": "Tickets actively being worked on"
+  },
+  "ticketsIsolateInProgress": {
+    "fr": "Isoler En cours →",
+    "en": "Isolate In progress →"
+  },
+  "ticketsKanbanBoard": {
+    "fr": "Tableau Kanban",
+    "en": "Kanban board"
+  },
+  "ticketsKeepOpenHint": {
+    "fr": "Garder la modale ouverte pour enchaîner",
+    "en": "Keep the modal open to continue"
+  },
+  "ticketsLoadError": {
+    "fr": "Erreur de chargement: {detail}",
+    "en": "Loading error: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsLoadTicketFailed": {
+    "fr": "Impossible de charger le ticket",
+    "en": "Unable to load the ticket"
+  },
+  "ticketsManageSprints": {
+    "fr": "Gérer les Sprints",
+    "en": "Manage sprints"
+  },
+  "ticketsMyProjectsSpaces": {
+    "fr": "MES PROJETS — ESPACES ENCAPSULÉS",
+    "en": "MY PROJECTS — ENCAPSULATED SPACES"
+  },
+  "ticketsNewTask": {
+    "fr": "Nouvelle tâche",
+    "en": "New task"
+  },
+  "ticketsNoAttachment": {
+    "fr": "Aucune pièce jointe.",
+    "en": "No attachment."
+  },
+  "ticketsNoExchange": {
+    "fr": "Aucun échange pour le moment.",
+    "en": "No discussion for now."
+  },
+  "ticketsNoLabel": {
+    "fr": "Aucun label associé",
+    "en": "No label attached"
+  },
+  "ticketsNoSubtask": {
+    "fr": "Aucune sous-tâche pour ce ticket.",
+    "en": "No subtask for this ticket."
+  },
+  "ticketsNoTaskInSection": {
+    "fr": "Aucune tâche dans cette section.",
+    "en": "No task in this section."
+  },
+  "ticketsNoTaskMatchFilter": {
+    "fr": "Aucune tâche ne correspond à ce filtre.",
+    "en": "No task matches this filter."
+  },
+  "ticketsNoTicketBacklog": {
+    "fr": "Aucun ticket dans le backlog",
+    "en": "No tickets in the backlog"
+  },
+  "ticketsNoTicketMatchSearch": {
+    "fr": "Aucun ticket ne correspond à votre recherche.",
+    "en": "No ticket matches your search."
+  },
+  "ticketsNoTicketSprint": {
+    "fr": "Aucun ticket dans ce sprint",
+    "en": "No tickets in this sprint"
+  },
+  "ticketsNone": {
+    "fr": "Aucune",
+    "en": "None"
+  },
+  "ticketsNotFoundRef": {
+    "fr": "Ticket non trouvé : {ref}",
+    "en": "Ticket not found: {ref}",
+    "placeholders": {
+      "ref": "String"
+    }
+  },
+  "ticketsNotSet": {
+    "fr": "Non définie",
+    "en": "Not set"
+  },
+  "ticketsNotesHint": {
+    "fr": "Ajouter des notes, contexte ou critères de validation...",
+    "en": "Add notes, context or acceptance criteria..."
+  },
+  "ticketsOtherAssignedTasks": {
+    "fr": "AUTRES TÂCHES ASSIGNÉES ({count})",
+    "en": "OTHER ASSIGNED TASKS ({count})",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsOwner": {
+    "fr": "Propriétaire",
+    "en": "Owner"
+  },
+  "ticketsPercentDone": {
+    "fr": "{percent}% complété",
+    "en": "{percent}% completed",
+    "placeholders": {
+      "percent": "int"
+    }
+  },
+  "ticketsPersonalDashboardBadge": {
+    "fr": "TABLEAU DE BORD PERSONNEL",
+    "en": "PERSONAL DASHBOARD"
+  },
+  "ticketsPinToHome": {
+    "fr": "Épingler sur l'accueil / sidebar",
+    "en": "Pin to home / sidebar"
+  },
+  "ticketsPlanInSprint": {
+    "fr": "Planifier {count} ticket(s) dans un sprint",
+    "en": "Plan {count} ticket(s) into a sprint",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsPlannedInSprint": {
+    "fr": "{count} ticket(s) planifié(s) dans \"{name}\".",
+    "en": "{count} ticket(s) planned in \"{name}\".",
+    "placeholders": {
+      "count": "int",
+      "name": "String"
+    }
+  },
+  "ticketsPriorityAll": {
+    "fr": "Priorité : Toutes",
+    "en": "Priority: All"
+  },
+  "ticketsPrioritySelected": {
+    "fr": "Priorité : {priority}",
+    "en": "Priority: {priority}",
+    "placeholders": {
+      "priority": "String"
+    }
+  },
+  "ticketsProjectBacklogTitle": {
+    "fr": "Backlog du Projet",
+    "en": "Project backlog"
+  },
+  "ticketsProjectTileSummary": {
+    "fr": "{tickets} tickets • {sprints} sprints • {role}",
+    "en": "{tickets} tickets • {sprints} sprints • {role}",
+    "placeholders": {
+      "tickets": "int",
+      "sprints": "int",
+      "role": "String"
+    }
+  },
+  "ticketsQuickAddHint": {
+    "fr": "+ Ajouter une tâche rapide... (Entrée)",
+    "en": "+ Add a quick task... (Enter)"
+  },
+  "ticketsQuickAddInSection": {
+    "fr": "Ajouter une tâche rapide dans \"{section}\"...",
+    "en": "Add a quick task in \"{section}\"...",
+    "placeholders": {
+      "section": "String"
+    }
+  },
+  "ticketsQuickMetadata": {
+    "fr": "MÉTADONNÉES RAPIDES",
+    "en": "QUICK METADATA"
+  },
+  "ticketsRecentExchanges": {
+    "fr": "Échanges récents",
+    "en": "Recent discussions"
+  },
+  "ticketsRefCopied": {
+    "fr": "Référence copiée dans le presse-papier",
+    "en": "Reference copied to clipboard"
+  },
+  "ticketsResetFilters": {
+    "fr": "Réinitialiser les filtres",
+    "en": "Reset filters"
+  },
+  "ticketsSaveAsViewTitle": {
+    "fr": "Enregistrer comme vue sauvegardée",
+    "en": "Save as saved view"
+  },
+  "ticketsSaveView": {
+    "fr": "Sauvegarder la vue",
+    "en": "Save view"
+  },
+  "ticketsSavedViewActivated": {
+    "fr": "Vue sauvegardée activée.",
+    "en": "Saved view activated."
+  },
+  "ticketsSavedViews": {
+    "fr": "Vues enregistrées",
+    "en": "Saved views"
+  },
+  "ticketsSelectProject": {
+    "fr": "Sélectionner",
+    "en": "Select"
+  },
+  "ticketsSelectedCount": {
+    "fr": "{count} sélectionné(s)",
+    "en": "{count} selected",
+    "placeholders": {
+      "count": "int"
+    }
+  },
+  "ticketsSprintChangeFailed": {
+    "fr": "Erreur changement de sprint : {detail}",
+    "en": "Sprint change error: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsSprintCycle": {
+    "fr": "Sprint / Cycle",
+    "en": "Sprint / Cycle"
+  },
+  "ticketsSprintHeaderDesc": {
+    "fr": "Liste détaillée des tickets affectés à ce cycle.",
+    "en": "Detailed list of tickets assigned to this cycle."
+  },
+  "ticketsSprintListBadge": {
+    "fr": "LISTE DU SPRINT",
+    "en": "SPRINT LIST"
+  },
+  "ticketsSprintPlanHint": {
+    "fr": "Planifier, démarrer ou clôturer un sprint",
+    "en": "Plan, start or close a sprint"
+  },
+  "ticketsSprintTicketsTitle": {
+    "fr": "Tickets du Sprint",
+    "en": "Sprint tickets"
+  },
+  "ticketsSprintTodoSubtitle": {
+    "fr": "Tickets du sprint en attente de démarrage",
+    "en": "Sprint tickets waiting to start"
+  },
+  "ticketsStatusChangeFailed": {
+    "fr": "Erreur changement de statut : {detail}",
+    "en": "Status change error: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsSubtaskAddFailed": {
+    "fr": "Erreur ajout sous-tâche: {detail}",
+    "en": "Error adding subtask: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsSubtaskUpdateFailed": {
+    "fr": "Erreur mise à jour sous-tâche: {detail}",
+    "en": "Error updating subtask: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsSubtasks": {
+    "fr": "Sous-tâches",
+    "en": "Subtasks"
+  },
+  "ticketsSubtasksDeliverables": {
+    "fr": "Sous-tâches & Livrables",
+    "en": "Subtasks & deliverables"
+  },
+  "ticketsTaskCreated": {
+    "fr": "Tâche créée avec succès",
+    "en": "Task created successfully"
+  },
+  "ticketsTaskCreatedNext": {
+    "fr": "Tâche créée ! Vous pouvez en saisir une autre.",
+    "en": "Task created! You can enter another one."
+  },
+  "ticketsTaskTitleActionHint": {
+    "fr": "Intitulé de la tâche ou action...",
+    "en": "Task title or action..."
+  },
+  "ticketsTaskTitleHint": {
+    "fr": "Titre de la tâche...",
+    "en": "Task title..."
+  },
+  "ticketsTicketDetailTitle": {
+    "fr": "Détail Ticket",
+    "en": "Ticket detail"
+  },
+  "ticketsTicketLinkCopied": {
+    "fr": "Lien du ticket copié",
+    "en": "Ticket link copied"
+  },
+  "ticketsTicketLoadError": {
+    "fr": "Erreur chargement ticket",
+    "en": "Ticket loading error"
+  },
+  "ticketsTitleRequired": {
+    "fr": "Veuillez saisir un titre.",
+    "en": "Please enter a title."
+  },
+  "ticketsToday": {
+    "fr": "Aujourd'hui",
+    "en": "Today"
+  },
+  "ticketsTodo": {
+    "fr": "À faire",
+    "en": "To do"
+  },
+  "ticketsTodoBacklog": {
+    "fr": "À faire / Backlog",
+    "en": "To do / Backlog"
+  },
+  "ticketsTomorrow": {
+    "fr": "Demain",
+    "en": "Tomorrow"
+  },
+  "ticketsUnassignedClick": {
+    "fr": "Non assigné (Cliquer)",
+    "en": "Unassigned (click)"
+  },
+  "ticketsUpdateFailed": {
+    "fr": "Erreur de mise à jour : {detail}",
+    "en": "Update error: {detail}",
+    "placeholders": {
+      "detail": "String"
+    }
+  },
+  "ticketsUrgent": {
+    "fr": "Urgentes",
+    "en": "Urgent"
+  },
+  "ticketsViewDescriptionHint": {
+    "fr": "Filtre automatique appliqué...",
+    "en": "Automatic filter applied..."
+  },
+  "ticketsViewDescriptionLabel": {
+    "fr": "Description (facultative)",
+    "en": "Description (optional)"
+  },
+  "ticketsViewNameHint": {
+    "fr": "Ex: Tâches Urgentes, Revue Sprint...",
+    "en": "e.g. Urgent tasks, sprint review..."
+  },
+  "ticketsViewNameLabel": {
+    "fr": "Nom de la vue",
+    "en": "View name"
+  },
+  "ticketsViewNameRequired": {
+    "fr": "Veuillez saisir un nom pour la vue.",
+    "en": "Please enter a name for the view."
+  },
+  "ticketsViewSaved": {
+    "fr": "Vue sauvegardée avec succès !",
+    "en": "View saved successfully!"
+  },
+  "ticketsViewSprintColumns": {
+    "fr": "Voir les colonnes du sprint",
+    "en": "View the sprint columns"
+  },
+  "ticketsYesterday": {
+    "fr": "Hier",
+    "en": "Yesterday"
+  },
+  "typeBug": {
+    "fr": "Bug",
+    "en": "Bug"
+  },
+  "typeEpic": {
+    "fr": "Épopée",
+    "en": "Epic"
+  },
+  "typeStory": {
+    "fr": "Story",
+    "en": "Story"
+  },
+  "typeSubtask": {
+    "fr": "Sous-tâche",
+    "en": "Subtask"
+  },
+  "typeTask": {
+    "fr": "Tâche",
+    "en": "Task"
+  }
+}

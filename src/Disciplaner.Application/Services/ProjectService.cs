@@ -46,7 +46,7 @@ public sealed class ProjectService : IProjectService
             sprintDtos.Add(s.ToDto(count));
         }
 
-        var members = await ResolveMembers(project.Members, cancellationToken);
+        var members = await ResolveMembers(project, cancellationToken);
         return project.ToDetailDto(sprintDtos, requestingUserId, members);
     }
 
@@ -63,7 +63,8 @@ public sealed class ProjectService : IProjectService
         await _uow.Projects.AddAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return project.ToDetailDto([], ownerId, []);
+        var members = await ResolveMembers(project, cancellationToken);
+        return project.ToDetailDto([], ownerId, members);
     }
 
     public async Task<ProjectDetailDto> UpdateAsync(
@@ -79,7 +80,7 @@ public sealed class ProjectService : IProjectService
         await _uow.Projects.UpdateAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        var members = await ResolveMembers(project.Members, cancellationToken);
+        var members = await ResolveMembers(project, cancellationToken);
         return project.ToDetailDto([], requestingUserId, members);
     }
 
@@ -106,7 +107,7 @@ public sealed class ProjectService : IProjectService
         await _uow.Projects.UpdateAsync(project, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        var members = await ResolveMembers(project.Members, cancellationToken);
+        var members = await ResolveMembers(project, cancellationToken);
         return project.ToDetailDto([], requestingUserId, members);
     }
 
@@ -186,11 +187,23 @@ public sealed class ProjectService : IProjectService
     }
 
     private async Task<IReadOnlyList<MemberDto>> ResolveMembers(
-        IReadOnlyCollection<ProjectMember> members, CancellationToken cancellationToken)
+        Project project, CancellationToken cancellationToken)
     {
-        var result = new List<MemberDto>(members.Count);
-        foreach (var m in members)
+        var result = new List<MemberDto>(project.Members.Count + 1);
+        var owner = await _uow.Users.GetByIdAsync(project.OwnerId, cancellationToken);
+        if (owner is not null)
         {
+            result.Add(new MemberDto(
+                owner.Id,
+                owner.DisplayName,
+                owner.Email,
+                Domain.Enums.MemberRole.Admin,
+                project.CreatedAt));
+        }
+
+        foreach (var m in project.Members)
+        {
+            if (m.UserId == project.OwnerId) continue;
             var user = await _uow.Users.GetByIdAsync(m.UserId, cancellationToken);
             if (user is null) continue;
             result.Add(new MemberDto(m.UserId, user.DisplayName, user.Email, m.Role, m.JoinedAt));

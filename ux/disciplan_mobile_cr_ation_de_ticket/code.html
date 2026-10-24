@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html lang="fr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary-fixed-variant": "#005236", "on-secondary-container": "#6e4f00", "surface-variant": "#e4e2dd", "surface-container-high": "#eae8e3", "on-surface-variant": "#494740", "primary-fixed-dim": "#cac6c2", "on-tertiary-fixed": "#002113", "tertiary-fixed-dim": "#4edea3", "primary": "#000000", "surface-container": "#f0eee9", "tertiary": "#000000", "secondary-fixed-dim": "#fcbc24", "on-secondary": "#ffffff", "error": "#ba1a1a", "surface-container-lowest": "#ffffff", "surface-container-highest": "#e4e2dd", "on-primary-fixed": "#1c1b19", "primary-fixed": "#e6e2de", "on-secondary-fixed-variant": "#5d4200", "surface-dim": "#dbdad5", "on-tertiary": "#ffffff", "on-surface": "#1b1c19", "on-tertiary-container": "#009668", "secondary-fixed": "#ffdea4", "tertiary-fixed": "#6ffbbe", "outline": "#7a776f", "inverse-primary": "#cac6c2", "on-secondary-fixed": "#261900", "surface-container-low": "#f5f3ee", "surface-tint": "#605e5b", "surface": "#fbf9f4", "on-background": "#1b1c19", "primary-container": "#1c1b19", "error-container": "#ffdad6", "secondary-container": "#ffbf28", "inverse-surface": "#30312e", "on-error-container": "#93000a", "secondary": "#7b5900", "surface-bright": "#fbf9f4", "on-primary-fixed-variant": "#484644", "inverse-on-surface": "#f2f1ec", "on-error": "#ffffff", "background": "#fbf9f4", "on-primary": "#ffffff", "on-primary-container": "#868380", "tertiary-container": "#002113", "outline-variant": "#cbc6bd" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "margin-tablet": "1.5rem", "space-xs": "0.25rem", "space-lg": "1.25rem", "margin": "1rem", "space-md": "0.75rem", "margin-desktop": "2rem", "gutter-desktop": "1.25rem", "space-xl": "2rem", "gutter": "1rem", "space-sm": "0.5rem" }, "fontFamily": { "body-md": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "label-sm": ["JetBrains Mono"], "code-inline": ["JetBrains Mono"], "headline-md": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-md": ["JetBrains Mono"], "headline-xl-mobile": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "21px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-sm": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500" }], "code-inline": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-md": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-sm": ["13px", { "lineHeight": "19px", "letterSpacing": "0.005em", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-xs"><button class="w-11 h-11 -ml-space-sm flex items-center justify-center text-on-surface hover:text-on-surface-variant transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-semibold">Création Ticket</h1></div><div class="flex items-center gap-space-xs"><button class="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-14 pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full pb-8">
+<div class="px-margin pt-space-md pb-space-sm flex items-center justify-between">
+<button class="px-space-sm py-space-xs -ml-space-sm text-on-surface-variant hover:text-on-surface font-body-md text-body-md transition-colors" onclick="history.back()" type="button">
+      Annuler
+    </button>
+<div class="flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container animate-pulse"></span>
+        DIS-104
+      </span>
+<button class="px-space-lg py-space-xs rounded-full bg-primary text-on-primary font-headline-sm text-headline-sm shadow-sm active:scale-95 transition-all flex items-center gap-1.5" id="create-task-btn" type="button">
+<span>Créer</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="px-margin mt-space-sm flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<textarea autofocus="" class="w-full bg-transparent font-headline-xl-mobile text-headline-xl-mobile text-on-surface placeholder:text-outline/40 resize-none outline-none focus:outline-none" placeholder="Intitulé de la tâche ou action..." rows="2">Création du guide d'accueil partenaires</textarea>
+<div class="w-full h-px bg-surface-container-high my-space-xs"></div>
+<textarea class="w-full bg-transparent font-body-md text-body-md text-on-surface placeholder:text-outline/50 resize-none outline-none focus:outline-none" placeholder="Ajouter des notes, contexte ou critères de validation..." rows="3">Rédiger la version v1 avec validation Figma des maquettes et intégration des specs de marque.</textarea>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between px-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-medium">Métadonnées rapides</span>
+<span class="font-label-sm text-label-sm text-outline">Modifiable à tout moment</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-sm shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between py-1.5 px-space-xs rounded-lg hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span>
+<span class="font-body-sm text-body-sm text-on-surface">Statut</span>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 rounded-full bg-secondary-container/20 text-on-secondary-container font-headline-sm text-headline-sm" type="button">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span>À faire</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+<div class="h-px bg-surface-container mx-space-xs"></div>
+<div class="flex items-center justify-between py-1.5 px-space-xs rounded-lg hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary">signal_cellular_alt_2_bar</span>
+<span class="font-body-sm text-body-sm text-on-surface">Priorité</span>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container text-on-surface font-headline-sm text-headline-sm" type="button">
+<span>Moyenne</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<div class="h-px bg-surface-container mx-space-xs"></div>
+<div class="flex items-center justify-between py-1.5 px-space-xs rounded-lg hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">person</span>
+<span class="font-body-sm text-body-sm text-on-surface">Assigné à</span>
+</div>
+<button class="flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-surface-container text-on-surface font-headline-sm text-headline-sm" type="button">
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary font-label-sm text-[10px]">AM</div>
+<span>Moi (Alexandre M.)</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<div class="h-px bg-surface-container mx-space-xs"></div>
+<div class="flex items-center justify-between py-1.5 px-space-xs rounded-lg hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-on-tertiary-container">folder_open</span>
+<span class="font-body-sm text-body-sm text-on-surface">Projet</span>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container text-on-surface font-headline-sm text-headline-sm" type="button">
+<span>Campagne de Marque</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<div class="h-px bg-surface-container mx-space-xs"></div>
+<div class="flex items-center justify-between py-1.5 px-space-xs rounded-lg hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-body-sm text-body-sm text-on-surface">Échéance</span>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 rounded-full bg-surface-container text-on-surface font-headline-sm text-headline-sm" type="button">
+<span>Cette semaine</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-medium px-space-xs">Raccourcis d'enrichissement</span>
+<div class="grid grid-cols-3 gap-space-xs">
+<button class="flex flex-col items-center justify-center gap-1 py-space-sm px-space-xs bg-surface-container-lowest hover:bg-surface-container rounded-xl shadow-sm transition-all active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px] text-on-surface">add_task</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Sous-tâche</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 py-space-sm px-space-xs bg-surface-container-lowest hover:bg-surface-container rounded-xl shadow-sm transition-all active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px] text-on-surface">attach_file</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Fichier</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 py-space-sm px-space-xs bg-surface-container-lowest hover:bg-surface-container rounded-xl shadow-sm transition-all active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px] text-on-surface">link</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Figma / Doc</span>
+</button>
+</div>
+</div>
+<div class="mt-space-xs bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">autorenew</span>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">Créer une autre tâche ensuite</span>
+<span class="font-label-sm text-label-sm text-outline">Garder la modale ouverte pour enchaîner</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="auto-repeat-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none transition-all duration-300 transform translate-y-3 z-50" id="toast-delight">
+<div class="flex items-center gap-2 px-space-lg py-space-sm rounded-full bg-primary text-on-primary font-headline-sm text-headline-sm shadow-xl">
+<span class="material-symbols-outlined text-tertiary-fixed text-[18px]">check_circle</span>
+<span>Tâche créée avec succès</span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim ml-1">⌘ + ↵</span>
+</div>
+</div>
+</div>
+<script>
+  const createBtn = document.getElementById('create-task-btn');
+  const toast = document.getElementById('toast-delight');
+
+  if (createBtn && toast) {
+    createBtn.addEventListener('click', () => {
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    });
+  }
+</script></main></body></html>

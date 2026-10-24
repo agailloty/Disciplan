@@ -22,25 +22,19 @@ jobs:
         run: dotnet build Disciplaner.slnx --no-restore --configuration Release
       - name: Domain and API tests
         run: dotnet test tests/Disciplaner.Tests/Disciplaner.Tests.csproj --no-build --configuration Release --logger trx --results-directory artifacts/test-results
-      - uses: actions/setup-node@v4
+      - uses: subosito/flutter-action@v2
         with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: tests/Disciplaner.BrowserTests/package-lock.json
-      - name: Install browser test dependencies
-        working-directory: tests/Disciplaner.BrowserTests
-        run: npm ci
-      - name: Install Chromium
-        working-directory: tests/Disciplaner.BrowserTests
-        run: npx playwright install --with-deps chromium
-      - name: Browser tests
-        working-directory: tests/Disciplaner.BrowserTests
-        run: npm test
+          channel: stable
+          cache: true
+      - name: Flutter analyze and tests
+        working-directory: src/Disciplaner.Flutter
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
           path: |
             artifacts/test-results
-            tests/Disciplaner.BrowserTests/playwright-report
-            tests/Disciplaner.BrowserTests/test-results
