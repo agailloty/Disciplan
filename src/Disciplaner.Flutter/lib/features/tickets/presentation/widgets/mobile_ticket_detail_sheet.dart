@@ -36,7 +36,14 @@ class MobileTicketDetailSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MobileTicketDetailSheet(ticketId: ticketId),
+      // Le useSafeArea du modal ignore le bas (SafeArea(bottom: false) dans
+      // le SDK) : sans ce SafeArea, la feuille s'ancre au bas physique de
+      // l'écran et le composeur de commentaires, donc son bouton d'envoi,
+      // se retrouve masqué par la barre de navigation système Android.
+      builder: (context) => SafeArea(
+        top: false,
+        child: MobileTicketDetailSheet(ticketId: ticketId),
+      ),
     );
   }
 

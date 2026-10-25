@@ -309,5 +309,63 @@ void main() {
       expect(find.text('Clara D.'), findsOneWidget);
       expect(find.widgetWithText(TextField, 'Ajouter une note...'), findsOneWidget);
     });
+
+    testWidgets('MobileTicketDetailSheet modal keeps the comment composer above the system navigation bar', (tester) async {
+      // Simule un téléphone Android 390x844 avec une barre de navigation
+      // système de 48px en edge-to-edge (clavier fermé).
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      Future<void> pumpApp(Widget home) async {
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(
+              size: Size(390, 844),
+              padding: EdgeInsets.only(top: 24, bottom: 48),
+              viewPadding: EdgeInsets.only(top: 24, bottom: 48),
+              viewInsets: EdgeInsets.zero,
+            ),
+            child: ProviderScope(
+              overrides: [
+                ticketDetailProvider('ticket-14').overrideWith((ref) async => sampleTicket),
+                ticketCommentsProvider('ticket-14').overrideWith((ref) async => sampleComments),
+                ticketAttachmentsProvider('ticket-14').overrideWith((ref) async => sampleAttachments),
+                ticketHistoryProvider('ticket-14').overrideWith((ref) async => sampleHistory),
+              ],
+              child: MaterialApp(
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: const Locale('fr'),
+                theme: NeoTheme.lightTheme,
+                home: home,
+              ),
+            ),
+          ),
+        );
+      }
+
+      await pumpApp(
+        Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => MobileTicketDetailSheet.show(context, 'ticket-14'),
+                child: const Text('OPEN'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+
+      // Le bouton d'envoi du composeur doit rester au-dessus de la barre de
+      // navigation système (zone 796..844) pour rester visible et cliquable.
+      final sendIcon = find.byIcon(Icons.arrow_upward);
+      expect(sendIcon, findsOneWidget);
+      expect(tester.getRect(sendIcon).bottom, lessThanOrEqualTo(844 - 48));
+    });
   });
 }
