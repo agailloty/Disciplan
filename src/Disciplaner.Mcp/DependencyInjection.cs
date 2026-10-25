@@ -1,4 +1,6 @@
 using Disciplaner.Mcp.McpAuth;
+using Disciplaner.Mcp.Resolution;
+using Disciplaner.Mcp.Tools;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -31,6 +33,11 @@ public static class DependencyInjection
             .AddScheme<McpTokenAuthenticationOptions, McpTokenAuthenticationHandler>(
                 McpTokenDefaults.AuthenticationScheme, _ => { });
         services.AddScoped<McpTokenService>();
+
+        // Tool plumbing
+        services.AddHttpContextAccessor();
+        services.AddScoped<McpToolContext>();
+        services.AddScoped<McpReferenceResolver>();
 
         services.AddRateLimiter(options =>
         {
