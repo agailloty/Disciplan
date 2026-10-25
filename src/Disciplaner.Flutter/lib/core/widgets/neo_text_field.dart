@@ -107,8 +107,8 @@ class NeoTextField extends StatelessWidget {
             errorText: errorText,
             hintStyle: NeoTypography.bodyMd.copyWith(color: NeoColors.subdued),
             contentPadding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: isDense ? 8 : 10,
+              horizontal: 14,
+              vertical: isDense ? 10 : 12,
             ),
             border: const OutlineInputBorder(
               borderRadius: NeoSpacing.roundedSm,

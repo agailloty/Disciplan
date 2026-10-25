@@ -52,10 +52,15 @@ class _CreateSprintModalState extends ConsumerState<CreateSprintModal> {
   void initState() {
     super.initState();
     _endDate = _startDate.add(Duration(days: _cadenceDays));
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _nameController.text =
-          context.l10n.sprintDefaultName(DateTime.now().month);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Nom par défaut : "Sprint X" où X = nombre de sprints déjà créés + 1.
+      try {
+        final sprints = await ref.read(projectSprintsProvider(widget.projectId).future);
+        if (!mounted) return;
+        _nameController.text = context.l10n.sprintAutoName(sprints.length + 1);
+      } catch (_) {
+        // Erreur de chargement : le champ reste vide, l'utilisateur nomme le sprint.
+      }
     });
   }
 

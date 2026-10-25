@@ -236,7 +236,7 @@ class _CreateProjectModalState extends ConsumerState<CreateProjectModal> {
                               color: NeoColors.secondary,
                               backgroundColor: NeoColors.secondaryContainer.withValues(alpha: 0.2),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             border: const OutlineInputBorder(
                               borderRadius: NeoSpacing.roundedSm,
                               borderSide: BorderSide(color: NeoColors.borderWhisper),

@@ -19,22 +19,31 @@ class CyclesOverviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: NeoColors.surfaceContainerLowest,
+      body: const CyclesOverviewBody(),
+    );
+  }
+}
+
+/// Contenu de la vue Cycles, sans Scaffold. Réutilisé tel quel par l'onglet
+/// Sprint mobile (bascule Board / Cycles dans KanbanAdaptiveScreen).
+class CyclesOverviewBody extends ConsumerWidget {
+  const CyclesOverviewBody({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final currentProject = ref.watch(currentProjectDetailProvider).value;
     if (currentProject == null) {
-      return Scaffold(
-        backgroundColor: NeoColors.surfaceContainerLowest,
-        body: Center(
-          child: Text(l10n.sprintSelectProject),
-        ),
+      return Center(
+        child: Text(l10n.sprintSelectProject),
       );
     }
 
     final sprintsAsync = ref.watch(projectSprintsProvider(currentProject.id));
 
-    return Scaffold(
-      backgroundColor: NeoColors.surfaceContainerLowest,
-      body: sprintsAsync.when(
+    return sprintsAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: NeoColors.primary),
         ),
@@ -163,8 +172,7 @@ class CyclesOverviewScreen extends ConsumerWidget {
             ),
           );
         },
-      ),
-    );
+      );
   }
 
   Widget _buildSectionHeader(String title, int count) {

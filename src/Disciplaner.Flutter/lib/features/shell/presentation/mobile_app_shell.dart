@@ -43,6 +43,9 @@ class MobileAppShell extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
     final l10n = context.l10n;
+    // Sur la page de détail d'un ticket, le FAB du shell recouvrirait le
+    // bouton d'envoi du compositeur de commentaires : on le masque.
+    final isTicketDetailRoute = currentRoute.startsWith('/tickets/');
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -127,7 +130,9 @@ class MobileAppShell extends ConsumerWidget {
         ),
       ),
       body: child,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isTicketDetailRoute
+          ? null
+          : FloatingActionButton(
         mini: true,
         backgroundColor: NeoColors.primary,
         foregroundColor: Colors.white,
@@ -154,15 +159,6 @@ class MobileAppShell extends ConsumerWidget {
                 Expanded(
                   child: _buildNavItem(
                     context,
-                    icon: Icons.view_kanban,
-                    label: l10n.sprintLabel,
-                    isSelected: currentRoute.startsWith('/kanban'),
-                    onTap: () => context.go('/kanban'),
-                  ),
-                ),
-                Expanded(
-                  child: _buildNavItem(
-                    context,
                     icon: Icons.home_outlined,
                     label: l10n.navHome,
                     isSelected: currentRoute.startsWith('/dashboard'),
@@ -172,10 +168,20 @@ class MobileAppShell extends ConsumerWidget {
                 Expanded(
                   child: _buildNavItem(
                     context,
-                    icon: Icons.timelapse,
-                    label: l10n.shellMobileCycles,
-                    isSelected: currentRoute.startsWith('/cycles'),
-                    onTap: () => context.go('/cycles'),
+                    icon: Icons.inbox_outlined,
+                    label: l10n.shellMobileBacklog,
+                    isSelected: currentRoute.startsWith('/backlog') ||
+                        currentRoute.startsWith('/projects/'),
+                    onTap: () => context.go('/backlog'),
+                  ),
+                ),
+                Expanded(
+                  child: _buildNavItem(
+                    context,
+                    icon: Icons.view_kanban,
+                    label: l10n.sprintLabel,
+                    isSelected: currentRoute.startsWith('/kanban'),
+                    onTap: () => context.go('/kanban'),
                   ),
                 ),
                 Expanded(
@@ -229,8 +235,9 @@ class MobileAppShell extends ConsumerWidget {
 
   String _titleForRoute(AppLocalizations l10n) {
     if (currentRoute == '/dashboard') return l10n.dashboardTitle;
-    if (currentRoute.startsWith('/backlog') || currentRoute.startsWith('/projects/')) {
-      return l10n.shellCrumbBacklog;
+    if (currentRoute.startsWith('/backlog') ||
+        currentRoute.startsWith('/projects/')) {
+      return l10n.shellMobileBacklog;
     }
     if (currentRoute.startsWith('/kanban')) return l10n.sprintLabel;
     if (currentRoute.startsWith('/cycles')) return l10n.shellMobileCycles;

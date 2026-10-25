@@ -79,7 +79,7 @@ abstract final class NeoTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: NeoColors.surfaceContainerLowest,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: NeoSpacing.roundedSm,
           borderSide: const BorderSide(color: NeoColors.borderWhisper, width: 1),

@@ -6,6 +6,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/features/projects/presentation/project_providers.dart';
+import 'package:disciplaner_flutter/features/sprints/presentation/cycles_overview_screen.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/sprint_providers.dart';
 import 'package:disciplaner_flutter/features/sprints/presentation/widgets/create_sprint_modal.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'desktop_sprint_kanban_view.dart';
 import 'mobile_sprint_kanban_view.dart';
+
+/// Vue affichée dans l'onglet Sprint sur mobile : le board kanban du sprint
+/// actif ou la vue Cycles (anciennement onglet Cycles dédié).
+enum _MobileSprintView { board, cycles }
 
 class KanbanAdaptiveScreen extends ConsumerStatefulWidget {
   const KanbanAdaptiveScreen({super.key});
@@ -23,6 +28,7 @@ class KanbanAdaptiveScreen extends ConsumerStatefulWidget {
 
 class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
   String? _selectedSprintId;
+  _MobileSprintView _mobileView = _MobileSprintView.board;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +68,7 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
               ? sprints.where((s) => s.id == _selectedSprintId).firstOrNull
               : activeSprint;
 
-          if (selectedSprint == null) {
+          Widget buildNoSprintView() {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -153,7 +159,25 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
           return LayoutBuilder(
             builder: (context, constraints) {
               if (constraints.maxWidth < NeoSpacing.mobileBreakpoint) {
-                return MobileSprintKanbanView(sprint: selectedSprint);
+                final boardView = selectedSprint != null
+                    ? MobileSprintKanbanView(sprint: selectedSprint)
+                    : buildNoSprintView();
+                return Column(
+                  children: [
+                    _SprintMobileViewToggle(
+                      selected: _mobileView,
+                      onChanged: (view) => setState(() => _mobileView = view),
+                    ),
+                    Expanded(
+                      child: _mobileView == _MobileSprintView.cycles
+                          ? const CyclesOverviewBody()
+                          : boardView,
+                    ),
+                  ],
+                );
+              }
+              if (selectedSprint == null) {
+                return buildNoSprintView();
               }
               return DesktopSprintKanbanView(
                 sprint: selectedSprint,
@@ -165,6 +189,84 @@ class _KanbanAdaptiveScreenState extends ConsumerState<KanbanAdaptiveScreen> {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+/// Bascule mobile entre le board du sprint actif et la vue Cycles.
+class _SprintMobileViewToggle extends StatelessWidget {
+  final _MobileSprintView selected;
+  final ValueChanged<_MobileSprintView> onChanged;
+
+  const _SprintMobileViewToggle({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: NeoSpacing.spaceMd,
+        vertical: NeoSpacing.spaceXs,
+      ),
+      decoration: const BoxDecoration(
+        color: NeoColors.surface,
+        border: Border(
+          bottom: BorderSide(color: NeoColors.borderWhisper, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildChip(
+              context,
+              label: l10n.sprintLabel,
+              view: _MobileSprintView.board,
+            ),
+          ),
+          const SizedBox(width: NeoSpacing.spaceXs),
+          Expanded(
+            child: _buildChip(
+              context,
+              label: l10n.shellMobileCycles,
+              view: _MobileSprintView.cycles,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(
+    BuildContext context, {
+    required String label,
+    required _MobileSprintView view,
+  }) {
+    final isSelected = selected == view;
+    final color = isSelected ? NeoColors.primary : NeoColors.muted;
+    return InkWell(
+      onTap: () => onChanged(view),
+      borderRadius: NeoSpacing.roundedSm,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? NeoColors.primary.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: NeoSpacing.roundedSm,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: NeoTypography.labelSm.copyWith(
+            color: color,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

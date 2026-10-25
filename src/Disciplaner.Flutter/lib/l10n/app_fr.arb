@@ -888,6 +888,7 @@
   },
   "shellDisplaySize": "Taille d'affichage ({percent}%)",
   "shellMobileCycles": "Cycles",
+  "shellMobileBacklog": "Backlog",
   "shellMobileDashboard": "Dashboard",
   "shellMobileProjects": "Mes Projets",
   "shellMobileTasks": "Tâches",
@@ -1008,14 +1009,14 @@
     }
   },
   "sprintDaysRemainingBadge": "J-{count}",
-  "@sprintDefaultName": {
+  "@sprintAutoName": {
     "placeholders": {
-      "month": {
+      "number": {
         "type": "int"
       }
     }
   },
-  "sprintDefaultName": "Sprint {month} — Optimisations & Livrables",
+  "sprintAutoName": "Sprint {number}",
   "sprintEndDate": "Date de fin",
   "sprintFinish": "Terminer le sprint",
   "sprintGoalHint": "Ex: Finaliser la refonte graphique et valider la campagne de marque...",

@@ -205,6 +205,60 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
+  group('MobileAppShell bottom navigation and FAB', () {
+    Widget shellFor(String route) {
+      return MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        theme: NeoTheme.lightTheme,
+        home: Scaffold(
+          body: MobileAppShell(currentRoute: route, child: const SizedBox()),
+        ),
+      );
+    }
+
+    testWidgets('shows Accueil, Backlog, Sprint, Paramètres in order', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(ProviderScope(child: shellFor('/kanban')));
+      await tester.pumpAndSettle();
+
+      final labels = ['Accueil', 'Backlog', 'Sprint', 'Paramètres'];
+      double? lastLeft;
+      for (final label in labels) {
+        // L'AppBar peut afficher le même libellé : la nav est rendue après lui.
+        final finder = find.text(label);
+        final finderInNav =
+            finder.evaluate().length > 1 ? finder.last : finder;
+        final rect = tester.getRect(finderInNav);
+        if (lastLeft != null) {
+          expect(rect.left > lastLeft, isTrue, reason: '"$label" doit suivre le label précédent');
+        }
+        lastLeft = rect.left;
+      }
+      expect(find.text('Cycles'), findsNothing);
+    });
+
+    testWidgets('hides the FAB on ticket detail routes so the comment send button stays tappable', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(ProviderScope(child: shellFor('/tickets/CAMP-1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsNothing);
+
+      await tester.pumpWidget(ProviderScope(child: shellFor('/kanban')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+    });
+  });
+
   testWidgets('Global Shortcuts toggles Command Palette and Create Task flags',
       (WidgetTester tester) async {
     late WidgetRef capturedRef;

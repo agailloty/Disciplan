@@ -3314,6 +3314,12 @@ abstract class AppLocalizations {
   /// **'Cycles'**
   String get shellMobileCycles;
 
+  /// No description provided for @shellMobileBacklog.
+  ///
+  /// In fr, this message translates to:
+  /// **'Backlog'**
+  String get shellMobileBacklog;
+
   /// No description provided for @shellMobileDashboard.
   ///
   /// In fr, this message translates to:
@@ -3704,11 +3710,11 @@ abstract class AppLocalizations {
   /// **'J-{count}'**
   String sprintDaysRemainingBadge(int count);
 
-  /// No description provided for @sprintDefaultName.
+  /// No description provided for @sprintAutoName.
   ///
   /// In fr, this message translates to:
-  /// **'Sprint {month} — Optimisations & Livrables'**
-  String sprintDefaultName(int month);
+  /// **'Sprint {number}'**
+  String sprintAutoName(int number);
 
   /// No description provided for @sprintEndDate.
   ///

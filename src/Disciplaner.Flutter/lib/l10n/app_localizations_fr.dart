@@ -1772,6 +1772,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shellMobileCycles => 'Cycles';
 
   @override
+  String get shellMobileBacklog => 'Backlog';
+
+  @override
   String get shellMobileDashboard => 'Dashboard';
 
   @override
@@ -1984,8 +1987,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String sprintDefaultName(int month) {
-    return 'Sprint $month — Optimisations & Livrables';
+  String sprintAutoName(int number) {
+    return 'Sprint $number';
   }
 
   @override
