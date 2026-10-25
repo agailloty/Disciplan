@@ -26,6 +26,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<BoardMember> BoardMembers => Set<BoardMember>();
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
     public DbSet<CalendarToken> CalendarTokens => Set<CalendarToken>();
+    public DbSet<McpToken> McpTokens => Set<McpToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

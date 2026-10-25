@@ -28,6 +28,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
         services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
         services.AddScoped<ICalendarTokenRepository, CalendarTokenRepository>();
+        services.AddScoped<IMcpTokenRepository, McpTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services

@@ -313,6 +313,53 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                     b.ToTable("Labels", (string)null);
                 });
 
+            modelBuilder.Entity("Disciplaner.Domain.Entities.McpToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(44)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("McpTokens", (string)null);
+                });
+
             modelBuilder.Entity("Disciplaner.Domain.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
