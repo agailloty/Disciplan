@@ -36,14 +36,31 @@ class DisciplanApp extends ConsumerStatefulWidget {
   ConsumerState<DisciplanApp> createState() => _DisciplanAppState();
 }
 
-class _DisciplanAppState extends ConsumerState<DisciplanApp> {
+class _DisciplanAppState extends ConsumerState<DisciplanApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(localeProvider.notifier).load();
       ref.read(authNotifierProvider.notifier).checkStatusAndSession();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reprise après suspension : la session a pu expirer pendant que
+    // l'application était en arrière-plan. On la rafraîchit silencieusement
+    // avant que les écrans ouverts ne tombent sur des 401.
+    if (state == AppLifecycleState.resumed) {
+      ref.read(authNotifierProvider.notifier).ensureFreshSession();
+    }
   }
 
   @override

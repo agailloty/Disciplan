@@ -22,6 +22,7 @@ class MockAuthRepository implements IAuthRepository {
   bool setupRequired = false;
   AuthResponse? currentSession;
   bool shouldThrow = false;
+  bool refreshShouldThrow = false;
 
   @override
   Future<SetupStatusResponse> getSetupStatus() async {
@@ -86,6 +87,20 @@ class MockAuthRepository implements IAuthRepository {
       email: request.email,
       displayName: request.displayName,
       roles: const ['Member'],
+      expiresAt: DateTime.now().add(const Duration(days: 7)),
+    );
+    currentSession = auth;
+    return auth;
+  }
+
+  @override
+  Future<AuthResponse> refresh() async {
+    if (refreshShouldThrow) throw AppFailure.unauthorized('Session expirée');
+    final auth = AuthResponse(
+      token: 'jwt_refreshed_token_001',
+      email: currentSession?.email ?? 'refresh@test.com',
+      displayName: currentSession?.displayName ?? 'Test User',
+      roles: const ['Admin'],
       expiresAt: DateTime.now().add(const Duration(days: 7)),
     );
     currentSession = auth;
@@ -314,6 +329,68 @@ void main() {
       expect(container.read(authNotifierProvider), isA<AuthAuthenticated>());
       final session = (container.read(authNotifierProvider) as AuthAuthenticated).session;
       expect(session.email, 'admin@test.com');
+    });
+
+    test('AuthNotifier silently refreshes an expired session on startup', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final serverStorage = ServerConfigStorage(prefs);
+      final tokenStorage = TokenStorage(fallbackPrefs: prefs);
+      final mockRepo = MockAuthRepository();
+
+      // Session expirée depuis une heure (JWT de 60 min, app en veille).
+      await tokenStorage.saveSession(AuthResponse(
+        token: 'jwt_expired_token',
+        email: 'admin@test.com',
+        displayName: 'Admin Root',
+        roles: const ['Admin'],
+        expiresAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ));
+
+      final container = ProviderContainer(
+        overrides: [
+          serverConfigStorageProvider.overrideWithValue(serverStorage),
+          tokenStorageProvider.overrideWithValue(tokenStorage),
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.notifier).checkStatusAndSession();
+
+      final state = container.read(authNotifierProvider);
+      expect(state, isA<AuthAuthenticated>());
+      expect((state as AuthAuthenticated).session.token, 'jwt_refreshed_token_001');
+    });
+
+    test('AuthNotifier logs out when the expired session cannot be refreshed', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final serverStorage = ServerConfigStorage(prefs);
+      final tokenStorage = TokenStorage(fallbackPrefs: prefs);
+      final mockRepo = MockAuthRepository()..refreshShouldThrow = true;
+
+      await tokenStorage.saveSession(AuthResponse(
+        token: 'jwt_long_expired_token',
+        email: 'admin@test.com',
+        displayName: 'Admin Root',
+        roles: const ['Admin'],
+        expiresAt: DateTime.now().subtract(const Duration(days: 60)),
+      ));
+
+      final container = ProviderContainer(
+        overrides: [
+          serverConfigStorageProvider.overrideWithValue(serverStorage),
+          tokenStorageProvider.overrideWithValue(tokenStorage),
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authNotifierProvider.notifier).checkStatusAndSession();
+
+      expect(container.read(authNotifierProvider), const AuthUnauthenticated());
+      expect(await tokenStorage.getSession(), isNull);
     });
   });
 

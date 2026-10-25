@@ -76,6 +76,36 @@ public sealed class AuthController : ControllerBase
         return Ok(await BuildResponseAsync(user));
     }
 
+    /// <summary>
+    /// Exchanges a valid or recently-expired JWT for a fresh one. The token may
+    /// be expired for at most Jwt:RefreshWindowDays days; beyond that window the
+    /// client must sign in again. Keeps idle mobile/desktop sessions alive
+    /// without storing credentials on the device.
+    /// </summary>
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh()
+    {
+        var authHeader = Request.Headers.Authorization.ToString();
+        if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return Unauthorized(new { message = "Missing bearer token." });
+
+        var principal = _tokenService.ValidateTokenIgnoringLifetime(authHeader["Bearer ".Length..].Trim());
+        if (principal is null)
+            return Unauthorized(new { message = "Invalid token." });
+
+        var expiredFor = DateTime.UtcNow - (JwtTokenService.GetExpiry(principal) ?? DateTime.MinValue);
+        if (expiredFor > TimeSpan.FromDays(_tokenService.RefreshWindowDays))
+            return Unauthorized(new { message = "Session expired, please sign in again." });
+
+        var user = await _userManager.GetUserAsync(principal);
+        if (user is null || !user.IsActive)
+            return Unauthorized(new { message = "Account is inactive or missing." });
+
+        return Ok(await BuildResponseAsync(user));
+    }
+
     /// <summary>Returns information about an invitation token (public — no auth required).</summary>
     [HttpGet("invitation/{token}")]
     [ProducesResponseType(typeof(InvitationInfoResponse), StatusCodes.Status200OK)]

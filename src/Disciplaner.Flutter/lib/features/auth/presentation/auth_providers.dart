@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:disciplaner_flutter/core/errors/app_failure.dart';
 import 'package:disciplaner_flutter/core/models/auth_models.dart';
 import 'package:disciplaner_flutter/core/network/dio_client.dart';
 import 'package:disciplaner_flutter/core/storage/server_config_storage.dart';
@@ -27,6 +28,9 @@ final dioClientProvider = Provider<DioClient>((ref) {
     tokenStorage: tokenStorage,
     onUnauthorized: () {
       tokenStorage.clear();
+      // Basculer l'état d'authentification déclenche la redirection du
+      // routeur vers l'écran de connexion : plus de pages figées en 401.
+      ref.read(authNotifierProvider.notifier).sessionInvalidated();
     },
   );
 });
@@ -63,6 +67,55 @@ class AuthNotifier extends Notifier<AuthState> {
     state = newState;
   }
 
+  /// Restaure la session persistée ; si elle est expirée, tente un refresh
+  /// silencieux (fenêtre de grâce serveur) avant de déconnecter l'utilisateur.
+  Future<AuthState> _resolveStoredSession() async {
+    final session = await _tokenStorage.getSession();
+    if (session == null) return const AuthUnauthenticated();
+    if (session.expiresAt.isAfter(DateTime.now())) {
+      return AuthAuthenticated(session);
+    }
+    try {
+      final refreshed = await _authRepo.refresh();
+      await _tokenStorage.saveSession(refreshed);
+      return AuthAuthenticated(refreshed);
+    } catch (_) {
+      await _tokenStorage.clear();
+      return const AuthUnauthenticated();
+    }
+  }
+
+  /// Session invalidée côté réseau (401 définitif après échec de refresh) :
+  /// le stockage a déjà été vidé par l'intercepteur, il ne reste qu'à faire
+  /// basculer l'état pour que le routeur ramène l'écran de connexion.
+  void sessionInvalidated() {
+    if (state is! AuthUnauthenticated) {
+      state = const AuthUnauthenticated();
+    }
+  }
+
+  /// À la reprise de l'application, rafraîchit proactivement une session
+  /// expirée ou proche de l'expiration pour éviter des 401 visibles sur les
+  /// écrans encore ouverts. Une erreur réseau transitoire ne déconnecte pas.
+  Future<void> ensureFreshSession() async {
+    if (state is! AuthAuthenticated) return;
+    final session = (state as AuthAuthenticated).session;
+    if (session.expiresAt.isAfter(DateTime.now().add(const Duration(minutes: 5)))) return;
+    try {
+      final refreshed = await _authRepo.refresh();
+      await _tokenStorage.saveSession(refreshed);
+      state = AuthAuthenticated(refreshed);
+    } on AppFailure catch (e) {
+      if (e.type == AppFailureType.unauthorized) {
+        await _tokenStorage.clear();
+        state = const AuthUnauthenticated();
+      }
+      // Erreur réseau/serveur transitoire : on garde la session courante.
+    } catch (_) {
+      // Idem : ne pas déconnecter sur un échec non lié à l'authentification.
+    }
+  }
+
   Future<void> checkStatusAndSession() async {
     state = const AuthLoading();
     try {
@@ -72,13 +125,7 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      final existingSession = await _tokenStorage.getSession();
-      if (existingSession != null && existingSession.expiresAt.isAfter(DateTime.now())) {
-        state = AuthAuthenticated(existingSession);
-      } else {
-        await _tokenStorage.clear();
-        state = const AuthUnauthenticated();
-      }
+      state = await _resolveStoredSession();
     } catch (e) {
       state = AuthUnconfiguredServer(error: e);
     }
@@ -91,12 +138,7 @@ class AuthNotifier extends Notifier<AuthState> {
       if (status.setupRequired) {
         state = const AuthNeedsInitialSetup();
       } else {
-        final session = await _tokenStorage.getSession();
-        if (session != null && session.expiresAt.isAfter(DateTime.now())) {
-          state = AuthAuthenticated(session);
-        } else {
-          state = const AuthUnauthenticated();
-        }
+        state = await _resolveStoredSession();
       }
       return true;
     } catch (e) {

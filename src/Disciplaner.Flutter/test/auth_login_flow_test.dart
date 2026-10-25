@@ -56,6 +56,9 @@ class FakeAuthRepository implements IAuthRepository {
       throw UnimplementedError();
 
   @override
+  Future<AuthResponse> refresh() async => throw UnimplementedError();
+
+  @override
   Future<InvitationInfoResponse> getInvitation(String token) async =>
       throw UnimplementedError();
 

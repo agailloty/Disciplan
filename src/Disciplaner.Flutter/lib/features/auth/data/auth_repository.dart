@@ -6,6 +6,7 @@ abstract class IAuthRepository {
   Future<AuthResponse> executeSetup(SetupRequest request);
   Future<AuthResponse> login(LoginRequest request);
   Future<AuthResponse> register(RegisterRequest request);
+  Future<AuthResponse> refresh();
   Future<InvitationInfoResponse> getInvitation(String token);
   Future<AuthResponse> registerInvited(InvitationRegisterRequest request);
 }
@@ -39,6 +40,18 @@ class AuthRepository implements IAuthRepository {
   Future<AuthResponse> login(LoginRequest request) async {
     try {
       final res = await _client.dio.post('/api/auth/login', data: request.toJson());
+      return AuthResponse.fromJson(res.data as Map<String, dynamic>);
+    } catch (e) {
+      throw DioClient.handleError(e);
+    }
+  }
+
+  @override
+  Future<AuthResponse> refresh() async {
+    try {
+      // L'intercepteur joint le token courant (même expiré) ; le serveur
+      // l'échange contre un nouveau JWT s'il est dans la fenêtre de grâce.
+      final res = await _client.dio.post('/api/auth/refresh');
       return AuthResponse.fromJson(res.data as Map<String, dynamic>);
     } catch (e) {
       throw DioClient.handleError(e);

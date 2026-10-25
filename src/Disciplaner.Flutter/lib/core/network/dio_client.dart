@@ -23,9 +23,15 @@ class DioClient {
       'Content-Type': 'application/json',
     };
 
+    final refreshCoordinator = TokenRefreshCoordinator(dio, tokenStorage);
     dio.interceptors.addAll([
       BaseUrlInterceptor(serverConfigStorage),
-      AuthInterceptor(tokenStorage, onUnauthorized: onUnauthorized),
+      AuthInterceptor(
+        dio,
+        tokenStorage,
+        refreshCoordinator,
+        onUnauthorized: onUnauthorized,
+      ),
     ]);
   }
 
