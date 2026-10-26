@@ -4873,6 +4873,138 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Pointer l\'application vers un autre serveur API Disciplan. Le build web utilise par défaut sa propre origine.'**
   String get setupServerSubtitle;
+
+  /// No description provided for @settingsMcpTokensTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jetons MCP'**
+  String get settingsMcpTokensTitle;
+
+  /// No description provided for @settingsMcpTokensSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jetons d\'accès personnels pour les clients MCP (Mistral, ChatGPT, Claude Desktop, Cursor).'**
+  String get settingsMcpTokensSubtitle;
+
+  /// No description provided for @settingsMcpTokensEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun jeton. Créez-en un pour connecter un assistant IA à Disciplaner.'**
+  String get settingsMcpTokensEmpty;
+
+  /// No description provided for @settingsMcpTokensCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un jeton'**
+  String get settingsMcpTokensCreate;
+
+  /// No description provided for @settingsMcpTokensCreateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau jeton MCP'**
+  String get settingsMcpTokensCreateTitle;
+
+  /// No description provided for @settingsMcpTokensNameLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du jeton'**
+  String get settingsMcpTokensNameLabel;
+
+  /// No description provided for @settingsMcpTokensNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'ex. Claude Desktop'**
+  String get settingsMcpTokensNameHint;
+
+  /// No description provided for @settingsMcpTokensScopeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Portée'**
+  String get settingsMcpTokensScopeLabel;
+
+  /// No description provided for @settingsMcpTokensScopeRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture seule'**
+  String get settingsMcpTokensScopeRead;
+
+  /// No description provided for @settingsMcpTokensScopeReadWrite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture + écriture'**
+  String get settingsMcpTokensScopeReadWrite;
+
+  /// No description provided for @settingsMcpTokensScopeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Permet à l\'assistant de créer et modifier des tickets, sprints et commentaires.'**
+  String get settingsMcpTokensScopeHelp;
+
+  /// No description provided for @settingsMcpTokenRevoke.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer'**
+  String get settingsMcpTokenRevoke;
+
+  /// No description provided for @settingsMcpTokenRevoked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoqué'**
+  String get settingsMcpTokenRevoked;
+
+  /// No description provided for @settingsMcpTokenNeverUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créé le {created} · jamais utilisé'**
+  String settingsMcpTokenNeverUsed(String created);
+
+  /// No description provided for @settingsMcpTokenLastUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créé le {created} · dernière utilisation le {lastUsed}'**
+  String settingsMcpTokenLastUsed(String created, String lastUsed);
+
+  /// No description provided for @settingsMcpTokenCreatedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jeton créé'**
+  String get settingsMcpTokenCreatedTitle;
+
+  /// No description provided for @settingsMcpTokenCreatedWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copiez ce jeton maintenant : il ne sera plus jamais affiché.'**
+  String get settingsMcpTokenCreatedWarning;
+
+  /// No description provided for @settingsMcpTokenCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier'**
+  String get settingsMcpTokenCopy;
+
+  /// No description provided for @settingsMcpTokenCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jeton copié'**
+  String get settingsMcpTokenCopied;
+
+  /// No description provided for @settingsMcpTokenDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get settingsMcpTokenDone;
+
+  /// No description provided for @settingsMcpTokenRevokeConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer le jeton ?'**
+  String get settingsMcpTokenRevokeConfirmTitle;
+
+  /// No description provided for @settingsMcpTokenRevokeConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jeton « {name} » cessera immédiatement de fonctionner. Cette action est irréversible.'**
+  String settingsMcpTokenRevokeConfirm(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -10,6 +10,7 @@ import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
+import 'package:disciplaner_flutter/features/settings/presentation/mcp_tokens_section.dart';
 import 'package:disciplaner_flutter/features/settings/presentation/settings_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/label_providers.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/ticket_providers.dart';
@@ -832,6 +833,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     },
                   ),
                 ),
+
+                // 3bis. Jetons MCP (connecteur IA)
+                const SizedBox(height: NeoSpacing.spaceLg),
+                const McpTokensSection(),
 
                 // 4. Administration (si rôle Admin)
                 if (isAdmin) ...[

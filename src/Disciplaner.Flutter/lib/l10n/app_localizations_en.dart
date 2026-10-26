@@ -2649,4 +2649,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupServerSubtitle =>
       'Point the app to another Disciplan API server. The web build uses its own origin by default.';
+
+  @override
+  String get settingsMcpTokensTitle => 'MCP tokens';
+
+  @override
+  String get settingsMcpTokensSubtitle =>
+      'Personal access tokens for MCP clients (Mistral, ChatGPT, Claude Desktop, Cursor).';
+
+  @override
+  String get settingsMcpTokensEmpty =>
+      'No token yet. Create one to connect an AI assistant to Disciplaner.';
+
+  @override
+  String get settingsMcpTokensCreate => 'Create a token';
+
+  @override
+  String get settingsMcpTokensCreateTitle => 'New MCP token';
+
+  @override
+  String get settingsMcpTokensNameLabel => 'Token name';
+
+  @override
+  String get settingsMcpTokensNameHint => 'e.g. Claude Desktop';
+
+  @override
+  String get settingsMcpTokensScopeLabel => 'Scope';
+
+  @override
+  String get settingsMcpTokensScopeRead => 'Read only';
+
+  @override
+  String get settingsMcpTokensScopeReadWrite => 'Read + write';
+
+  @override
+  String get settingsMcpTokensScopeHelp =>
+      'Lets the assistant create and update tickets, sprints and comments.';
+
+  @override
+  String get settingsMcpTokenRevoke => 'Revoke';
+
+  @override
+  String get settingsMcpTokenRevoked => 'Revoked';
+
+  @override
+  String settingsMcpTokenNeverUsed(String created) {
+    return 'Created on $created · never used';
+  }
+
+  @override
+  String settingsMcpTokenLastUsed(String created, String lastUsed) {
+    return 'Created on $created · last used on $lastUsed';
+  }
+
+  @override
+  String get settingsMcpTokenCreatedTitle => 'Token created';
+
+  @override
+  String get settingsMcpTokenCreatedWarning =>
+      'Copy this token now: it will never be shown again.';
+
+  @override
+  String get settingsMcpTokenCopy => 'Copy';
+
+  @override
+  String get settingsMcpTokenCopied => 'Token copied';
+
+  @override
+  String get settingsMcpTokenDone => 'Done';
+
+  @override
+  String get settingsMcpTokenRevokeConfirmTitle => 'Revoke this token?';
+
+  @override
+  String settingsMcpTokenRevokeConfirm(String name) {
+    return 'Token \"$name\" will stop working immediately. This cannot be undone.';
+  }
 }

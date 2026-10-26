@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/models/collaboration_models.dart';
+import 'mcp_token_models.dart';
 
 class SettingsRepository {
   final Dio _dio;
@@ -68,5 +69,31 @@ class SettingsRepository {
       data: {'email': email.trim()},
     );
     return InvitationDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  // ── MCP personal access tokens ───────────────────────────────────────────
+
+  Future<List<McpTokenDto>> getMcpTokens() async {
+    final response = await _dio.get('/api/me/mcp-tokens');
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => McpTokenDto.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Returns the raw token — the only time it is ever visible.
+  Future<CreatedMcpToken> createMcpToken({
+    required String name,
+    required String scopes,
+  }) async {
+    final response = await _dio.post(
+      '/api/me/mcp-tokens',
+      data: {'name': name.trim(), 'scopes': scopes},
+    );
+    return CreatedMcpToken.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> revokeMcpToken(String tokenId) async {
+    await _dio.delete('/api/me/mcp-tokens/$tokenId');
   }
 }

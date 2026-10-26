@@ -66,7 +66,8 @@ public static class DependencyInjection
                 "All dates are ISO 8601 UTC.";
         })
         .WithHttpTransport(options => options.Stateless = true)
-        .WithToolsFromAssembly(typeof(DependencyInjection).Assembly);
+        .WithToolsFromAssembly(typeof(DependencyInjection).Assembly)
+        .WithPromptsFromAssembly(typeof(DependencyInjection).Assembly);
 
         return services;
     }

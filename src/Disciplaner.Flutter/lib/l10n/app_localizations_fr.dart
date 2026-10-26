@@ -2666,4 +2666,80 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get setupServerSubtitle =>
       'Pointer l\'application vers un autre serveur API Disciplan. Le build web utilise par défaut sa propre origine.';
+
+  @override
+  String get settingsMcpTokensTitle => 'Jetons MCP';
+
+  @override
+  String get settingsMcpTokensSubtitle =>
+      'Jetons d\'accès personnels pour les clients MCP (Mistral, ChatGPT, Claude Desktop, Cursor).';
+
+  @override
+  String get settingsMcpTokensEmpty =>
+      'Aucun jeton. Créez-en un pour connecter un assistant IA à Disciplaner.';
+
+  @override
+  String get settingsMcpTokensCreate => 'Créer un jeton';
+
+  @override
+  String get settingsMcpTokensCreateTitle => 'Nouveau jeton MCP';
+
+  @override
+  String get settingsMcpTokensNameLabel => 'Nom du jeton';
+
+  @override
+  String get settingsMcpTokensNameHint => 'ex. Claude Desktop';
+
+  @override
+  String get settingsMcpTokensScopeLabel => 'Portée';
+
+  @override
+  String get settingsMcpTokensScopeRead => 'Lecture seule';
+
+  @override
+  String get settingsMcpTokensScopeReadWrite => 'Lecture + écriture';
+
+  @override
+  String get settingsMcpTokensScopeHelp =>
+      'Permet à l\'assistant de créer et modifier des tickets, sprints et commentaires.';
+
+  @override
+  String get settingsMcpTokenRevoke => 'Révoquer';
+
+  @override
+  String get settingsMcpTokenRevoked => 'Révoqué';
+
+  @override
+  String settingsMcpTokenNeverUsed(String created) {
+    return 'Créé le $created · jamais utilisé';
+  }
+
+  @override
+  String settingsMcpTokenLastUsed(String created, String lastUsed) {
+    return 'Créé le $created · dernière utilisation le $lastUsed';
+  }
+
+  @override
+  String get settingsMcpTokenCreatedTitle => 'Jeton créé';
+
+  @override
+  String get settingsMcpTokenCreatedWarning =>
+      'Copiez ce jeton maintenant : il ne sera plus jamais affiché.';
+
+  @override
+  String get settingsMcpTokenCopy => 'Copier';
+
+  @override
+  String get settingsMcpTokenCopied => 'Jeton copié';
+
+  @override
+  String get settingsMcpTokenDone => 'Terminé';
+
+  @override
+  String get settingsMcpTokenRevokeConfirmTitle => 'Révoquer le jeton ?';
+
+  @override
+  String settingsMcpTokenRevokeConfirm(String name) {
+    return 'Le jeton « $name » cessera immédiatement de fonctionner. Cette action est irréversible.';
+  }
 }
