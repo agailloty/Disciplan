@@ -42,6 +42,16 @@ public sealed class McpToolContext
             throw new McpException("This token is read-only. Create a personal access token with the 'read+write' scope to perform write operations.");
     }
 
+    /// <summary>Deep link a user can click to open the ticket in the Disciplaner web client.</summary>
+    public string TicketUrl(string ticketRef)
+    {
+        var request = _accessor.HttpContext?.Request;
+        var baseUrl = request is null
+            ? string.Empty
+            : $"{request.Scheme}://{request.Host}";
+        return $"{baseUrl}/tickets/{ticketRef}";
+    }
+
     /// <summary>Normalizes limit/offset tool arguments; rejects limits above the maximum.</summary>
     public (int Limit, int Offset) NormalizePaging(int? limit, int? offset)
     {

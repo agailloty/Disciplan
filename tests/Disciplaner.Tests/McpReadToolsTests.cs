@@ -189,10 +189,11 @@ public class McpReadToolsTests
         await factory.SeedAsync();
         using var client = await McpClientAsync(factory, "member"); // member of FIXA only, not FIXB
 
-        // Ticket exists but its project is not accessible → permission error, actionable.
+        // Ticket exists but its project is not accessible → explicit, actionable error.
         var (isError, message, _) = await CallToolAsync(client, "get_ticket", """{"ticket_ref":"FIXB-1"}""", 2);
         Assert.True(isError);
-        Assert.Contains("permission", message);
+        Assert.Contains("FIXB-1", message);
+        Assert.Contains("not found in your accessible projects", message);
 
         // Project key outside the accessible projects → listed alternatives.
         var (err2, message2, _) = await CallToolAsync(client, "get_project", """{"project_key":"FIXB"}""", 3);

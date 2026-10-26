@@ -73,20 +73,36 @@ public sealed partial class McpReferenceResolver(
                 throw new McpException(
                     $"'{ticketRef}' is not a valid ticket reference. Use the format KEY-number, e.g. 'DISC-42'.");
             var (key, number) = parsed.Value;
-            var ticket = await tickets.GetByRefAsync(key, number, userId, ct)
-                ?? throw new McpException(
-                    $"Ticket {key}-{number} was not found in project {key}. " +
-                    "Use list_tickets (or get_project then get_sprint) to browse available tickets.");
-            return ticket;
+            try
+            {
+                return await tickets.GetByRefAsync(key, number, userId, ct)
+                    ?? throw new McpException(
+                        $"Ticket {key}-{number} was not found in project {key}. " +
+                        "Use list_tickets (or get_project then get_sprint) to browse available tickets.");
+            }
+            catch (Application.Exceptions.ForbiddenException)
+            {
+                throw new McpException(
+                    $"Ticket {key}-{number} was not found in your accessible projects. " +
+                    "It may belong to a project you are not a member of. Use list_projects to see your projects.");
+            }
         }
 
         if (ticketId is not null && Guid.TryParse(ticketId, out var id))
         {
-            var ticket = await tickets.GetByIdAsync(id, userId, ct)
-                ?? throw new McpException(
-                    $"Ticket '{ticketId}' was not found or you don't have access to its project. " +
-                    "Use list_tickets to browse available tickets.");
-            return ticket;
+            try
+            {
+                return await tickets.GetByIdAsync(id, userId, ct)
+                    ?? throw new McpException(
+                        $"Ticket '{ticketId}' was not found or you don't have access to its project. " +
+                        "Use list_tickets to browse available tickets.");
+            }
+            catch (Application.Exceptions.ForbiddenException)
+            {
+                throw new McpException(
+                    $"Ticket '{ticketId}' was not found in your accessible projects. " +
+                    "It may belong to a project you are not a member of.");
+            }
         }
 
         throw new McpException("Provide either 'ticket_ref' (e.g. 'DISC-42') or 'ticket_id' (GUID).");
