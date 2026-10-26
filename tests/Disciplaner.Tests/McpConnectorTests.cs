@@ -262,6 +262,54 @@ public class McpConnectorTests
             $"expected LastUsedAt {afterSecond:O} to be later than {afterFirst:O}");
     }
 
+    private static async Task<List<string>> ToolsListNamesAsync(HttpClient client)
+    {
+        using var initialize = await PostRpcAsync(client, InitializeRequest);
+        Assert.Equal(HttpStatusCode.OK, initialize.StatusCode);
+        using var list = await PostRpcAsync(client, ToolsListRequest);
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        var result = await ReadRpcResultAsync(list);
+        return result.GetProperty("result").GetProperty("tools").EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString() ?? string.Empty)
+            .ToList();
+    }
+
+    [Fact]
+    public async Task Tools_list_hides_write_tools_from_read_only_tokens()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (_, raw) = await CreateTokenViaApiAsync(factory, "member", scopes: McpTokenSecurity.ReadScope);
+
+        using var client = ClientWithPat(factory, raw);
+        var names = await ToolsListNamesAsync(client);
+
+        // Write tools are hidden...
+        Assert.DoesNotContain("create_sprint", names);
+        Assert.DoesNotContain("create_ticket", names);
+        Assert.DoesNotContain("add_comment", names);
+        // ...read tools and the side-effect-free ping stay visible: 10 ReadOnly tools + ping.
+        Assert.Contains("list_sprints", names);
+        Assert.Contains("get_ticket", names);
+        Assert.Contains("ping", names);
+        Assert.Equal(11, names.Count);
+    }
+
+    [Fact]
+    public async Task Tools_list_shows_all_tools_to_read_write_tokens()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (_, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        var names = await ToolsListNamesAsync(client);
+
+        Assert.Contains("create_sprint", names);
+        Assert.Contains("add_comment", names);
+        Assert.Equal(22, names.Count);
+    }
+
     // ── Token management REST API ───────────────────────────────────────────
 
     [Fact]

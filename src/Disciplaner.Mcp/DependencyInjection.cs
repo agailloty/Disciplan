@@ -67,6 +67,8 @@ public static class DependencyInjection
                 "Disciplaner is a self-hosted project management tool (projects, tickets, sprints). " +
                 "Tickets are referenced as KEY-number, e.g. DISC-42, where KEY is the short project key. " +
                 "All dates are ISO 8601 UTC.";
+            // A 'read' token only lists the tools it can call (review fix B).
+            options.Filters.Request.ListToolsFilters.Add(McpScopeToolFilter.HideWriteToolsFromReadOnlyTokens);
         })
         .WithHttpTransport(options => options.Stateless = true)
         .WithToolsFromAssembly(typeof(DependencyInjection).Assembly)
