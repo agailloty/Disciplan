@@ -45,6 +45,6 @@ public static class McpScopeToolFilter
     {
         if (request.User?.Identity?.IsAuthenticated == true)
             return request.User;
-        return request.Services.GetService<IHttpContextAccessor>()?.HttpContext?.User;
+        return request.Services?.GetService<IHttpContextAccessor>()?.HttpContext?.User;
     }
 }
