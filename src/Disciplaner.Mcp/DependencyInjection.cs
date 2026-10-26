@@ -89,8 +89,15 @@ public static class DependencyInjection
             // Map an explicit 404 instead of letting requests fall through to the SPA fallback,
             // so MCP clients get an unambiguous "not available" answer on any verb.
             app.Map(pattern, () => Results.NotFound());
+            app.Map(ProtectedResource.Path, () => Results.NotFound());
             return null;
         }
+
+        // RFC 9728 discovery document (review fix C): diagnostic signpost for MCP clients
+        // that start OAuth discovery, explaining the personal access token instead.
+        app.MapGet(ProtectedResource.Path, (HttpRequest request) => Results.Ok(
+            ProtectedResource.Metadata(
+                $"{request.Scheme}://{request.Host}", options.PatDocumentationUrl)));
 
         return app.MapMcp(pattern)
             .RequireRateLimiting(RateLimitPolicy)

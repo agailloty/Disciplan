@@ -211,6 +211,63 @@ public class McpConnectorTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    // ── Auth discovery (review fix C) ──────────────────────────────────────
+
+    private static HttpClient AnonymousClient(ApiFactory factory) =>
+        factory.CreateClient(new WebApplicationFactoryClientOptions
+            { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+
+    [Fact]
+    public async Task Protected_resource_metadata_follows_rfc9728()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var client = AnonymousClient(factory);
+        using var response = await client.GetAsync("/.well-known/oauth-protected-resource");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = payload.RootElement;
+        // RFC 9728: the "resource" member is REQUIRED; "documentation" points at the PAT guide.
+        Assert.Equal("https://localhost", root.GetProperty("resource").GetString());
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("documentation").GetString()));
+        var scopes = root.GetProperty("scopes_supported").EnumerateArray()
+            .Select(s => s.GetString()).ToList();
+        Assert.Contains(McpTokenSecurity.ReadScope, scopes);
+        Assert.Contains(McpTokenSecurity.ReadWriteScope, scopes);
+    }
+
+    [Fact]
+    public async Task Mcp_unauthorized_responses_point_to_the_protected_resource_metadata()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var client = AnonymousClient(factory);
+        using var response = await PostRpcAsync(client, InitializeRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var challenge = Assert.Single(response.Headers.WwwAuthenticate);
+        Assert.Equal("Bearer", challenge.Scheme);
+        Assert.Equal("resource_metadata=\"https://localhost/.well-known/oauth-protected-resource\"",
+            challenge.Parameter);
+    }
+
+    [Fact]
+    public async Task Protected_resource_metadata_returns_404_when_mcp_is_disabled()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var disabled = factory.WithWebHostBuilder(
+            builder => builder.UseSetting("Mcp:Enabled", "false"));
+        using var client = disabled.CreateClient(new WebApplicationFactoryClientOptions
+            { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        using var response = await client.GetAsync("/.well-known/oauth-protected-resource");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     // ── LastUsedAt flush gating (review fix A) ──────────────────────────────
 
     private static async Task<DateTime?> ReadLastUsedAtAsync(ApiFactory factory, Guid tokenId)

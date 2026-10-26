@@ -1,6 +1,7 @@
 using Disciplaner.Domain.Common;
 using Disciplaner.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -81,5 +82,17 @@ public sealed class McpTokenAuthenticationHandler(
         }
 
         return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
+    }
+
+    /// <summary>
+    /// 401 challenge (review fix C): points conforming MCP clients at the RFC 9728 Protected
+    /// Resource Metadata document, which itself explains the personal access token flow.
+    /// </summary>
+    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = StatusCodes.Status401Unauthorized;
+        var metadataUrl = $"{Request.Scheme}://{Request.Host}{ProtectedResource.Path}";
+        Response.Headers.WWWAuthenticate = $"Bearer resource_metadata=\"{metadataUrl}\"";
+        return Task.CompletedTask;
     }
 }
