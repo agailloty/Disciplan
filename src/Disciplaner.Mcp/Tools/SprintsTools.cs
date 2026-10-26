@@ -1,3 +1,4 @@
+using Disciplaner.Application.DTOs.Sprint;
 using Disciplaner.Application.Interfaces;
 using Disciplaner.Mcp.Resolution;
 using ModelContextProtocol;
@@ -78,6 +79,94 @@ public sealed class SprintsTools
             var (sprint, projectKey) = await ResolveSprintAsync(sprint_name, project_key, sprint_id, ct);
             var tickets = await _tickets.GetBySprintAsync(sprint.Id, _context.UserId, ct);
             return Projections.ToSprintDetail(sprint, tickets);
+        });
+
+    // ── Sprint lifecycle (write) ─────────────────────────────────────────────
+    // Creating, starting and closing a sprint requires the Supervisor project role
+    // (enforced by the application service, not duplicated here).
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Creates a planned sprint in a project and returns its 'sprint_id' (needed by start_sprint). " +
+        "Sprints go Planned → Active (start_sprint) → Closed (close_sprint). Requires the Supervisor role.")]
+    public async Task<Projections.McpSprint> CreateSprint(
+        [Description("Short project key, e.g. 'DISC'. Case-insensitive.")] string project_key,
+        [Description("Sprint name (up to 100 characters), e.g. 'Sprint 12'.")] string name,
+        [Description("Optional sprint goal (up to 500 characters).")] string? goal = null,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+            var project = await _resolver.ResolveProjectAsync(project_key, userId, ct);
+            var sprint = await _sprints.CreateAsync(project.Id, userId,
+                new CreateSprintRequest(name, goal), ct);
+            return Projections.ToSprint(sprint, project.Key);
+        });
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Starts a planned sprint (Planned → Active) with its start and end dates (ISO 8601). " +
+        "Only one sprint can be active per project; dates can be changed later with update_sprint. Requires the Supervisor role.")]
+    public async Task<Projections.McpSprint> StartSprint(
+        [Description("Start date, ISO 8601, e.g. '2026-10-27'.")] string start_date,
+        [Description("End date, ISO 8601, e.g. '2026-11-09'.")] string end_date,
+        [Description("Sprint GUID id from list_sprints/create_sprint. Alternative to sprint_name+project_key.")] string? sprint_id = null,
+        [Description("Sprint name within the project, case-insensitive. Required with project_key when sprint_id is omitted.")] string? sprint_name = null,
+        [Description("Short project key, e.g. 'DISC'. Used with sprint_name.")] string? project_key = null,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+            var (sprint, projectKey) = await ResolveSprintAsync(sprint_name, project_key, sprint_id, ct);
+            var updated = await _sprints.StartAsync(sprint.Id, userId,
+                new StartSprintRequest(
+                    McpInputParsing.ParseDate(start_date, "start_date"),
+                    McpInputParsing.ParseDate(end_date, "end_date")),
+                ct);
+            return Projections.ToSprint(updated, projectKey);
+        });
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Closes the active sprint (Active → Closed). Tickets stay where they are; use move_ticket_to_sprint to replan unfinished work. Requires the Supervisor role.")]
+    public async Task<Projections.McpSprint> CloseSprint(
+        [Description("Sprint GUID id from list_sprints. Alternative to sprint_name+project_key.")] string? sprint_id = null,
+        [Description("Sprint name within the project, case-insensitive. Required with project_key when sprint_id is omitted.")] string? sprint_name = null,
+        [Description("Short project key, e.g. 'DISC'. Used with sprint_name.")] string? project_key = null,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+            var (sprint, projectKey) = await ResolveSprintAsync(sprint_name, project_key, sprint_id, ct);
+            var updated = await _sprints.CloseAsync(sprint.Id, userId, ct);
+            return Projections.ToSprint(updated, projectKey);
+        });
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Updates a sprint's name, goal or dates. Only the fields you pass are changed; a closed sprint cannot be edited. Requires the Supervisor role.")]
+    public async Task<Projections.McpSprint> UpdateSprint(
+        [Description("New sprint name (unchanged when omitted).")] string? name = null,
+        [Description("New sprint goal (unchanged when omitted).")] string? goal = null,
+        [Description("New start date, ISO 8601 (unchanged when omitted).")] string? start_date = null,
+        [Description("New end date, ISO 8601 (unchanged when omitted).")] string? end_date = null,
+        [Description("Sprint GUID id from list_sprints. Alternative to sprint_name+project_key.")] string? sprint_id = null,
+        [Description("Sprint name within the project, case-insensitive. Required with project_key when sprint_id is omitted.")] string? sprint_name = null,
+        [Description("Short project key, e.g. 'DISC'. Used with sprint_name.")] string? project_key = null,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+            var (sprint, projectKey) = await ResolveSprintAsync(sprint_name, project_key, sprint_id, ct);
+
+            var request = new UpdateSprintRequest(
+                name ?? sprint.Name,
+                goal ?? sprint.Goal,
+                start_date is null ? sprint.StartDate : McpInputParsing.ParseDate(start_date, "start_date"),
+                end_date is null ? sprint.EndDate : McpInputParsing.ParseDate(end_date, "end_date"));
+
+            var updated = await _sprints.UpdateAsync(sprint.Id, userId, request, ct);
+            return Projections.ToSprint(updated, projectKey);
         });
 
     private async Task<(Disciplaner.Application.DTOs.Sprint.SprintDetailDto, string)> ResolveSprintAsync(
