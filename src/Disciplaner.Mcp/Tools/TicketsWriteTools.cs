@@ -21,24 +21,52 @@ public sealed class TicketsWriteTools
     private readonly ITicketService _tickets;
     private readonly ISprintService _sprints;
     private readonly ICommentService _comments;
+    private readonly IProjectService _projectService;
+    private readonly TerminalStatusResolver _terminalStatus;
+    private readonly Microsoft.Extensions.Options.IOptions<McpOptions> _options;
 
     public TicketsWriteTools(
         McpToolContext context,
         McpReferenceResolver resolver,
         ITicketService tickets,
         ISprintService sprints,
-        ICommentService comments)
+        ICommentService comments,
+        IProjectService projectService,
+        TerminalStatusResolver terminalStatus,
+        Microsoft.Extensions.Options.IOptions<McpOptions> options)
     {
         _context = context;
         _resolver = resolver;
         _tickets = tickets;
         _sprints = sprints;
         _comments = comments;
+        _projectService = projectService;
+        _terminalStatus = terminalStatus;
+        _options = options;
     }
 
     public sealed record McpTicketWriteResult(string TicketRef, string Url, Projections.McpTicketDetail Ticket);
 
     public sealed record McpCommentWriteResult(string TicketRef, string Author, string Content, DateTime CreatedAt);
+
+    /// <summary>One ticket of a create_tickets batch (camelCase JSON keys).</summary>
+    public sealed record McpTicketDraft(
+        string Title,
+        string? Description = null,
+        string? Type = null,
+        string? Priority = null,
+        int? StoryPoints = null,
+        string? DueDate = null,
+        string? SprintName = null,
+        string? SprintId = null,
+        string? ParentTicketRef = null,
+        string? AssigneeDisplayName = null);
+
+    public sealed record McpCreatedTicketSummary(string TicketRef, string Title, string Url);
+
+    public sealed record McpBatchFailure(int Index, string Title, string Error);
+
+    public sealed record McpBatchCreateResult(IReadOnlyList<McpCreatedTicketSummary> Created, IReadOnlyList<McpBatchFailure> Failed);
 
     // ── create_ticket ────────────────────────────────────────────────────────
 
@@ -190,6 +218,99 @@ public sealed class TicketsWriteTools
             var ticket = await _resolver.ResolveTicketAsync(ticket_ref, null, userId, ct);
             var comment = await _comments.CreateForTicketAsync(ticket.Id, userId, new CreateCommentRequest(body), ct);
             return new McpCommentWriteResult(ticket.TicketRef, comment.AuthorName, comment.Content, comment.CreatedAt);
+        });
+
+    // ── create_tickets (batch) ─────────────────────────────────────────────
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Creates several tickets at once in one project — the preferred way to build or enrich a backlog. " +
+        "Partially tolerant to errors: invalid tickets are reported in 'failed' with the reason, the rest are created. " +
+        "Fix the failed ones and call again with only those. Maximum 50 tickets per call.")]
+    public async Task<McpBatchCreateResult> CreateTickets(
+        [Description("Short project key, e.g. 'DISC'. Case-insensitive.")] string project_key,
+        [Description("Tickets to create; each has title (required), description, type, priority, storyPoints, dueDate, sprintName, parentTicketRef, assigneeDisplayName.")] IReadOnlyList<McpTicketDraft>? tickets,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+
+            var drafts = tickets ?? [];
+            var maxBatch = _options.Value.MaxBatchTickets;
+            if (drafts.Count > maxBatch)
+                throw new McpException(
+                    $"Batch of {drafts.Count} tickets exceeds the {maxBatch}-ticket limit; split into multiple calls.");
+
+            var project = await _resolver.ResolveProjectAsync(project_key, userId, ct);
+
+            // Rights are checked once before the loop: a caller without write access
+            // fails the whole batch instead of partially creating tickets.
+            var projectDetail = await _projectService.GetByIdAsync(project.Id, userId, ct)
+                ?? throw new McpException($"Project '{project.Key}' is not accessible with this account.");
+            if (projectDetail.RequestingUserRole < Disciplaner.Domain.Enums.MemberRole.Member)
+                throw new McpException(
+                    $"You don't have permission to create tickets in project {project.Key}: your role there is {projectDetail.RequestingUserRole}, and Member is required.");
+
+            var created = new List<McpCreatedTicketSummary>();
+            var failed = new List<McpBatchFailure>();
+            var index = 0;
+
+            foreach (var draft in drafts)
+            {
+                try
+                {
+                    var request = new CreateTicketRequest(
+                        draft.Title,
+                        draft.Description,
+                        McpInputParsing.ParseTicketType(draft.Type),
+                        McpInputParsing.ParsePriority(draft.Priority),
+                        draft.StoryPoints,
+                        draft.DueDate is null ? null : McpInputParsing.ParseDate(draft.DueDate, "dueDate"),
+                        await ResolveSprintIdAsync(project.Id, project.Key, draft.SprintName, draft.SprintId, userId, ct),
+                        await ResolveParentIdAsync(project.Id, project.Key, draft.ParentTicketRef, userId, ct),
+                        await ResolveAssigneeIdAsync(project.Id, project.Key, draft.AssigneeDisplayName, null, userId, ct));
+
+                    var ticket = await _tickets.CreateAsync(project.Id, userId, request, ct);
+                    created.Add(new McpCreatedTicketSummary(ticket.TicketRef, ticket.Title, _context.TicketUrl(ticket.TicketRef)));
+                }
+                catch (Exception ex) when (ex is McpException or Application.Exceptions.NotFoundException
+                                           or Application.Exceptions.ForbiddenException
+                                           or Disciplaner.Domain.Exceptions.DomainException
+                                           or ArgumentException or ArgumentOutOfRangeException)
+                {
+                    failed.Add(new McpBatchFailure(index, draft.Title, ex.Message));
+                }
+                index++;
+            }
+
+            return new McpBatchCreateResult(created, failed);
+        });
+
+    // ── close_ticket ────────────────────────────────────────────────────────
+
+    [McpServerTool(UseStructuredContent = true)]
+    [Description("Closes a ticket: moves it to the project's terminal ('Done') status and optionally adds a resolution comment. " +
+        "Projects define their own statuses; this tool resolves the Done status automatically. " +
+        "If several Done statuses exist without an obvious default, the tool tells you which names are available — ask the user which one to use.")]
+    public async Task<McpTicketWriteResult> CloseTicket(
+        [Description("Ticket reference, e.g. 'DISC-42'. Case-insensitive.")] string ticket_ref,
+        [Description("Optional resolution comment added to the ticket when closing it.")] string? resolution_comment = null,
+        CancellationToken ct = default)
+        => await McpToolErrors.RunAsync(async () =>
+        {
+            _context.EnsureWriteScope();
+            var userId = _context.UserId;
+            var ticket = await _resolver.ResolveTicketAsync(ticket_ref, null, userId, ct);
+
+            var status = await _terminalStatus.ResolveTerminalStatusAsync(ticket.ProjectId, ticket.ProjectKey, userId, ct);
+            var closed = await _tickets.ChangeStatusAsync(ticket.Id, userId,
+                new ChangeTicketStatusRequest(status.Id), ct);
+
+            if (!string.IsNullOrWhiteSpace(resolution_comment))
+                await _comments.CreateForTicketAsync(ticket.Id, userId,
+                    new CreateCommentRequest(resolution_comment), ct);
+
+            return ToResult(closed);
         });
 
     // ── shared resolution ───────────────────────────────────────────────────

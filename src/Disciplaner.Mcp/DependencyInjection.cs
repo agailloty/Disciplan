@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<McpToolContext>();
         services.AddScoped<McpReferenceResolver>();
+        services.AddScoped<TerminalStatusResolver>();
 
         services.AddRateLimiter(options =>
         {

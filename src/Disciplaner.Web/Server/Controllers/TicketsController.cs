@@ -60,6 +60,48 @@ public sealed class TicketsController : ControllerBase
     public async Task<IActionResult> GetMine(CancellationToken ct)
         => Ok(await _tickets.GetAssignedToMeAsync(UserId, ct));
 
+    // GET api/projects/{projectId}/tickets?sprintId=&statusCategory=&type=&assigneeId=&mine=&reportedByMe=&limit=&offset=
+    [HttpGet("api/projects/{projectId:guid}/tickets")]
+    [ProducesResponseType(typeof(IReadOnlyList<TicketDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Search(
+        Guid projectId,
+        [FromQuery] TicketSearchRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _tickets.SearchAsync(request.ToQuery(projectId), UserId, ct);
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            return Ok(result.Items);
+        }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+    }
+
+    /// <summary>Query-string binding for the ticket search endpoint.</summary>
+    public sealed record TicketSearchRequest(
+        Guid? SprintId,
+        Disciplaner.Domain.Enums.StatusCategory? StatusCategory,
+        Disciplaner.Domain.Enums.TicketType? Type,
+        string? AssigneeId,
+        bool Mine,
+        bool ReportedByMe,
+        int? Limit,
+        int? Offset)
+    {
+        public TicketSearchQuery ToQuery(Guid projectId) => new()
+        {
+            ProjectId = projectId,
+            SprintId = SprintId,
+            StatusCategory = StatusCategory,
+            Type = Type,
+            AssigneeId = AssigneeId,
+            AssignedToMe = Mine,
+            ReportedByMe = ReportedByMe,
+            Limit = Limit ?? TicketSearchQuery.MaxLimit,
+            Offset = Offset ?? 0
+        };
+    }
+
     [HttpGet("api/tickets/{ticketId:guid}", Name = nameof(GetById))]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid ticketId, CancellationToken ct)

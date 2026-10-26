@@ -58,6 +58,43 @@ public sealed class TicketService : ITicketService
         return await ToDtoListAsync(tickets, cancellationToken);
     }
 
+    /// <summary>
+    /// Filtered ticket search across the user's accessible projects (rights filtering
+    /// happens in the repository query itself). Results are ordered project by project,
+    /// oldest ticket first — the natural backlog order — and returned as a page
+    /// with the total number of matches.
+    /// </summary>
+    public async Task<TicketSearchResult> SearchAsync(
+        TicketSearchQuery query, string requestingUserId, CancellationToken cancellationToken = default)
+    {
+        // A project-scoped search behaves like the other project endpoints: access is
+        // verified (403), while cross-project searches filter silently in the repository.
+        if (query.ProjectId.HasValue)
+            await EnsureProjectAccessAsync(query.ProjectId.Value, requestingUserId, cancellationToken);
+
+        var (assigneeId, reporterId) = query.EffectiveUsers(requestingUserId);
+        var tickets = await _uow.Tickets.GetFilteredAsync(
+            requestingUserId,
+            query.ProjectId,
+            statusId: null,
+            sprintId: query.SprintId,
+            type: query.Type,
+            priority: null,
+            statusCategories: query.StatusCategory.HasValue ? [query.StatusCategory.Value] : null,
+            assigneeId: assigneeId,
+            reporterId: reporterId,
+            cancellationToken);
+
+        var dtos = await ToDtoListAsync(tickets, cancellationToken);
+        var ordered = dtos
+            .OrderBy(d => d.ProjectKey)
+            .ThenBy(d => d.TicketNumber)
+            .ToList();
+        return new TicketSearchResult(
+            ordered.Skip(query.EffectiveOffset).Take(query.EffectiveLimit).ToList(),
+            ordered.Count);
+    }
+
     public async Task<TicketDto> CreateAsync(
         Guid projectId, string requestingUserId, CreateTicketRequest request,
         CancellationToken cancellationToken = default)
