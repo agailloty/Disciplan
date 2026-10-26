@@ -33,6 +33,9 @@ public static class DependencyInjection
             .AddScheme<McpTokenAuthenticationOptions, McpTokenAuthenticationHandler>(
                 McpTokenDefaults.AuthenticationScheme, _ => { });
         services.AddScoped<McpTokenService>();
+        // IMemoryCache gates the LastUsedAt flushes (one write per token per 5-minute window).
+        // AddMemoryCache uses TryAdd: an existing registration is left untouched.
+        services.AddMemoryCache();
 
         // Tool plumbing
         services.AddHttpContextAccessor();

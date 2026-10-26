@@ -6,7 +6,9 @@ using System.Text.Json;
 using Disciplaner.Domain.Common;
 using Disciplaner.Domain.Entities;
 using Disciplaner.Infrastructure.Data;
+using Disciplaner.Mcp.McpAuth;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -207,6 +209,57 @@ public class McpConnectorTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", raw);
         using var response = await PostRpcAsync(client, InitializeRequest);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── LastUsedAt flush gating (review fix A) ──────────────────────────────
+
+    private static async Task<DateTime?> ReadLastUsedAtAsync(ApiFactory factory, Guid tokenId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var token = await db.McpTokens.FindAsync(tokenId);
+        return token?.LastUsedAt;
+    }
+
+    [Fact]
+    public async Task Mcp_requests_close_together_flush_last_used_at_only_once()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (id, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        await PostRpcAsync(client, InitializeRequest);
+        var afterFirst = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterFirst);
+
+        // A second request within the 5-minute sliding window: telemetry is not re-persisted.
+        await PostRpcAsync(client, InitializeRequest);
+        var afterSecond = await ReadLastUsedAtAsync(factory, id);
+        Assert.Equal(afterFirst, afterSecond);
+    }
+
+    [Fact]
+    public async Task Mcp_requests_flush_last_used_at_again_after_the_five_minute_window()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (id, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        await PostRpcAsync(client, InitializeRequest);
+        var afterFirst = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterFirst);
+
+        // Simulate more than 5 minutes without use: the sliding cache entry has expired.
+        factory.Services.GetRequiredService<IMemoryCache>()
+            .Remove(McpTokenAuthenticationHandler.LastUsedCacheKeyPrefix + id);
+
+        await PostRpcAsync(client, InitializeRequest);
+        var afterSecond = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterSecond);
+        Assert.True(afterSecond > afterFirst,
+            $"expected LastUsedAt {afterSecond:O} to be later than {afterFirst:O}");
     }
 
     // ── Token management REST API ───────────────────────────────────────────
