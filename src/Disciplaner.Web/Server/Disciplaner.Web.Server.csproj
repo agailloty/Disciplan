@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Disciplaner.Application\Disciplaner.Application.csproj" />
     <ProjectReference Include="..\..\Disciplaner.Infrastructure\Disciplaner.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Disciplaner.Mcp\Disciplaner.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

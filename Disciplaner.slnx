@@ -3,6 +3,7 @@
     <Project Path="src/Disciplaner.Application/Disciplaner.Application.csproj" />
     <Project Path="src/Disciplaner.Domain/Disciplaner.Domain.csproj" />
     <Project Path="src/Disciplaner.Infrastructure/Disciplaner.Infrastructure.csproj" />
+    <Project Path="src/Disciplaner.Mcp/Disciplaner.Mcp.csproj" />
   </Folder>
   <Folder Name="/src/Disciplaner.Web/">
     <Project Path="src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj" />

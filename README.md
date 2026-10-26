@@ -73,6 +73,7 @@ For full development, compilation commands, and Homelab reverse-proxy guides, se
 - **Admin panel** — activate / deactivate user accounts, promote users to application Admin role
 
 ### Developer & Operations
+- **MCP connector** — AI assistants (Mistral, ChatGPT, Claude Desktop, Cursor, ...) can browse and manage your projects through the Model Context Protocol endpoint `/mcp`, authenticated with revocable personal access tokens (read or read+write) managed in the app settings; see the [MCP connector documentation](docs/mcp-connector/README.md)
 - **JWT authentication** — stateless Bearer tokens; configurable issuer, audience, expiry
 - **Swagger UI** — available in development mode at `/swagger`
 - **Docker** — multi-stage Dockerfile, single container, SQLite database persisted to a named volume

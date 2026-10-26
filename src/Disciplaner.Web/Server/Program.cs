@@ -3,6 +3,7 @@ using Disciplaner.Application;
 using Disciplaner.Infrastructure;
 using Disciplaner.Infrastructure.Data;
 using Disciplaner.Infrastructure.Identity;
+using Disciplaner.Mcp;
 using Disciplaner.Web.Server.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -81,6 +82,9 @@ builder.Services.AddAuthorization();
 // ── Infrastructure + Application services ────────────────────────────────────
 builder.Services.AddInfrastructure();
 
+// ── MCP connector (PAT-authenticated /mcp endpoint) ──────────────────────────
+builder.Services.AddDisciplanerMcp(builder.Configuration);
+
 // ── File storage ──────────────────────────────────────────────────────────────
 builder.Services.Configure<FileStorageOptions>(
     builder.Configuration.GetSection(FileStorageOptions.SectionName));
@@ -140,7 +144,9 @@ if (corsOrigins?.Length > 0)
 app.UseStaticFiles();            // serve wwwroot (e.g. a Flutter web build copied in)
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
+app.MapDisciplanerMcp("/mcp");
 app.MapFallbackToFile("index.html"); // SPA fallback — deep links of the hosted Flutter web client
 
 app.Run();

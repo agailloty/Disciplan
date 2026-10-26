@@ -21,6 +21,7 @@ COPY Disciplaner.slnx ./
 COPY src/Disciplaner.Domain/Disciplaner.Domain.csproj                 src/Disciplaner.Domain/
 COPY src/Disciplaner.Application/Disciplaner.Application.csproj       src/Disciplaner.Application/
 COPY src/Disciplaner.Infrastructure/Disciplaner.Infrastructure.csproj src/Disciplaner.Infrastructure/
+COPY src/Disciplaner.Mcp/Disciplaner.Mcp.csproj                             src/Disciplaner.Mcp/
 COPY src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj         src/Disciplaner.Web/Server/
 
 RUN dotnet restore src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj

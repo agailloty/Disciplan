@@ -79,4 +79,13 @@ public static class DomainConstraints
         /// <summary>40-char lowercase hex string produced by RandomNumberGenerator (20 bytes).</summary>
         public const int TokenLength = 40;
     }
+
+    public static class McpToken
+    {
+        public const int NameMaxLength = 100;
+        public const int ScopesMaxLength = 20;
+
+        /// <summary>Base64 string of the 32-byte SHA-256 hash (salted with the per-token salt).</summary>
+        public const int TokenHashLength = 44;
+    }
 }
