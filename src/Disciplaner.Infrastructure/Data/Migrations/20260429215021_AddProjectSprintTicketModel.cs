@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,13 +15,13 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Projects",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    Key = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    OwnerId = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Description = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    Key = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    OwnerId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,15 +32,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Sprints",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Goal = table.Column<string>(type: "TEXT", nullable: true),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Goal = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    Status = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    StartDate = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    EndDate = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ProjectId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,13 +57,13 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "TicketStatuses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Color = table.Column<string>(type: "TEXT", nullable: false),
-                    Order = table.Column<int>(type: "INTEGER", nullable: false),
-                    Category = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Color = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Order = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    Category = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ProjectId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,22 +80,22 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Tickets",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TicketNumber = table.Column<int>(type: "INTEGER", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: false),
-                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
-                    StoryPoints = table.Column<int>(type: "INTEGER", nullable: true),
-                    DueDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    StatusId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SprintId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    ParentTicketId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    ReporterId = table.Column<string>(type: "TEXT", nullable: false),
-                    AssigneeId = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    TicketNumber = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Description = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    Type = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    Priority = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    StoryPoints = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: true),
+                    DueDate = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ProjectId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    StatusId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    SprintId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ParentTicketId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ReporterId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    AssigneeId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

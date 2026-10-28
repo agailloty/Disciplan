@@ -246,7 +246,7 @@ public class McpReadToolsTests
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var projectId = await db.Projects.Where(p => p.Key == "FIXA").Select(p => p.Id).SingleAsync();
             await db.Database.ExecuteSqlRawAsync(
-                "INSERT INTO Sprints (Id, Name, Goal, Status, CreatedAt, ProjectId) " +
+                "INSERT INTO \"Sprints\" (\"Id\", \"Name\", \"Goal\", \"Status\", \"CreatedAt\", \"ProjectId\") " +
                 "VALUES ({0}, 'Baseline sprint', 'Duplicate name on purpose', 0, {1}, {2})",
                 Guid.NewGuid(), DateTime.UtcNow, projectId);
         }

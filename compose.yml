@@ -2,14 +2,16 @@ services:
   disciplaner:
     # Single container serving both the REST API (for the web, mobile and
     # desktop clients) and the Flutter web front from the same origin.
-    # Builds locally and tags the result as disciplaner:local; or comment out
-    # "build"/"image" and use the published image below instead.
+    # No PostgreSQL service is configured in this compose file: if DATABASE_URL
+    # and ConnectionStrings__Postgres are omitted, the API automatically falls
+    # back to a local SQLite database persisted in /data/disciplaner.db.
+    # For a dedicated PostgreSQL container, use compose.postgres.yml instead.
     build: .
     image: disciplaner:local
     # image: ghcr.io/agailloty/disciplan:latest
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${DISCIPLAN_PORT:-8080}:8080"
     volumes:
       - disciplaner-data:/data
     environment:
@@ -20,6 +22,10 @@ services:
       # If omitted, the app opens the /setup wizard on first run.
       AdminSeed__Email: "${ADMIN_EMAIL:-}"
       AdminSeed__Password: "${ADMIN_PASSWORD:-}"
+      # Optional: connect to an external / Cloud managed PostgreSQL database
+      # (e.g. Neon, Supabase, AWS RDS, Azure, Scaleway). Leave empty to fallback to SQLite.
+      DATABASE_URL: "${DATABASE_URL:-}"
+      ConnectionStrings__Postgres: "${POSTGRES_CONNECTION_STRING:-}"
       # Uncomment if a reverse proxy terminates TLS upstream
       # ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
 

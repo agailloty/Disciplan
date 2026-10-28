@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,12 +15,12 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Comments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Content = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
-                    AuthorId = table.Column<string>(type: "TEXT", maxLength: 450, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CardId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Content = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 2000, nullable: false),
+                    AuthorId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 450, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    CardId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

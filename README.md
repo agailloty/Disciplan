@@ -1,6 +1,6 @@
 # Disciplaner
 
-Disciplaner is a self-hostable project management application inspired by Jira and Linear, powered by a robust **ASP.NET Core 10** REST API backend and a **modern multiplatform Flutter client** (Web, Desktop Windows/macOS/Linux, and Mobile Android/iOS). Data is persisted in a **SQLite** database. The Flutter client implements the **Neo-Linear** design system with a clean, high-density keyboard-first UX.
+Disciplaner is a self-hostable project management application inspired by Jira and Linear, powered by a robust **ASP.NET Core 10** REST API backend and a **modern multiplatform Flutter client** (Web, Desktop Windows/macOS/Linux, and Mobile Android/iOS). Data is persisted in **PostgreSQL** (prioritized when configured or via `DATABASE_URL`) with an automatic zero-config fallback to **SQLite**. The Flutter client implements the **Neo-Linear** design system with a clean, high-density keyboard-first UX.
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Disciplaner is a self-hostable project management application inspired by Jira a
 ```
 Disciplaner.Domain          ← Entities, business rules, value objects, domain exceptions
 Disciplaner.Application     ← Services, DTOs, mappings (MediatR-free CQRS-lite)
-Disciplaner.Infrastructure  ← EF Core + SQLite, ASP.NET Core Identity, repositories
+Disciplaner.Infrastructure  ← EF Core (PostgreSQL + SQLite fallback), ASP.NET Core Identity, repositories
 Disciplaner.Web/
   Server/                   ← ASP.NET Core 10 REST API (+ optional static host for the Flutter web build)
 src/Disciplaner.Flutter/    ← Multiplatform Flutter client (Web, Desktop & Mobile)

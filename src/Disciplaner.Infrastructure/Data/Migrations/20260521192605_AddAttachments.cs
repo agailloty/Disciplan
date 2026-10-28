@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,23 +14,23 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "ProfilePictureUrl",
                 table: "AspNetUsers",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "Attachments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FileName = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    StoragePath = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    ContentType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    SizeBytes = table.Column<long>(type: "INTEGER", nullable: false),
-                    UploadedById = table.Column<string>(type: "TEXT", maxLength: 450, nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TicketId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    CommentId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    BoardId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    FileName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 255, nullable: false),
+                    StoragePath = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 500, nullable: false),
+                    ContentType = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 100, nullable: false),
+                    SizeBytes = table.Column<long>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    UploadedById = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 450, nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    TicketId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    CommentId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    BoardId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

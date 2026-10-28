@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,10 +15,10 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Labels",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Color = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 50, nullable: false),
+                    Color = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,8 +29,8 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "LabelBoards",
                 columns: table => new
                 {
-                    BoardsId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    LabelsId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    BoardsId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    LabelsId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,8 +53,8 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "LabelTickets",
                 columns: table => new
                 {
-                    LabelsId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TicketsId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    LabelsId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    TicketsId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

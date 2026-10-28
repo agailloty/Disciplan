@@ -21,7 +21,7 @@ COPY Disciplaner.slnx ./
 COPY src/Disciplaner.Domain/Disciplaner.Domain.csproj                 src/Disciplaner.Domain/
 COPY src/Disciplaner.Application/Disciplaner.Application.csproj       src/Disciplaner.Application/
 COPY src/Disciplaner.Infrastructure/Disciplaner.Infrastructure.csproj src/Disciplaner.Infrastructure/
-COPY src/Disciplaner.Mcp/Disciplaner.Mcp.csproj                             src/Disciplaner.Mcp/
+COPY src/Disciplaner.Mcp/Disciplaner.Mcp.csproj                       src/Disciplaner.Mcp/
 COPY src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj         src/Disciplaner.Web/Server/
 
 RUN dotnet restore src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj
@@ -38,7 +38,7 @@ RUN dotnet publish src/Disciplaner.Web/Server/Disciplaner.Web.Server.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# /data is the mount point for the SQLite database and uploaded files
+# /data is the mount point for the SQLite fallback database and uploaded files
 RUN mkdir -p /data /data/uploads && chown $APP_UID /data /data/uploads
 VOLUME ["/data"]
 
@@ -49,8 +49,9 @@ COPY --from=build /app/publish .
 # same REST API on this container's port.
 COPY --from=web /client/build/web ./wwwroot
 
-# Override the connection string to point at the persisted volume
-ENV ConnectionStrings__DefaultConnection="Data Source=/data/disciplaner.db"
+# Default SQLite fallback path inside the container volume when no PostgreSQL
+# connection string (ConnectionStrings__Postgres, DATABASE_URL, etc.) is provided.
+ENV Database__SqliteFallbackPath="/data/disciplaner.db"
 
 # ASP.NET Core listens on 8080 by default in container images (.NET 8+)
 EXPOSE 8080

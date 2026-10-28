@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,15 +15,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "UserInvitations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Token = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    InvitedByUserId = table.Column<string>(type: "TEXT", maxLength: 450, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    IsUsed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    UsedByUserId = table.Column<string>(type: "TEXT", nullable: true),
-                    UsedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Token = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 64, nullable: false),
+                    Email = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    InvitedByUserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 450, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    IsUsed = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    UsedByUserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    UsedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

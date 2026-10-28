@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,7 +13,7 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<bool>(
                 name: "IsCollapsedByDefault",
                 table: "SavedViews",
-                type: "INTEGER",
+                type: migrationBuilder.IsPostgres() ? null : "INTEGER",
                 nullable: false,
                 defaultValue: false);
         }
