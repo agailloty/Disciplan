@@ -203,16 +203,19 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                   ),
                   const SizedBox(height: NeoSpacing.spaceMd),
 
-                  // 2. Scope Switcher: Backlog vs Sprints
-                  _buildScopeSelectorBar(sprints, topLevelTickets.length),
-                  const SizedBox(height: NeoSpacing.spaceMd),
+                  // 2. Scope Switcher: Backlog vs Sprints (desktop uniquement :
+                  // sur mobile, la page se limite à la liste du backlog)
+                  if (isDesktop) ...[
+                    _buildScopeSelectorBar(sprints, topLevelTickets.length),
+                    const SizedBox(height: NeoSpacing.spaceMd),
 
-                  // 3. Search, Filter & Sprint Assignment Bar
-                  _buildSearchAndFilterBar(
-                    openSprints: openSprints,
-                    selectedIds: selectedIds,
-                  ),
-                  const SizedBox(height: NeoSpacing.spaceMd),
+                    // 3. Search, Filter & Sprint Assignment Bar
+                    _buildSearchAndFilterBar(
+                      openSprints: openSprints,
+                      selectedIds: selectedIds,
+                    ),
+                    const SizedBox(height: NeoSpacing.spaceMd),
+                  ],
 
                   // 4. Tickets Content or Empty State
                   if (topLevelTickets.isEmpty)
@@ -360,6 +363,9 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Sur mobile, l'en-tête se réduit au titre : ni sélecteur de
+            // projet, ni description, ni boutons de navigation.
+            if (isDesktop) ...[
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -422,6 +428,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
               ],
             ),
             const SizedBox(height: NeoSpacing.spaceXs),
+            ],
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -446,18 +453,21 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
                 ),
               ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              isBacklogScope
-                  ? l10n.ticketsBacklogHeaderDesc
-                  : l10n.ticketsSprintHeaderDesc,
-              style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
-            ),
+            if (isDesktop) ...[
+              const SizedBox(height: 2),
+              Text(
+                isBacklogScope
+                    ? l10n.ticketsBacklogHeaderDesc
+                    : l10n.ticketsSprintHeaderDesc,
+                style: NeoTypography.bodyMd.copyWith(color: NeoColors.muted),
+              ),
+            ],
           ],
         ),
 
-        // Quick Navigation & Creation Actions
-        Wrap(
+        // Quick Navigation & Creation Actions (desktop uniquement)
+        if (isDesktop)
+          Wrap(
           spacing: NeoSpacing.spaceSm,
           runSpacing: NeoSpacing.spaceXs,
           children: [
@@ -493,11 +503,7 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                if (isDesktop) {
-                  DesktopCreateTicketDialog.show(context, initialProjectId: widget.projectId);
-                } else {
-                  MobileCreateTicketSheet.show(context, initialProjectId: widget.projectId);
-                }
+                DesktopCreateTicketDialog.show(context, initialProjectId: widget.projectId);
               },
               icon: const Icon(Icons.add, size: 16),
               label: Text(l10n.ticketsCreateTicket),
@@ -509,6 +515,22 @@ class _ProjectListViewState extends ConsumerState<ProjectListView> {
             ),
           ],
         ),
+
+        // Sur mobile, seul le bouton de création reste disponible dans
+        // l'en-tête (pas de navigation projet/kanban/sprints).
+        if (!isDesktop)
+          ElevatedButton.icon(
+            onPressed: () {
+              MobileCreateTicketSheet.show(context, initialProjectId: widget.projectId);
+            },
+            icon: const Icon(Icons.add, size: 16),
+            label: Text(l10n.ticketsCreateTicket),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: NeoColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: NeoSpacing.roundedMd),
+            ),
+          ),
       ],
     );
   }

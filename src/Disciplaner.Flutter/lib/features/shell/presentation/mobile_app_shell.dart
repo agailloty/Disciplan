@@ -43,9 +43,8 @@ class MobileAppShell extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
     final user = authState is AuthAuthenticated ? authState.session : null;
     final l10n = context.l10n;
-    // Sur la page de détail d'un ticket, le FAB du shell recouvrirait le
-    // bouton d'envoi du compositeur de commentaires : on le masque.
-    final isTicketDetailRoute = currentRoute.startsWith('/tickets/');
+    // Le bouton de création rapide n'est visible que sur l'écran d'accueil.
+    final isDashboardRoute = currentRoute == '/dashboard';
 
     return Scaffold(
       backgroundColor: NeoColors.surface,
@@ -130,9 +129,8 @@ class MobileAppShell extends ConsumerWidget {
         ),
       ),
       body: child,
-      floatingActionButton: isTicketDetailRoute
-          ? null
-          : FloatingActionButton(
+      floatingActionButton: isDashboardRoute
+          ? FloatingActionButton(
         mini: true,
         backgroundColor: NeoColors.primary,
         foregroundColor: Colors.white,
@@ -141,7 +139,8 @@ class MobileAppShell extends ConsumerWidget {
         onPressed: () {
           MobileCreateTicketSheet.show(context);
         },
-      ),
+      )
+          : null,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: NeoColors.surface,

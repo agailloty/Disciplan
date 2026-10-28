@@ -19,6 +19,7 @@ import 'package:disciplaner_flutter/features/sprints/presentation/sprint_provide
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
 import 'labels_modals.dart';
@@ -294,7 +295,17 @@ class _MobileTicketDetailSheetState
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back, size: 20),
-                  onPressed: () => Navigator.of(context).pop(),
+                  // En tant que page complète (deep link /tickets/:ref ou
+                  // navigation context.go), la feuille est la seule page du
+                  // Navigator : un pop laviderait un écran blanc. On revient
+                  // alors à l'accueil.
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.go('/dashboard');
+                    }
+                  },
                 ),
                 Text(
                   l10n.ticketsTicketDetailTitle,
