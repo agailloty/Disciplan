@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import '../../../../core/models/collaboration_models.dart';
+import '../../../../core/utils/media_utils.dart';
 import 'mcp_token_models.dart';
 
 class SettingsRepository {
@@ -12,6 +14,46 @@ class SettingsRepository {
       '/api/users/me/display-name',
       data: {'displayName': displayName.trim()},
     );
+  }
+
+  Future<List<UserSummaryDto>> getUsers() async {
+    final response = await _dio.get('/api/users');
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => UserSummaryDto.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<String> uploadProfilePicture(PickedMediaFile file) async {
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        file.bytes,
+        filename: file.name,
+        contentType: DioMediaType.parse(file.contentType),
+      ),
+    });
+    final response = await _dio.put(
+      '/api/users/me/profile-picture',
+      data: formData,
+    );
+    final data = response.data as Map<String, dynamic>;
+    return data['profilePictureUrl'] as String? ?? '';
+  }
+
+  Future<void> deleteProfilePicture() async {
+    await _dio.delete('/api/users/me/profile-picture');
+  }
+
+  Future<Uint8List> downloadProfilePicture(String storagePath) async {
+    final normalizedPath = storagePath.startsWith('/')
+        ? storagePath.substring(1)
+        : storagePath;
+    final response = await _dio.get<List<int>>(
+      '/api/attachments/profile/$normalizedPath',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    final data = response.data ?? const <int>[];
+    return data is Uint8List ? data : Uint8List.fromList(data);
   }
 
   Future<List<AdminUserDto>> getAdminUsers() async {

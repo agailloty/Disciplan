@@ -7,6 +7,7 @@ import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
@@ -22,6 +23,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'attachment_panel.dart';
 import 'labels_modals.dart';
 
 class MobileTicketDetailSheet extends ConsumerStatefulWidget {
@@ -60,6 +62,7 @@ class _MobileTicketDetailSheetState
 
   final _commentController = TextEditingController();
   final _subtaskController = TextEditingController();
+  final List<PickedMediaFile> _pendingCommentFiles = [];
   bool _isAddingComment = false;
   bool _isAddingSubtask = false;
   bool _isUpdatingTicket = false;
@@ -227,16 +230,51 @@ class _MobileTicketDetailSheetState
     }
   }
 
+  Future<void> _pickCommentFiles() async {
+    try {
+      final files = await MediaUtils.pickAttachmentFiles(allowMultiple: true);
+      if (files.isNotEmpty && mounted) {
+        setState(() {
+          _pendingCommentFiles.addAll(files);
+        });
+      }
+    } on MediaValidationException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: NeoColors.error),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.attachmentErrorUpload(e.toString())),
+            backgroundColor: NeoColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _postComment() async {
     final text = _commentController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _pendingCommentFiles.isEmpty) return;
 
     setState(() => _isAddingComment = true);
     try {
       final repo = ref.read(ticketRepositoryProvider);
-      await repo.addComment(widget.ticketId, text);
+      final content = text.isEmpty ? '📎' : text;
+      final created = await repo.addComment(widget.ticketId, content);
+      final filesToUpload = List<PickedMediaFile>.from(_pendingCommentFiles);
       _commentController.clear();
+      setState(() => _pendingCommentFiles.clear());
+
+      for (final file in filesToUpload) {
+        await repo.uploadCommentAttachment(created.id, file);
+      }
       ref.invalidate(ticketCommentsProvider(widget.ticketId));
+      ref.invalidate(commentAttachmentsProvider(created.id));
+      ref.invalidate(ticketHistoryProvider(widget.ticketId));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -870,8 +908,11 @@ class _MobileTicketDetailSheetState
 
         const SizedBox(height: NeoSpacing.spaceMd),
 
-        // Real Attachments
-        _buildAttachmentsSection(),
+        // Interactive Attachments Section
+        TicketAttachmentsSection(
+          ticketId: widget.ticketId,
+          isCompact: true,
+        ),
 
         const SizedBox(height: NeoSpacing.spaceMd),
 
@@ -928,71 +969,6 @@ class _MobileTicketDetailSheetState
     );
   }
 
-  Widget _buildAttachmentsSection() {
-    final l10n = context.l10n;
-    final attachmentsAsync = ref.watch(ticketAttachmentsProvider(widget.ticketId));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.attachmentSectionLabel,
-          style: NeoTypography.headlineSm.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 6),
-        attachmentsAsync.when(
-          data: (attachments) {
-            if (attachments.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(NeoSpacing.spaceMd),
-                decoration: BoxDecoration(
-                  color: NeoColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  l10n.ticketsNoAttachment,
-                  style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
-                ),
-              );
-            }
-            return Column(
-              children: attachments.map((att) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.all(NeoSpacing.spaceSm),
-                  decoration: BoxDecoration(
-                    color: NeoColors.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: NeoColors.borderWhisper),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.insert_drive_file_outlined, color: NeoColors.primary, size: 20),
-                      const SizedBox(width: NeoSpacing.spaceSm),
-                      Expanded(
-                        child: Text(
-                          att.fileName,
-                          style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        '${(att.sizeBytes / 1024).round()} Ko',
-                        style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          error: (_, _) => const SizedBox.shrink(),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCommentsThread() {
     final l10n = context.l10n;
     final commentsAsync = ref.watch(ticketCommentsProvider(widget.ticketId));
@@ -1041,15 +1017,18 @@ class _MobileTicketDetailSheetState
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  comment.authorName,
-                                  style: NeoTypography.headlineSm.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                Flexible(
+                                  child: Text(
+                                    comment.authorName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: NeoTypography.headlineSm.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                                 Text(
-                                  DateFormat('HH:mm').format(comment.createdAt),
+                                  DateFormat('HH:mm').format(comment.createdAt.toLocal()),
                                   style: NeoTypography.labelSm.copyWith(
                                     color: NeoColors.onSurfaceVariant,
                                   ),
@@ -1062,6 +1041,10 @@ class _MobileTicketDetailSheetState
                               style: NeoTypography.bodySm.copyWith(
                                 color: NeoColors.onSurfaceVariant,
                               ),
+                            ),
+                            CommentAttachmentsList(
+                              commentId: comment.id,
+                              ticketId: widget.ticketId,
                             ),
                           ],
                         ),
@@ -1097,50 +1080,72 @@ class _MobileTicketDetailSheetState
         color: NeoColors.surface,
         border: Border(top: BorderSide(color: NeoColors.surfaceContainerHigh)),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: NeoSpacing.spaceSm, vertical: 4),
-        decoration: BoxDecoration(
-          color: NeoColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: NeoColors.borderWhisper),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _commentController,
-                style: NeoTypography.bodyMd,
-                decoration: InputDecoration(
-                  hintText: l10n.ticketsAddNoteHint,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PendingFilesStrip(
+            files: _pendingCommentFiles,
+            onRemoveAt: (index) {
+              setState(() => _pendingCommentFiles.removeAt(index));
+            },
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: NeoSpacing.spaceSm, vertical: 4),
+            decoration: BoxDecoration(
+              color: NeoColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: NeoColors.borderWhisper),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: l10n.attachmentAttachFiles,
+                  icon: const Icon(
+                    Icons.attach_file,
+                    size: 18,
+                    color: NeoColors.onSurfaceVariant,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _isAddingComment ? null : _pickCommentFiles,
                 ),
-                onSubmitted: (_) => _postComment(),
-              ),
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    style: NeoTypography.bodyMd,
+                    decoration: InputDecoration(
+                      hintText: l10n.ticketsAddNoteHint,
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    ),
+                    onSubmitted: (_) => _postComment(),
+                  ),
+                ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: NeoColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: _isAddingComment
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.arrow_upward, size: 16, color: Colors.white),
+                    onPressed: _isAddingComment ? null : _postComment,
+                    tooltip: l10n.cardCommentSend,
+                  ),
+                ),
+              ],
             ),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: NeoColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                icon: _isAddingComment
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Icon(Icons.arrow_upward, size: 16, color: Colors.white),
-                onPressed: _postComment,
-                tooltip: l10n.cardCommentSend,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

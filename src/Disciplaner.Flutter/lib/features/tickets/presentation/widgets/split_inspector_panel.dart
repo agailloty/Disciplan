@@ -3,10 +3,12 @@ import 'package:disciplaner_flutter/app/theme/neo_spacing.dart';
 import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/l10n/enum_l10n.dart';
 import 'package:disciplaner_flutter/core/l10n/l10n.dart';
+import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
@@ -21,6 +23,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'attachment_panel.dart';
+import 'file_preview_dialog.dart';
 import 'labels_modals.dart';
 
 class SplitInspectorPanel extends ConsumerStatefulWidget {
@@ -52,9 +56,12 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   late TabController _tabController;
   final _commentController = TextEditingController();
   final _subtaskController = TextEditingController();
+  final List<PickedMediaFile> _pendingCommentFiles = [];
   bool _isAddingComment = false;
   bool _isAddingSubtask = false;
   bool _isUpdatingTicket = false;
+  String? _editingCommentId;
+  final _editCommentController = TextEditingController();
 
   TicketPriority _mapPriority(CardPriority p) {
     switch (p) {
@@ -80,6 +87,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     _tabController.dispose();
     _commentController.dispose();
     _subtaskController.dispose();
+    _editCommentController.dispose();
     super.dispose();
   }
 
@@ -169,16 +177,51 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
     }
   }
 
+  Future<void> _pickCommentFiles() async {
+    try {
+      final files = await MediaUtils.pickAttachmentFiles(allowMultiple: true);
+      if (files.isNotEmpty && mounted) {
+        setState(() {
+          _pendingCommentFiles.addAll(files);
+        });
+      }
+    } on MediaValidationException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: NeoColors.error),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.attachmentErrorUpload(e.toString())),
+            backgroundColor: NeoColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _postComment() async {
     final text = _commentController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _pendingCommentFiles.isEmpty) return;
 
     setState(() => _isAddingComment = true);
     try {
       final repo = ref.read(ticketRepositoryProvider);
-      await repo.addComment(widget.ticketId, text);
+      final content = text.isEmpty ? '📎' : text;
+      final created = await repo.addComment(widget.ticketId, content);
+      final filesToUpload = List<PickedMediaFile>.from(_pendingCommentFiles);
       _commentController.clear();
+      setState(() => _pendingCommentFiles.clear());
+
+      for (final file in filesToUpload) {
+        await repo.uploadCommentAttachment(created.id, file);
+      }
       ref.invalidate(ticketCommentsProvider(widget.ticketId));
+      ref.invalidate(commentAttachmentsProvider(created.id));
+      ref.invalidate(ticketHistoryProvider(widget.ticketId));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -187,6 +230,40 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
       }
     } finally {
       if (mounted) setState(() => _isAddingComment = false);
+    }
+  }
+
+  Future<void> _saveEditedComment(CommentDto comment) async {
+    final newContent = _editCommentController.text.trim();
+    if (newContent.isEmpty) return;
+    try {
+      final repo = ref.read(ticketRepositoryProvider);
+      await repo.updateComment(comment.id, newContent);
+      if (mounted) {
+        setState(() => _editingCommentId = null);
+      }
+      ref.invalidate(ticketCommentsProvider(widget.ticketId));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.ticketsErrorDetail(e.toString()))),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteComment(CommentDto comment) async {
+    try {
+      final repo = ref.read(ticketRepositoryProvider);
+      await repo.deleteComment(comment.id);
+      ref.invalidate(ticketCommentsProvider(widget.ticketId));
+      ref.invalidate(ticketHistoryProvider(widget.ticketId));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.ticketsErrorDetail(e.toString()))),
+        );
+      }
     }
   }
 
@@ -740,9 +817,12 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                         ),
                       ),
                     ] else
-                      Text(
-                        l10n.ticketsUnassignedClick,
-                        style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
+                      Flexible(
+                        child: Text(
+                          l10n.ticketsUnassignedClick,
+                          overflow: TextOverflow.ellipsis,
+                          style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
+                        ),
                       ),
                     const SizedBox(width: 4),
                     const Icon(Icons.person_add_alt_1_outlined, size: 13, color: NeoColors.muted),
@@ -1083,9 +1163,6 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   }
 
   Widget _buildAttachmentsSection(TicketDto ticket) {
-    final l10n = context.l10n;
-    final attachmentsAsync = ref.watch(ticketAttachmentsProvider(widget.ticketId));
-
     return Container(
       padding: const EdgeInsets.all(NeoSpacing.spaceSm),
       decoration: BoxDecoration(
@@ -1093,66 +1170,9 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: NeoColors.borderWhisper),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.attach_file, size: 16, color: NeoColors.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        l10n.attachmentSectionLabel,
-                        overflow: TextOverflow.ellipsis,
-                        style: NeoTypography.headlineSm.copyWith(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          attachmentsAsync.when(
-            data: (attachments) {
-              if (attachments.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: NeoSpacing.spaceXs),
-                  child: Text(
-                    l10n.ticketsNoAttachment,
-                    style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
-                  ),
-                );
-              }
-              return Column(
-                children: attachments.map((att) {
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    leading: const Icon(Icons.insert_drive_file_outlined, size: 20),
-                    title: Text(att.fileName, style: NeoTypography.bodySm),
-                    subtitle: Text('${(att.sizeBytes / 1024).round()} Ko', style: NeoTypography.labelSm),
-                  );
-                }).toList(),
-              );
-            },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
-        ],
+      child: TicketAttachmentsSection(
+        ticketId: widget.ticketId,
+        isCompact: !widget.standalone,
       ),
     );
   }
@@ -1175,7 +1195,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         ),
         const SizedBox(height: NeoSpacing.spaceSm),
         SizedBox(
-          height: 320,
+          height: 360,
           child: TabBarView(
             controller: _tabController,
             children: [
@@ -1191,8 +1211,12 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
   Widget _buildCommentsTab() {
     final l10n = context.l10n;
     final commentsAsync = ref.watch(ticketCommentsProvider(widget.ticketId));
+    final authState = ref.watch(authNotifierProvider);
+    final currentUserId =
+        authState is AuthAuthenticated ? authState.session.userId : null;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: commentsAsync.when(
@@ -1211,6 +1235,10 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                 separatorBuilder: (_, _) => const SizedBox(height: NeoSpacing.spaceSm),
                 itemBuilder: (context, index) {
                   final comment = comments[index];
+                  final isAuthor = currentUserId != null &&
+                      comment.authorId == currentUserId;
+                  final isEditing = _editingCommentId == comment.id;
+
                   return Container(
                     padding: const EdgeInsets.all(NeoSpacing.spaceSm),
                     decoration: BoxDecoration(
@@ -1223,26 +1251,107 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                UserAvatar(name: comment.authorName, size: 20),
-                                const SizedBox(width: NeoSpacing.spaceXs),
-                                Text(
-                                  comment.authorName,
-                                  style: NeoTypography.bodySm.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ],
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  UserAvatar(name: comment.authorName, size: 20),
+                                  const SizedBox(width: NeoSpacing.spaceXs),
+                                  Flexible(
+                                    child: Text(
+                                      comment.authorName,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: NeoTypography.bodySm.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Text(
-                              DateFormat('dd/MM HH:mm').format(comment.createdAt),
-                              style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  DateFormat('dd/MM HH:mm')
+                                      .format(comment.createdAt.toLocal()),
+                                  style: NeoTypography.labelSm
+                                      .copyWith(color: NeoColors.muted),
+                                ),
+                                if (isAuthor && !isEditing) ...[
+                                  const SizedBox(width: 4),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _editingCommentId = comment.id;
+                                        _editCommentController.text =
+                                            comment.content;
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: Icon(
+                                        Icons.edit_outlined,
+                                        size: 14,
+                                        color: NeoColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () => _deleteComment(comment),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(3),
+                                      child: Icon(
+                                        Icons.delete_outline,
+                                        size: 14,
+                                        color: NeoColors.error,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          comment.content,
-                          style: NeoTypography.bodyMd.copyWith(fontSize: 13),
+                        if (isEditing)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _editCommentController,
+                                  style: NeoTypography.bodySm,
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: NeoColors.emerald,
+                                ),
+                                onPressed: () => _saveEditedComment(comment),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: NeoColors.muted,
+                                ),
+                                onPressed: () =>
+                                    setState(() => _editingCommentId = null),
+                              ),
+                            ],
+                          )
+                        else
+                          Text(
+                            comment.content,
+                            style: NeoTypography.bodyMd.copyWith(fontSize: 13),
+                          ),
+                        CommentAttachmentsList(
+                          commentId: comment.id,
+                          ticketId: widget.ticketId,
                         ),
                       ],
                     ),
@@ -1254,11 +1363,27 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
             error: (err, _) => Center(child: Text(l10n.ticketsErrorDetail(err.toString()))),
           ),
         ),
+        // Pending comment attachments
+        PendingFilesStrip(
+          files: _pendingCommentFiles,
+          onRemoveAt: (index) {
+            setState(() => _pendingCommentFiles.removeAt(index));
+          },
+        ),
         // Comment composer
         Padding(
           padding: const EdgeInsets.only(top: NeoSpacing.spaceXs),
           child: Row(
             children: [
+              IconButton(
+                tooltip: l10n.attachmentAttachFiles,
+                icon: const Icon(
+                  Icons.attach_file,
+                  size: 18,
+                  color: NeoColors.onSurfaceVariant,
+                ),
+                onPressed: _isAddingComment ? null : _pickCommentFiles,
+              ),
               Expanded(
                 child: TextField(
                   controller: _commentController,
@@ -1284,7 +1409,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.send, size: 18, color: NeoColors.primary),
-                onPressed: _postComment,
+                onPressed: _isAddingComment ? null : _postComment,
               ),
             ],
           ),
@@ -1312,6 +1437,7 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
+            final isAttachmentAdded = entry.kind == 'attachment_added';
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
@@ -1343,13 +1469,47 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                             ],
                           ),
                         ),
-                        if (entry.newValue != null)
+                        if (isAttachmentAdded && entry.newValue != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3, bottom: 2),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(6),
+                              onTap: entry.oldValue != null && entry.oldValue!.isNotEmpty
+                                  ? () => FilePreviewDialog.showById(
+                                        context,
+                                        attachmentId: entry.oldValue!,
+                                        fileName: entry.newValue!,
+                                      )
+                                  : null,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.attach_file,
+                                    size: 13,
+                                    color: NeoColors.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      entry.newValue!,
+                                      style: NeoTypography.labelSm.copyWith(
+                                        color: NeoColors.primary,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (entry.newValue != null)
                           Text(
                             '${entry.oldValue != null ? "${entry.oldValue} → " : ""}${entry.newValue}',
                             style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                           ),
                         Text(
-                          DateFormat('dd/MM/yyyy HH:mm').format(entry.occurredAt),
+                          DateFormat('dd/MM/yyyy HH:mm').format(entry.occurredAt.toLocal()),
                           style: NeoTypography.labelSm.copyWith(
                             color: NeoColors.muted,
                             fontSize: 10,
@@ -1381,6 +1541,20 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         return l10n.historyAssigneeChanged;
       case 'sprint_changed':
         return l10n.historySprintChanged;
+      case 'attachment_added':
+        return l10n.historyAttachmentAdded;
+      case 'comment_added':
+        return l10n.historyCommentAdded;
+      case 'comment_deleted':
+        return l10n.historyCommentDeleted;
+      case 'title_changed':
+        return l10n.historyTitleChanged;
+      case 'description_changed':
+        return l10n.historyDescriptionChanged;
+      case 'type_changed':
+        return l10n.historyTypeChanged;
+      case 'due_date_changed':
+        return l10n.historyDueDateChanged;
       default:
         return kind;
     }

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/theme/neo_colors.dart';
@@ -8,6 +9,7 @@ class UserAvatar extends StatelessWidget {
   final double size;
   final bool? isOnline;
   final Color? backgroundColor;
+  final Uint8List? imageBytes;
 
   const UserAvatar({
     super.key,
@@ -16,6 +18,7 @@ class UserAvatar extends StatelessWidget {
     this.size = 22,
     this.isOnline,
     this.backgroundColor,
+    this.imageBytes,
   });
 
   String get _computedInitials {
@@ -32,6 +35,17 @@ class UserAvatar extends StatelessWidget {
     return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
   }
 
+  Widget _buildInitialsText() {
+    return Text(
+      _computedInitials,
+      style: GoogleFonts.jetBrainsMono(
+        fontSize: size * 0.42,
+        fontWeight: FontWeight.w600,
+        color: NeoColors.onSurfaceVariant,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final avatar = Container(
@@ -43,14 +57,16 @@ class UserAvatar extends StatelessWidget {
         border: Border.all(color: NeoColors.borderWhisper, width: 1),
       ),
       alignment: Alignment.center,
-      child: Text(
-        _computedInitials,
-        style: GoogleFonts.jetBrainsMono(
-          fontSize: size * 0.42,
-          fontWeight: FontWeight.w600,
-          color: NeoColors.onSurfaceVariant,
-        ),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: (imageBytes != null && imageBytes!.isNotEmpty)
+          ? Image.memory(
+              imageBytes!,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _buildInitialsText(),
+            )
+          : _buildInitialsText(),
     );
 
     if (isOnline == null) {

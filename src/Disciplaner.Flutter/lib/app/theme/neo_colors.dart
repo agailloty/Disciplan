@@ -27,6 +27,7 @@ abstract final class NeoColors {
   // Bordures
   static const Color outline = Color(0xFF7A776F);
   static const Color outlineVariant = Color(0xFFCBC6BD);
+  static const Color borderSubtle = Color(0xFFCBC6BD);
   static const Color borderWhisper = Color(0xFFE4E0D7);
   static const Color borderInput = Color(0xFFD8D4CA);
 
@@ -36,6 +37,7 @@ abstract final class NeoColors {
   static const Color kineticAmber = Color(0xFFE5A800);
   static const Color emerald = Color(0xFF10B981);
   static const Color statusAmber = Color(0xFFF59E0B);
+  static const Color warning = Color(0xFFF59E0B);
   static const Color statusBlue = Color(0xFF3B82F6);
   static const Color statusSlate = Color(0xFF9CA3AF);
   static const Color error = Color(0xFFBA1A1A);

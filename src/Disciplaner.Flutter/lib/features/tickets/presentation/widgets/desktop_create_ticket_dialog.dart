@@ -6,6 +6,7 @@ import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/sprint_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
@@ -19,6 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'attachment_panel.dart';
 
 class DesktopCreateTicketDialog extends ConsumerStatefulWidget {
   final String? initialProjectId;
@@ -54,6 +56,7 @@ class _DesktopCreateTicketDialogState
     extends ConsumerState<DesktopCreateTicketDialog> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final List<PickedMediaFile> _pendingFiles = [];
 
   final TicketType _type = TicketType.task;
   CardPriority _priority = CardPriority.medium;
@@ -92,6 +95,28 @@ class _DesktopCreateTicketDialogState
     }
   }
 
+  Future<void> _pickFiles() async {
+    try {
+      final files = await MediaUtils.pickAttachmentFiles(allowMultiple: true);
+      if (files.isNotEmpty && mounted) {
+        setState(() {
+          _pendingFiles.addAll(files);
+          _errorMessage = null;
+        });
+      }
+    } on MediaValidationException catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _errorMessage = context.l10n.attachmentErrorUpload(e.toString()),
+        );
+      }
+    }
+  }
+
   Future<void> _handleSubmit(String projectId, String? assigneeId) async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
@@ -107,7 +132,7 @@ class _DesktopCreateTicketDialogState
     try {
       final repo = ref.read(ticketRepositoryProvider);
 
-      await repo.createTicket(
+      final createdTicket = await repo.createTicket(
         projectId,
         CreateTicketRequest(
           title: title,
@@ -122,6 +147,12 @@ class _DesktopCreateTicketDialogState
         ),
       );
 
+      if (_pendingFiles.isNotEmpty) {
+        for (final file in _pendingFiles) {
+          await repo.uploadTicketAttachment(createdTicket.id, file);
+        }
+      }
+
       ref.invalidate(projectBacklogProvider(projectId));
       if (_sprintId != null) {
         ref.invalidate(sprintTicketsProvider(_sprintId!));
@@ -133,6 +164,7 @@ class _DesktopCreateTicketDialogState
           _titleController.clear();
           _descriptionController.clear();
           setState(() {
+            _pendingFiles.clear();
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
@@ -278,7 +310,13 @@ class _DesktopCreateTicketDialogState
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const SizedBox(height: NeoSpacing.spaceLg),
+              const SizedBox(height: NeoSpacing.spaceMd),
+
+              // Pending files strip
+              PendingFilesStrip(
+                files: _pendingFiles,
+                onRemoveAt: (idx) => setState(() => _pendingFiles.removeAt(idx)),
+              ),
 
               // 4. Properties Strip (Horizontal Pills)
               Wrap(
@@ -493,6 +531,52 @@ class _DesktopCreateTicketDialogState
                               color: _dueDate != null
                                   ? NeoColors.onSurface
                                   : NeoColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Attach files pill
+                  InkWell(
+                    onTap: _isLoading ? null : _pickFiles,
+                    borderRadius: NeoSpacing.roundedFull,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _pendingFiles.isNotEmpty
+                            ? NeoColors.primary.withValues(alpha: 0.14)
+                            : NeoColors.surfaceContainerLow,
+                        borderRadius: NeoSpacing.roundedFull,
+                        border: Border.all(
+                          color: _pendingFiles.isNotEmpty
+                              ? NeoColors.primary.withValues(alpha: 0.4)
+                              : NeoColors.borderWhisper,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.attach_file,
+                            size: 14,
+                            color: _pendingFiles.isNotEmpty
+                                ? NeoColors.primary
+                                : NeoColors.muted,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            _pendingFiles.isEmpty
+                                ? l10n.attachmentAttach
+                                : '${l10n.attachmentAttach} (${_pendingFiles.length})',
+                            style: NeoTypography.bodySm.copyWith(
+                              color: _pendingFiles.isNotEmpty
+                                  ? NeoColors.primary
+                                  : NeoColors.muted,
+                              fontWeight: _pendingFiles.isNotEmpty
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                             ),
                           ),
                         ],

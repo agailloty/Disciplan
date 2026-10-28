@@ -6,6 +6,7 @@ import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/l10n/locale_providers.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/shortcuts/app_shortcuts.dart';
+import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/widgets/neo_button.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
@@ -34,6 +35,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _customScaleController = TextEditingController(text: '100');
 
   bool _isSavingDisplayName = false;
+  bool _isUploadingAvatar = false;
   bool _isCreatingInvite = false;
   String? _lastCreatedInviteUrl;
   bool _profileMessageVisible = false;
@@ -78,6 +80,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final repo = ref.read(settingsRepositoryProvider);
       await repo.updateDisplayName(newName);
       await ref.read(authNotifierProvider.notifier).updateDisplayNameLocal(newName);
+      ref.invalidate(usersListProvider);
       if (mounted) {
         setState(() {
           _profileSuccess = true;
@@ -98,6 +101,95 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         setState(() {
           _isSavingDisplayName = false;
         });
+      }
+    }
+  }
+
+  Future<void> _uploadProfilePicture() async {
+    if (_isUploadingAvatar) return;
+
+    PickedMediaFile? file;
+    try {
+      file = await MediaUtils.pickProfilePicture();
+    } on MediaValidationException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: NeoColors.error),
+        );
+      }
+      return;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.attachmentErrorUpload(e.toString())),
+            backgroundColor: NeoColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (file == null || !mounted) return;
+
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final newPath = await repo.uploadProfilePicture(file);
+      if (newPath.isNotEmpty) {
+        ref.invalidate(profilePictureBytesProvider(newPath));
+      }
+      ref.invalidate(usersListProvider);
+      ref.invalidate(currentUserProfileSummaryProvider);
+      ref.invalidate(adminUsersListProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo de profil mise à jour.'),
+            backgroundColor: NeoColors.emerald,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.attachmentErrorUpload(e.toString())),
+            backgroundColor: NeoColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
+      }
+    }
+  }
+
+  Future<void> _deleteProfilePicture(String? currentPath) async {
+    if (_isUploadingAvatar) return;
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      await repo.deleteProfilePicture();
+      if (currentPath != null && currentPath.isNotEmpty) {
+        ref.invalidate(profilePictureBytesProvider(currentPath));
+      }
+      ref.invalidate(usersListProvider);
+      ref.invalidate(currentUserProfileSummaryProvider);
+      ref.invalidate(adminUsersListProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.attachmentErrorDelete(e.toString())),
+            backgroundColor: NeoColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
       }
     }
   }
@@ -184,6 +276,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final authState = ref.watch(authNotifierProvider);
     final session = authState is AuthAuthenticated ? authState.session : null;
     final isAdmin = session?.roles.contains('Admin') ?? false;
+    final currentUserSummary =
+        ref.watch(currentUserProfileSummaryProvider).asData?.value;
+    final profilePicPath = currentUserSummary?.profilePictureUrl;
+    final profilePicBytes = (profilePicPath != null && profilePicPath.isNotEmpty)
+        ? ref.watch(profilePictureBytesProvider(profilePicPath)).asData?.value
+        : null;
 
     return Scaffold(
       backgroundColor: NeoColors.surfaceContainerLowest,
@@ -510,28 +608,89 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: NeoSpacing.spaceMd,
+                        runSpacing: NeoSpacing.spaceSm,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           UserAvatar(
                             name: session?.displayName ?? l10n.settingsDefaultUser,
-                            size: 48,
+                            size: 56,
+                            imageBytes: profilePicBytes,
                           ),
-                          const SizedBox(width: NeoSpacing.spaceMd),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  session?.displayName ?? l10n.settingsDefaultUser,
-                                  style: NeoTypography.headlineSm,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  session?.email ?? l10n.settingsNotConnected,
-                                  style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
-                                ),
-                              ],
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                session?.displayName ?? l10n.settingsDefaultUser,
+                                style: NeoTypography.headlineSm,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                session?.email ?? l10n.settingsNotConnected,
+                                style: NeoTypography.bodySm.copyWith(color: NeoColors.muted),
+                              ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: _isUploadingAvatar
+                                        ? null
+                                        : _uploadProfilePicture,
+                                    icon: _isUploadingAvatar
+                                        ? const SizedBox(
+                                            width: 13,
+                                            height: 13,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.photo_camera_outlined,
+                                            size: 15,
+                                          ),
+                                    label: Text(
+                                      profilePicPath != null &&
+                                              profilePicPath.isNotEmpty
+                                          ? 'Changer la photo'
+                                          : 'Ajouter une photo',
+                                      style: NeoTypography.labelSm,
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      side: const BorderSide(
+                                        color: NeoColors.borderSubtle,
+                                      ),
+                                    ),
+                                  ),
+                                  if (profilePicPath != null &&
+                                      profilePicPath.isNotEmpty)
+                                    TextButton.icon(
+                                      onPressed: _isUploadingAvatar
+                                          ? null
+                                          : () => _deleteProfilePicture(
+                                                profilePicPath,
+                                              ),
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 15,
+                                        color: NeoColors.error,
+                                      ),
+                                      label: Text(
+                                        l10n.delete,
+                                        style: NeoTypography.labelSm.copyWith(
+                                          color: NeoColors.error,
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1040,10 +1199,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 final u = users[index];
                                 final isCurrent = u.email == session?.email;
                                 final isAdminUser = u.roles.contains('Admin');
+                                final userPicBytes =
+                                    (u.profilePictureUrl != null &&
+                                            u.profilePictureUrl!.isNotEmpty)
+                                        ? ref
+                                            .watch(
+                                              profilePictureBytesProvider(
+                                                u.profilePictureUrl!,
+                                              ),
+                                            )
+                                            .asData
+                                            ?.value
+                                        : null;
 
                                 return ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  leading: UserAvatar(name: u.displayName, size: 36),
+                                  leading: UserAvatar(
+                                    name: u.displayName,
+                                    size: 36,
+                                    imageBytes: userPicBytes,
+                                  ),
                                   title: Row(
                                     children: [
                                       Text(u.displayName, style: NeoTypography.labelMd),
