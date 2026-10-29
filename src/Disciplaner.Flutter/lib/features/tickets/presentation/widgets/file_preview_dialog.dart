@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -629,21 +628,22 @@ class _ImageViewerWidgetState extends State<_ImageViewerWidget> {
   void _zoomIn() {
     setState(() {
       _transformController.value = _transformController.value.clone()
-        ..scale(1.35);
+        ..scaleByDouble(1.35, 1.35, 1.35, 1.0);
     });
   }
 
   void _zoomOut() {
     setState(() {
       _transformController.value = _transformController.value.clone()
-        ..scale(1 / 1.35);
+        ..scaleByDouble(1 / 1.35, 1 / 1.35, 1 / 1.35, 1.0);
     });
   }
 
   void _handleDoubleTap() {
     setState(() {
       if (_transformController.value.isIdentity()) {
-        _transformController.value = Matrix4.identity()..scale(2.5);
+        _transformController.value =
+            Matrix4.identity()..scaleByDouble(2.5, 2.5, 2.5, 1.0);
       } else {
         _resetZoom();
       }
