@@ -779,6 +779,18 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
 
   Future<void> _loadPdf() async {
     try {
+      final supported = await hasPdfSupport();
+      if (!supported) {
+        if (mounted) {
+          setState(() {
+            _errorMessage =
+                'Le visualiseur interactif PDF n\'est pas disponible sur cette plateforme.';
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final doc = await PdfDocument.openData(widget.bytes);
       if (!mounted) return;
       final controller = PdfControllerPinch(
