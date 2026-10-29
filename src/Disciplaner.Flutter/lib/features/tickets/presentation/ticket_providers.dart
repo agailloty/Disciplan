@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/collaboration_models.dart';
 import '../../../core/models/enums.dart';
@@ -205,6 +206,27 @@ final ticketAttachmentsProvider =
     FutureProvider.family.autoDispose<List<AttachmentDto>, String>((ref, ticketId) async {
   final repo = ref.watch(ticketRepositoryProvider);
   return await repo.getAttachments(ticketId);
+});
+
+// Comment Attachments provider
+final commentAttachmentsProvider =
+    FutureProvider.family.autoDispose<List<AttachmentDto>, String>((ref, commentId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getCommentAttachments(commentId);
+});
+
+// Board Attachments provider
+final boardAttachmentsProvider =
+    FutureProvider.family.autoDispose<List<AttachmentDto>, String>((ref, boardId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.getBoardAttachments(boardId);
+});
+
+// Downloaded attachment bytes provider (cached for previews & thumbnails)
+final attachmentDownloadProvider = FutureProvider.family
+    .autoDispose<(Uint8List bytes, String contentType), String>((ref, attachmentId) async {
+  final repo = ref.watch(ticketRepositoryProvider);
+  return await repo.downloadAttachment(attachmentId);
 });
 
 // Ticket History / Audit provider

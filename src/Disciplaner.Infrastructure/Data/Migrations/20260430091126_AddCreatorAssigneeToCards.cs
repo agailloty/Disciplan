@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,14 +13,14 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AssignedToId",
                 table: "Cards",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 maxLength: 450,
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "CreatedById",
                 table: "Cards",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 maxLength: 450,
                 nullable: false,
                 defaultValue: "");

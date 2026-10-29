@@ -2,6 +2,7 @@ using Disciplaner.Domain.Entities;
 using Disciplaner.Domain.Interfaces;
 using Disciplaner.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Disciplaner.Infrastructure.Repositories;
 
@@ -18,6 +19,20 @@ internal sealed class UserRepository : IUserRepository
         return app is null ? null : Map(app);
     }
 
+    public async Task<IReadOnlyDictionary<string, User>> GetByIdsAsync(
+        IEnumerable<string> ids, CancellationToken cancellationToken = default)
+    {
+        var distinctIds = ids.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+        if (distinctIds.Count == 0)
+            return new Dictionary<string, User>();
+
+        var users = await _userManager.Users
+            .Where(u => distinctIds.Contains(u.Id))
+            .ToListAsync(cancellationToken);
+
+        return users.ToDictionary(u => u.Id, Map);
+    }
+
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var app = await _userManager.FindByEmailAsync(email);
@@ -26,7 +41,7 @@ internal sealed class UserRepository : IUserRepository
 
     public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var users = _userManager.Users.ToList();
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
         return users.Select(Map).ToList().AsReadOnly();
     }
 

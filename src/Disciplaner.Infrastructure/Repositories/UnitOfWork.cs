@@ -1,6 +1,8 @@
+using System.Data;
 using Disciplaner.Domain.Interfaces;
 using Disciplaner.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Disciplaner.Infrastructure.Repositories;
 
@@ -68,20 +70,51 @@ public sealed class UnitOfWork : IUnitOfWork
 
     public async Task<T> InTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
     {
-        // SQLite's immediate transaction serializes writers before the aggregate is read.
-        if (_context.Database.CurrentTransaction is not null) return await action();
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        try
+        if (_context.Database.CurrentTransaction is not null)
+            return await action();
+
+        var isPostgres = _context.Database.ProviderName?.Contains("PostgreSQL", StringComparison.OrdinalIgnoreCase) == true;
+        const int maxRetries = 6;
+
+        for (var attempt = 1; ; attempt++)
         {
-            var result = await action();
-            await transaction.CommitAsync(cancellationToken);
-            return result;
+            await using var transaction = isPostgres
+                ? await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+                : await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                var result = await action();
+                await transaction.CommitAsync(cancellationToken);
+                return result;
+            }
+            catch (Exception ex) when (attempt < maxRetries && IsTransientConflict(ex))
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                _context.ChangeTracker.Clear();
+                await Task.Delay(TimeSpan.FromMilliseconds(15 * attempt), cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                _context.ChangeTracker.Clear();
+                throw;
+            }
         }
-        catch
+    }
+
+    private static bool IsTransientConflict(Exception ex)
+    {
+        if (ex is DbUpdateConcurrencyException)
+            return true;
+
+        for (var curr = ex; curr is not null; curr = curr.InnerException)
         {
-            await transaction.RollbackAsync(CancellationToken.None);
-            _context.ChangeTracker.Clear();
-            throw;
+            // PostgreSQL SQLSTATE 40001 = serialization_failure, 40P01 = deadlock_detected
+            if (curr is PostgresException pg && (pg.SqlState == PostgresErrorCodes.SerializationFailure || pg.SqlState == PostgresErrorCodes.DeadlockDetected))
+                return true;
         }
+
+        return false;
     }
 }

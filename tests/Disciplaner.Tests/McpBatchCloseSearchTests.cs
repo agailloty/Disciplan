@@ -190,7 +190,7 @@ public class McpBatchCloseSearchTests
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            await db.Database.ExecuteSqlRawAsync("UPDATE TicketStatuses SET Name = 'Validé' WHERE Id = {0}", fixbDoneStatusId);
+            await db.Database.ExecuteSqlRawAsync("UPDATE \"TicketStatuses\" SET \"Name\" = 'Validé' WHERE \"Id\" = {0}", fixbDoneStatusId);
         }
         var (ok, msg, closed) = await CallToolAsync(outsider, "close_ticket", """{"ticket_ref":"FIXB-1"}""", 2);
         Assert.False(ok, msg);
@@ -202,7 +202,7 @@ public class McpBatchCloseSearchTests
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var projectId = await db.Projects.Where(p => p.Key == "FIXB").Select(p => p.Id).SingleAsync();
             await db.Database.ExecuteSqlRawAsync(
-                "INSERT INTO TicketStatuses (Id, Name, Color, \"Order\", Category, CreatedAt, ProjectId) " +
+                "INSERT INTO \"TicketStatuses\" (\"Id\", \"Name\", \"Color\", \"Order\", \"Category\", \"CreatedAt\", \"ProjectId\") " +
                 "VALUES ({0}, 'Annulé', '#999999', 9, 2, {1}, {2})",
                 Guid.NewGuid(), DateTime.UtcNow, projectId);
         }
@@ -216,7 +216,7 @@ public class McpBatchCloseSearchTests
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            await db.Database.ExecuteSqlRawAsync("DELETE FROM TicketStatuses WHERE Category = 2 AND ProjectId = {0}",
+            await db.Database.ExecuteSqlRawAsync("DELETE FROM \"TicketStatuses\" WHERE \"Category\" = 2 AND \"ProjectId\" = {0}",
                 await db.Projects.Where(p => p.Key == "FIXB").Select(p => p.Id).SingleAsync());
         }
         var (noDone, noDoneMessage, _) = await CallToolAsync(outsider, "close_ticket", """{"ticket_ref":"FIXB-2"}""", 4);

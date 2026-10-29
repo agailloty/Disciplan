@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,11 +15,11 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "BoardMembers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    BoardId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    BoardId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Role = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    JoinedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -36,11 +36,11 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "ProjectMembers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ProjectId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ProjectId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Role = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    JoinedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

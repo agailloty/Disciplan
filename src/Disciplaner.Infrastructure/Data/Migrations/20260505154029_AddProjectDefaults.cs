@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,14 +13,14 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "DefaultAssigneePolicy",
                 table: "Projects",
-                type: "INTEGER",
+                type: migrationBuilder.IsPostgres() ? null : "INTEGER",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "DefaultTicketType",
                 table: "Projects",
-                type: "INTEGER",
+                type: migrationBuilder.IsPostgres() ? null : "INTEGER",
                 nullable: false,
                 defaultValue: 0);
         }

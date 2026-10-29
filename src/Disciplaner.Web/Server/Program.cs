@@ -12,12 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ──────────────────────────────────────────────────────────────────
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=disciplaner.db";
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+// ── Database (PostgreSQL prioritized, fallback to SQLite) ─────────────────────
+builder.Services.AddDisciplanerDatabase(builder.Configuration);
 
 // ── Identity (Core only — no cookie middleware for API) ───────────────────────
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

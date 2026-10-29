@@ -243,11 +243,15 @@ void main() {
       expect(find.text('Cycles'), findsNothing);
     });
 
-    testWidgets('hides the FAB on ticket detail routes so the comment send button stays tappable', (WidgetTester tester) async {
+    testWidgets('shows the FAB only on the dashboard home screen', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(ProviderScope(child: shellFor('/dashboard')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsOneWidget);
 
       await tester.pumpWidget(ProviderScope(child: shellFor('/tickets/CAMP-1')));
       await tester.pumpAndSettle();
@@ -255,7 +259,11 @@ void main() {
 
       await tester.pumpWidget(ProviderScope(child: shellFor('/kanban')));
       await tester.pumpAndSettle();
-      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
+
+      await tester.pumpWidget(ProviderScope(child: shellFor('/backlog')));
+      await tester.pumpAndSettle();
+      expect(find.byType(FloatingActionButton), findsNothing);
     });
   });
 

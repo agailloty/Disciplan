@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -17,7 +17,7 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "StatusCategories",
                 table: "SavedViews",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 nullable: false,
                 defaultValueSql: "'[]'");
         }
@@ -32,7 +32,7 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "StatusCategory",
                 table: "SavedViews",
-                type: "INTEGER",
+                type: migrationBuilder.IsPostgres() ? null : "INTEGER",
                 nullable: true);
         }
     }

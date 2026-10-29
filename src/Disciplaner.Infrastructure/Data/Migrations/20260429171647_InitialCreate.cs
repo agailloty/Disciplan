@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,10 +15,10 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -29,24 +29,24 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    DisplayName = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    DisplayName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    IsActive = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    UserName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    PasswordHash = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    SecurityStamp = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    PhoneNumber = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,12 +57,12 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Boards",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    OwnerId = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    OwnerId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,11 +73,11 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false)
+                        .AsAutoIncrement(migrationBuilder),
+                    RoleId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -94,11 +94,11 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
-                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false)
+                        .AsAutoIncrement(migrationBuilder),
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -115,10 +115,10 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
-                    ProviderKey = table.Column<string>(type: "TEXT", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "TEXT", nullable: true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false)
+                    LoginProvider = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ProviderKey = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -135,8 +135,8 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    RoleId = table.Column<string>(type: "TEXT", nullable: false)
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    RoleId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -159,10 +159,10 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Value = table.Column<string>(type: "TEXT", nullable: true)
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    LoginProvider = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Value = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -179,12 +179,12 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Columns",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Order = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    BoardId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 50, nullable: false),
+                    Order = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    BoardId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -201,15 +201,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "Cards",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    Order = table.Column<int>(type: "INTEGER", nullable: false),
-                    Priority = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DueDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ColumnId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Title = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 2000, nullable: true),
+                    Order = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    Priority = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    DueDate = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ColumnId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

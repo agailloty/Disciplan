@@ -11,7 +11,7 @@ Le connecteur MCP expose Disciplaner aux assistants IA compatibles [Model Contex
 3. Copiez immédiatement le jeton affiché (`dcp_...`) : il ne sera **jamais** réaffiché. En cas de perte, révoquez et recréez.
 4. **Révoquer** à tout moment depuis la même liste — la révocation est immédiate.
 
-Les jetons sont personnels : ils agissent avec vos droits dans chaque projet. Un outil d'écriture appelé avec un jeton en lecture seule est refusé.
+Les jetons sont personnels : ils agissent avec vos droits dans chaque projet. La portée filtre aussi la liste des outils : un jeton en lecture seule ne voit que les outils de lecture dans `tools/list` (les outils d'écriture sont masqués, et refusent l'appel s'ils sont quand même invoqués).
 
 ## 2. Client distant (ChatGPT, Mistral)
 
@@ -65,6 +65,8 @@ Lecture (portée `read`) : `list_projects`, `get_project`, `list_members`, `list
 
 Écriture (portée `read+write`) : `create_ticket`, `create_tickets` (lots jusqu'à 50), `update_ticket`, `assign_ticket`, `move_ticket_to_sprint`, `close_ticket`, `add_comment`, `create_sprint`, `start_sprint`, `close_sprint`, `update_sprint`.
 
+Avec un jeton `read`, `tools/list` ne retourne que les outils de lecture ci-dessus ; avec `read+write`, les 22 outils.
+
 Deux prompts prêts à l'emploi guident les usages courants : **enrich-backlog** (transformer un objectif produit en tickets à valider avant création) et **sprint-review** (résumé du sprint actif).
 
 Conventions utiles à connaître : les tickets sont référencés `CLE-numéro` (ex. `FIXA-42`), les projets par leur clé courte ; les listes sont paginées (`limit` ≤ 100, `offset`) ; les dates sont ISO 8601 ; les ambiguïtés (deux sprints homonymes...) produisent une erreur listant les candidats — l'assistant vous requestionnera.
@@ -75,15 +77,26 @@ Conventions utiles à connaître : les tickets sont référencés `CLE-numéro` 
 - Les lots `create_tickets` sont plafonnés à 50 tickets ; un lot trop grand est refusé.
 - Chaque jeton est limité en débit (60 requêtes/minute par défaut, réglable via `Mcp:RateLimitPerMinute`).
 - Le connecteur peut être désactivé entièrement : `Mcp:Enabled=false` dans `appsettings.json` (l'endpoint `/mcp` répond alors 404).
-- Toute écriture reste tracée : l'historique de ticket et le nom du jeton (`LastUsedAt`) attestent de l'origine.
+- Toute écriture reste tracée : l'historique de ticket et le nom du jeton attestent de l'origine. L'horodatage de dernière utilisation (`LastUsedAt`) est persisté au maximum toutes les 5 minutes par jeton : c'est une information indicative, pas un journal d'audit.
 
 ## 6. Dépannage
 
+### Erreurs d'authentification
+
+Le connecteur n'implémente **pas** OAuth 2.1 : l'authentification passe par un jeton personnel (`Authorization: Bearer dcp_...`). Un client conforme qui lancerait la découverte OAuth obtiendrait :
+
+- `/.well-known/oauth-protected-resource` → un document RFC 9728 identifiant la ressource et pointant vers cette documentation (pas de serveur d'autorisation) ;
+- un 401 sur `/mcp` portant `WWW-Authenticate: Bearer resource_metadata="https://<serveur>/.well-known/oauth-protected-resource"`.
+
+Ces réponses sont un garde-fou de diagnostic : configurez le jeton `dcp_...` directement dans le client (clé API / en-tête Bearer) au lieu de tenter un flux OAuth.
+
+### Table des symptômes
+
 | Symptôme | Cause probable / action |
 |---|---|
-| 401 sur `/mcp` avec le jeton | Jeton mal copié, révoqué, ou JWT de l'application utilisé au lieu d'un jeton MCP (`dcp_...`). |
+| 401 sur `/mcp` avec le jeton | Jeton mal copié, révoqué, ou JWT de l'application utilisé au lieu d'un jeton MCP (`dcp_...`). Le 401 pointe vers `/.well-known/oauth-protected-resource` pour le diagnostic. |
 | 404 sur `/mcp` | `Mcp:Enabled=false`, ou URL incorrecte (l'endpoint est `<base>/mcp`). |
 | 429 | Débit dépassé — ralentissez ou augmentez `Mcp:RateLimitPerMinute`. |
-| « This token is read-only » | Créez un jeton avec la portée Lecture + écriture. |
+| « This token is read-only » | Créez un jeton avec la portée Lecture + écriture. Les outils d'écriture n'apparaissent d'ailleurs pas dans `tools/list` d'un jeton en lecture seule. |
 | Proxy stdio silencieux | Vérifiez `DISCIPLAN_URL` (base, sans `/mcp`) et `DISCIPLAN_PAT` ; les logs du proxy vont sur stderr. |
 | Assistant ne voit pas un projet | Le jeton agit avec vos droits : demandez une invitation dans le projet concerné. |

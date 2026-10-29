@@ -6,6 +6,7 @@ import 'package:disciplaner_flutter/core/l10n/l10n.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
 import 'package:disciplaner_flutter/core/models/project_models.dart';
 import 'package:disciplaner_flutter/core/models/ticket_models.dart';
+import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../ticket_providers.dart';
+import 'attachment_panel.dart';
 
 class MobileCreateTicketSheet extends ConsumerStatefulWidget {
   final String? initialProjectId;
@@ -52,6 +54,7 @@ class _MobileCreateTicketSheetState
     extends ConsumerState<MobileCreateTicketSheet> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final List<PickedMediaFile> _pendingFiles = [];
 
   CardPriority _priority = CardPriority.medium;
   StatusCategory _status = StatusCategory.backlog;
@@ -92,6 +95,28 @@ class _MobileCreateTicketSheetState
     }
   }
 
+  Future<void> _pickFiles() async {
+    try {
+      final files = await MediaUtils.pickAttachmentFiles(allowMultiple: true);
+      if (files.isNotEmpty && mounted) {
+        setState(() {
+          _pendingFiles.addAll(files);
+          _errorMessage = null;
+        });
+      }
+    } on MediaValidationException catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _errorMessage = context.l10n.attachmentErrorUpload(e.toString()),
+        );
+      }
+    }
+  }
+
   Future<void> _handleSubmit(String projectId) async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
@@ -129,7 +154,7 @@ class _MobileCreateTicketSheetState
 
     try {
       final repo = ref.read(ticketRepositoryProvider);
-      await repo.createTicket(
+      final createdTicket = await repo.createTicket(
         projectId,
         CreateTicketRequest(
           title: title,
@@ -143,6 +168,12 @@ class _MobileCreateTicketSheetState
           dueDate: _dueDate,
         ),
       );
+
+      if (_pendingFiles.isNotEmpty) {
+        for (final file in _pendingFiles) {
+          await repo.uploadTicketAttachment(createdTicket.id, file);
+        }
+      }
 
       ref.invalidate(projectBacklogProvider(projectId));
       ref.invalidate(myTasksProvider);
@@ -171,6 +202,7 @@ class _MobileCreateTicketSheetState
           _titleController.clear();
           _descriptionController.clear();
           setState(() {
+            _pendingFiles.clear();
             _isLoading = false;
           });
         } else {
@@ -386,6 +418,12 @@ class _MobileCreateTicketSheetState
                 ),
 
                 const SizedBox(height: NeoSpacing.spaceMd),
+
+                // Pending files strip
+                PendingFilesStrip(
+                  files: _pendingFiles,
+                  onRemoveAt: (idx) => setState(() => _pendingFiles.removeAt(idx)),
+                ),
 
                 // Quick metadata section
                 Row(
@@ -665,6 +703,53 @@ class _MobileCreateTicketSheetState
                                 ),
                                 const SizedBox(width: 4),
                                 const Icon(Icons.expand_more, size: 16, color: NeoColors.onSurfaceVariant),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1, indent: NeoSpacing.spaceSm, endIndent: NeoSpacing.spaceSm),
+
+                      // Attachments row
+                      _buildMetaRow(
+                        icon: Icons.attach_file,
+                        label: l10n.attachmentSectionLabel,
+                        action: InkWell(
+                          onTap: _isLoading ? null : _pickFiles,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: _pendingFiles.isNotEmpty
+                                  ? NeoColors.primary.withValues(alpha: 0.14)
+                                  : NeoColors.surfaceContainer,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.add,
+                                  size: 15,
+                                  color: _pendingFiles.isNotEmpty
+                                      ? NeoColors.primary
+                                      : NeoColors.muted,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    _pendingFiles.isEmpty
+                                        ? l10n.attachmentAdd
+                                        : '${_pendingFiles.length} fichier(s)',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: NeoTypography.headlineSm.copyWith(
+                                      fontSize: 13,
+                                      color: _pendingFiles.isNotEmpty
+                                          ? NeoColors.primary
+                                          : NeoColors.muted,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -14,15 +14,15 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AlterColumn<Guid>(
                 name: "CardId",
                 table: "Comments",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 nullable: true,
                 oldClrType: typeof(Guid),
-                oldType: "TEXT");
+                oldType: migrationBuilder.IsPostgres() ? null : "TEXT");
 
             migrationBuilder.AddColumn<Guid>(
                 name: "TicketId",
                 table: "Comments",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
@@ -57,11 +57,11 @@ namespace Disciplaner.Infrastructure.Data.Migrations
             migrationBuilder.AlterColumn<Guid>(
                 name: "CardId",
                 table: "Comments",
-                type: "TEXT",
+                type: migrationBuilder.IsPostgres() ? null : "TEXT",
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
                 oldClrType: typeof(Guid),
-                oldType: "TEXT",
+                oldType: migrationBuilder.IsPostgres() ? null : "TEXT",
                 oldNullable: true);
         }
     }

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-disciplaner}"
+      POSTGRES_USER: "${POSTGRES_USER:-disciplaner}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+    volumes:
+      - disciplaner-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-disciplaner} -d $${POSTGRES_DB:-disciplaner}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  disciplaner:
+    # Single container serving both the REST API and the Flutter web front,
+    # connected to the dedicated PostgreSQL 17 service above.
+    build: .
+    image: disciplaner:local
+    # image: ghcr.io/agailloty/disciplan:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${DISCIPLAN_PORT:-8080}:8080"
+    volumes:
+      - disciplaner-data:/data
+    environment:
+      Database__Provider: "Postgres"
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-disciplaner};Username=${POSTGRES_USER:-disciplaner};Password=${POSTGRES_PASSWORD}"
+      Jwt__SecretKey: "${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env (min. 32 characters)}"
+      Jwt__Issuer: "${JWT_ISSUER:-Disciplaner}"
+      Jwt__Audience: "${JWT_AUDIENCE:-Disciplaner}"
+      # Optional: seed the first admin account on startup.
+      # If omitted, the app opens the /setup wizard on first run.
+      AdminSeed__Email: "${ADMIN_EMAIL:-}"
+      AdminSeed__Password: "${ADMIN_PASSWORD:-}"
+      # Uncomment if a reverse proxy terminates TLS upstream
+      # ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+
+volumes:
+  disciplaner-pgdata:
+  disciplaner-data:
+

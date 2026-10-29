@@ -4,6 +4,7 @@ import 'package:disciplaner_flutter/app/theme/neo_typography.dart';
 import 'package:disciplaner_flutter/core/errors/app_failure.dart';
 import 'package:disciplaner_flutter/core/l10n/failure_l10n.dart';
 import 'package:disciplaner_flutter/core/l10n/l10n.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/file_preview_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -137,6 +138,57 @@ class ActivityDrawer extends ConsumerWidget {
                                   item.summary,
                                   style: NeoTypography.bodySm.copyWith(color: NeoColors.primary),
                                 ),
+                                if (item.attachmentId != null &&
+                                    item.attachmentId!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: () => FilePreviewDialog.showById(
+                                      context,
+                                      attachmentId: item.attachmentId!,
+                                      fileName: item.attachmentFileName ??
+                                          l10n.attachmentPreview,
+                                      contentType: item.attachmentContentType,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: NeoColors.surfaceContainerLow,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: NeoColors.borderWhisper,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.visibility_outlined,
+                                            size: 13,
+                                            color: NeoColors.primary,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Flexible(
+                                            child: Text(
+                                              item.attachmentFileName ??
+                                                  l10n.attachmentPreview,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: NeoTypography.labelSm
+                                                  .copyWith(
+                                                color: NeoColors.primary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
@@ -158,7 +210,7 @@ class ActivityDrawer extends ConsumerWidget {
                                       const SizedBox(width: 8),
                                     ],
                                     Text(
-                                      DateFormat('dd/MM HH:mm').format(item.occurredAt),
+                                      DateFormat('dd/MM HH:mm').format(item.occurredAt.toLocal()),
                                       style: NeoTypography.labelSm.copyWith(color: NeoColors.muted),
                                     ),
                                   ],

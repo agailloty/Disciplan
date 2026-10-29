@@ -376,14 +376,17 @@ class DesktopAppShell extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              NeoButton(
-                label: l10n.shellNewTask,
-                isDense: true,
-                icon: const Icon(Icons.add, size: 14),
-                onPressed: () {
-                  DesktopCreateTicketDialog.show(context);
-                },
-              ),
+              // Le bouton de création rapide n'est visible que sur
+              // l'écran d'accueil.
+              if (currentRoute == '/dashboard')
+                NeoButton(
+                  label: l10n.shellNewTask,
+                  isDense: true,
+                  icon: const Icon(Icons.add, size: 14),
+                  onPressed: () {
+                    DesktopCreateTicketDialog.show(context);
+                  },
+                ),
               const SizedBox(width: NeoSpacing.spaceSm),
               UserAvatar(
                 name: user?.displayName ?? 'Admin',

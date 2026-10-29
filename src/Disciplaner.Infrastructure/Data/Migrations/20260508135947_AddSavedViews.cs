@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,22 +15,22 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "SavedViews",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    IsVisibleOnHome = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DisplayOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ProjectId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    StatusId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    SprintId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    Type = table.Column<int>(type: "INTEGER", nullable: true),
-                    Priority = table.Column<int>(type: "INTEGER", nullable: true),
-                    StatusCategory = table.Column<int>(type: "INTEGER", nullable: true),
-                    OnlyAssignedToMe = table.Column<bool>(type: "INTEGER", nullable: false),
-                    OnlyReportedByMe = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Name = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Description = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    IsVisibleOnHome = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    DisplayOrder = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    UserId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    ProjectId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    StatusId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    SprintId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: true),
+                    Type = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: true),
+                    Priority = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: true),
+                    StatusCategory = table.Column<int>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: true),
+                    OnlyAssignedToMe = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false),
+                    OnlyReportedByMe = table.Column<bool>(type: migrationBuilder.IsPostgres() ? null : "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

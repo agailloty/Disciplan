@@ -6,7 +6,9 @@ using System.Text.Json;
 using Disciplaner.Domain.Common;
 using Disciplaner.Domain.Entities;
 using Disciplaner.Infrastructure.Data;
+using Disciplaner.Mcp.McpAuth;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -207,6 +209,162 @@ public class McpConnectorTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", raw);
         using var response = await PostRpcAsync(client, InitializeRequest);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── Auth discovery (review fix C) ──────────────────────────────────────
+
+    private static HttpClient AnonymousClient(ApiFactory factory) =>
+        factory.CreateClient(new WebApplicationFactoryClientOptions
+            { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+
+    [Fact]
+    public async Task Protected_resource_metadata_follows_rfc9728()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var client = AnonymousClient(factory);
+        using var response = await client.GetAsync("/.well-known/oauth-protected-resource");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = payload.RootElement;
+        // RFC 9728: the "resource" member is REQUIRED; "documentation" points at the PAT guide.
+        Assert.Equal("https://localhost", root.GetProperty("resource").GetString());
+        Assert.False(string.IsNullOrEmpty(root.GetProperty("documentation").GetString()));
+        var scopes = root.GetProperty("scopes_supported").EnumerateArray()
+            .Select(s => s.GetString()).ToList();
+        Assert.Contains(McpTokenSecurity.ReadScope, scopes);
+        Assert.Contains(McpTokenSecurity.ReadWriteScope, scopes);
+    }
+
+    [Fact]
+    public async Task Mcp_unauthorized_responses_point_to_the_protected_resource_metadata()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var client = AnonymousClient(factory);
+        using var response = await PostRpcAsync(client, InitializeRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var challenge = Assert.Single(response.Headers.WwwAuthenticate);
+        Assert.Equal("Bearer", challenge.Scheme);
+        Assert.Equal("resource_metadata=\"https://localhost/.well-known/oauth-protected-resource\"",
+            challenge.Parameter);
+    }
+
+    [Fact]
+    public async Task Protected_resource_metadata_returns_404_when_mcp_is_disabled()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+
+        using var disabled = factory.WithWebHostBuilder(
+            builder => builder.UseSetting("Mcp:Enabled", "false"));
+        using var client = disabled.CreateClient(new WebApplicationFactoryClientOptions
+            { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        using var response = await client.GetAsync("/.well-known/oauth-protected-resource");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── LastUsedAt flush gating (review fix A) ──────────────────────────────
+
+    private static async Task<DateTime?> ReadLastUsedAtAsync(ApiFactory factory, Guid tokenId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var token = await db.McpTokens.FindAsync(tokenId);
+        return token?.LastUsedAt;
+    }
+
+    [Fact]
+    public async Task Mcp_requests_close_together_flush_last_used_at_only_once()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (id, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        await PostRpcAsync(client, InitializeRequest);
+        var afterFirst = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterFirst);
+
+        // A second request within the 5-minute sliding window: telemetry is not re-persisted.
+        await PostRpcAsync(client, InitializeRequest);
+        var afterSecond = await ReadLastUsedAtAsync(factory, id);
+        Assert.Equal(afterFirst, afterSecond);
+    }
+
+    [Fact]
+    public async Task Mcp_requests_flush_last_used_at_again_after_the_five_minute_window()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (id, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        await PostRpcAsync(client, InitializeRequest);
+        var afterFirst = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterFirst);
+
+        // Simulate more than 5 minutes without use: the sliding cache entry has expired.
+        factory.Services.GetRequiredService<IMemoryCache>()
+            .Remove(McpTokenAuthenticationHandler.LastUsedCacheKeyPrefix + id);
+
+        await PostRpcAsync(client, InitializeRequest);
+        var afterSecond = await ReadLastUsedAtAsync(factory, id);
+        Assert.NotNull(afterSecond);
+        Assert.True(afterSecond > afterFirst,
+            $"expected LastUsedAt {afterSecond:O} to be later than {afterFirst:O}");
+    }
+
+    private static async Task<List<string>> ToolsListNamesAsync(HttpClient client)
+    {
+        using var initialize = await PostRpcAsync(client, InitializeRequest);
+        Assert.Equal(HttpStatusCode.OK, initialize.StatusCode);
+        using var list = await PostRpcAsync(client, ToolsListRequest);
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        var result = await ReadRpcResultAsync(list);
+        return result.GetProperty("result").GetProperty("tools").EnumerateArray()
+            .Select(t => t.GetProperty("name").GetString() ?? string.Empty)
+            .ToList();
+    }
+
+    [Fact]
+    public async Task Tools_list_hides_write_tools_from_read_only_tokens()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (_, raw) = await CreateTokenViaApiAsync(factory, "member", scopes: McpTokenSecurity.ReadScope);
+
+        using var client = ClientWithPat(factory, raw);
+        var names = await ToolsListNamesAsync(client);
+
+        // Write tools are hidden...
+        Assert.DoesNotContain("create_sprint", names);
+        Assert.DoesNotContain("create_ticket", names);
+        Assert.DoesNotContain("add_comment", names);
+        // ...read tools and the side-effect-free ping stay visible: 10 ReadOnly tools + ping.
+        Assert.Contains("list_sprints", names);
+        Assert.Contains("get_ticket", names);
+        Assert.Contains("ping", names);
+        Assert.Equal(11, names.Count);
+    }
+
+    [Fact]
+    public async Task Tools_list_shows_all_tools_to_read_write_tokens()
+    {
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        var (_, raw) = await CreateTokenViaApiAsync(factory, "member");
+
+        using var client = ClientWithPat(factory, raw);
+        var names = await ToolsListNamesAsync(client);
+
+        Assert.Contains("create_sprint", names);
+        Assert.Contains("add_comment", names);
+        Assert.Equal(22, names.Count);
     }
 
     // ── Token management REST API ───────────────────────────────────────────

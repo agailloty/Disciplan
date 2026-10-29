@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:disciplaner_flutter/app/theme/neo_theme.dart';
 import 'package:disciplaner_flutter/core/models/collaboration_models.dart';
 import 'package:disciplaner_flutter/core/models/enums.dart';
@@ -9,6 +10,7 @@ import 'package:disciplaner_flutter/features/tickets/presentation/ticket_provide
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/desktop_create_ticket_dialog.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_create_ticket_sheet.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_ticket_detail_sheet.dart';
+import 'package:disciplaner_flutter/features/tickets/presentation/widgets/file_preview_dialog.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/split_inspector_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -366,6 +368,78 @@ void main() {
       final sendIcon = find.byIcon(Icons.arrow_upward);
       expect(sendIcon, findsOneWidget);
       expect(tester.getRect(sendIcon).bottom, lessThanOrEqualTo(844 - 48));
+    });
+
+    testWidgets('MobileTicketDetailSheet clicking on an attachment opens the integrated document viewer', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final sampleImgAttachment = AttachmentDto(
+        id: 'att-mobile-1',
+        fileName: 'wireframe_mobile.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+        uploadedById: 'user-1',
+        uploadedByName: 'Alexandre M.',
+        uploadedAt: DateTime.now(),
+      );
+
+      final pngBytes = Uint8List.fromList([
+        137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
+        0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196,
+        137, 0, 0, 0, 10, 73, 68, 65, 84, 120, 156, 99, 0, 1, 0, 0,
+        5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68,
+        174, 66, 96, 130
+      ]);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ticketDetailProvider('ticket-14').overrideWith((ref) async => sampleTicket),
+            ticketCommentsProvider('ticket-14').overrideWith((ref) async => const []),
+            ticketAttachmentsProvider('ticket-14').overrideWith((ref) async => [sampleImgAttachment]),
+            ticketHistoryProvider('ticket-14').overrideWith((ref) async => const []),
+            attachmentDownloadProvider('att-mobile-1').overrideWith(
+              (ref) async => (pngBytes, 'image/png'),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
+            theme: NeoTheme.lightTheme,
+            home: const Scaffold(
+              body: MobileTicketDetailSheet(ticketId: 'ticket-14'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Scroll down to the attachments section
+      await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // The attachment card is visible
+      expect(find.text('wireframe_mobile.png'), findsOneWidget);
+
+      // Tap on the attachment item
+      await tester.tap(find.text('wireframe_mobile.png'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // FilePreviewDialog should open in fullscreen
+      expect(find.byType(FilePreviewDialog), findsOneWidget);
+
+      // Close it
+      await tester.tap(find.byTooltip('Fermer'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byType(FilePreviewDialog), findsNothing);
     });
   });
 }

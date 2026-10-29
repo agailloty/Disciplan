@@ -23,9 +23,9 @@ class CommentDto extends Equatable {
   factory CommentDto.fromJson(Map<String, dynamic> json) {
     return CommentDto(
       id: json['id']?.toString() ?? '',
-      cardId: json['cardId']?.toString(),
+      cardId: (json['ticketId'] ?? json['cardId'])?.toString(),
       authorId: json['authorId']?.toString() ?? '',
-      authorName: json['authorName'] as String? ?? '',
+      authorName: (json['authorDisplayName'] ?? json['authorName']) as String? ?? '',
       content: json['content'] as String? ?? '',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'].toString())
@@ -86,14 +86,19 @@ class AttachmentDto extends Equatable {
     this.boardId,
   });
 
+  String get originalFileName => fileName;
+  int get fileSizeBytes => sizeBytes;
+  String get uploadedByDisplayName => uploadedByName;
+
   factory AttachmentDto.fromJson(Map<String, dynamic> json) {
     return AttachmentDto(
       id: json['id']?.toString() ?? '',
-      fileName: json['fileName'] as String? ?? '',
+      fileName: (json['originalFileName'] ?? json['fileName']) as String? ?? '',
       contentType: json['contentType'] as String? ?? '',
-      sizeBytes: (json['sizeBytes'] as num?)?.toInt() ?? 0,
+      sizeBytes: ((json['fileSizeBytes'] ?? json['sizeBytes']) as num?)?.toInt() ?? 0,
       uploadedById: json['uploadedById']?.toString() ?? '',
-      uploadedByName: json['uploadedByName'] as String? ?? '',
+      uploadedByName:
+          (json['uploadedByDisplayName'] ?? json['uploadedByName']) as String? ?? '',
       uploadedAt: json['uploadedAt'] != null
           ? DateTime.parse(json['uploadedAt'].toString())
           : DateTime.now(),
@@ -106,10 +111,13 @@ class AttachmentDto extends Equatable {
   Map<String, dynamic> toJson() => {
         'id': id,
         'fileName': fileName,
+        'originalFileName': fileName,
         'contentType': contentType,
         'sizeBytes': sizeBytes,
+        'fileSizeBytes': sizeBytes,
         'uploadedById': uploadedById,
         'uploadedByName': uploadedByName,
+        'uploadedByDisplayName': uploadedByName,
         'uploadedAt': uploadedAt.toIso8601String(),
         'ticketId': ticketId,
         'commentId': commentId,
@@ -355,6 +363,8 @@ class ActivityItemDto extends Equatable {
   final String? ticketId;
   final DateTime occurredAt;
   final String? attachmentId;
+  final String? attachmentFileName;
+  final String? attachmentContentType;
 
   const ActivityItemDto({
     required this.kind,
@@ -363,6 +373,8 @@ class ActivityItemDto extends Equatable {
     this.ticketId,
     required this.occurredAt,
     this.attachmentId,
+    this.attachmentFileName,
+    this.attachmentContentType,
   });
 
   factory ActivityItemDto.fromJson(Map<String, dynamic> json) {
@@ -375,6 +387,8 @@ class ActivityItemDto extends Equatable {
           ? DateTime.parse(json['occurredAt'].toString())
           : DateTime.now(),
       attachmentId: json['attachmentId']?.toString(),
+      attachmentFileName: json['attachmentFileName'] as String?,
+      attachmentContentType: json['attachmentContentType'] as String?,
     );
   }
 
@@ -385,10 +399,23 @@ class ActivityItemDto extends Equatable {
         'ticketId': ticketId,
         'occurredAt': occurredAt.toIso8601String(),
         'attachmentId': attachmentId,
+        if (attachmentFileName != null)
+          'attachmentFileName': attachmentFileName,
+        if (attachmentContentType != null)
+          'attachmentContentType': attachmentContentType,
       };
 
   @override
-  List<Object?> get props => [kind, summary, ticketRef, ticketId, occurredAt, attachmentId];
+  List<Object?> get props => [
+        kind,
+        summary,
+        ticketRef,
+        ticketId,
+        occurredAt,
+        attachmentId,
+        attachmentFileName,
+        attachmentContentType,
+      ];
 }
 
 class CalendarTokenDto extends Equatable {
@@ -464,6 +491,7 @@ class AdminUserDto extends Equatable {
   final bool isActive;
   final DateTime createdAt;
   final List<String> roles;
+  final String? profilePictureUrl;
 
   const AdminUserDto({
     required this.id,
@@ -472,6 +500,7 @@ class AdminUserDto extends Equatable {
     required this.isActive,
     required this.createdAt,
     required this.roles,
+    this.profilePictureUrl,
   });
 
   factory AdminUserDto.fromJson(Map<String, dynamic> json) {
@@ -484,6 +513,7 @@ class AdminUserDto extends Equatable {
           ? DateTime.parse(json['createdAt'].toString())
           : DateTime.now(),
       roles: (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      profilePictureUrl: json['profilePictureUrl'] as String?,
     );
   }
 
@@ -494,10 +524,19 @@ class AdminUserDto extends Equatable {
         'isActive': isActive,
         'createdAt': createdAt.toIso8601String(),
         'roles': roles,
+        if (profilePictureUrl != null) 'profilePictureUrl': profilePictureUrl,
       };
 
   @override
-  List<Object?> get props => [id, displayName, email, isActive, createdAt, roles];
+  List<Object?> get props => [
+        id,
+        displayName,
+        email,
+        isActive,
+        createdAt,
+        roles,
+        profilePictureUrl,
+      ];
 }
 
 class InvitationDto extends Equatable {

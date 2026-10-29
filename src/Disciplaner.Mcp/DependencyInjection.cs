@@ -33,6 +33,9 @@ public static class DependencyInjection
             .AddScheme<McpTokenAuthenticationOptions, McpTokenAuthenticationHandler>(
                 McpTokenDefaults.AuthenticationScheme, _ => { });
         services.AddScoped<McpTokenService>();
+        // IMemoryCache gates the LastUsedAt flushes (one write per token per 5-minute window).
+        // AddMemoryCache uses TryAdd: an existing registration is left untouched.
+        services.AddMemoryCache();
 
         // Tool plumbing
         services.AddHttpContextAccessor();
@@ -64,6 +67,8 @@ public static class DependencyInjection
                 "Disciplaner is a self-hosted project management tool (projects, tickets, sprints). " +
                 "Tickets are referenced as KEY-number, e.g. DISC-42, where KEY is the short project key. " +
                 "All dates are ISO 8601 UTC.";
+            // A 'read' token only lists the tools it can call (review fix B).
+            options.Filters.Request.ListToolsFilters.Add(McpScopeToolFilter.HideWriteToolsFromReadOnlyTokens);
         })
         .WithHttpTransport(options => options.Stateless = true)
         .WithToolsFromAssembly(typeof(DependencyInjection).Assembly)
@@ -84,8 +89,15 @@ public static class DependencyInjection
             // Map an explicit 404 instead of letting requests fall through to the SPA fallback,
             // so MCP clients get an unambiguous "not available" answer on any verb.
             app.Map(pattern, () => Results.NotFound());
+            app.Map(ProtectedResource.Path, () => Results.NotFound());
             return null;
         }
+
+        // RFC 9728 discovery document (review fix C): diagnostic signpost for MCP clients
+        // that start OAuth discovery, explaining the personal access token instead.
+        app.MapGet(ProtectedResource.Path, (HttpRequest request) => Results.Ok(
+            ProtectedResource.Metadata(
+                $"{request.Scheme}://{request.Host}", options.PatDocumentationUrl)));
 
         return app.MapMcp(pattern)
             .RequireRateLimiting(RateLimitPolicy)

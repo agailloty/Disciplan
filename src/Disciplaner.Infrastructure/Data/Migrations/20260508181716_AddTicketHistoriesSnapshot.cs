@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,14 +15,14 @@ namespace Disciplaner.Infrastructure.Data.Migrations
                 name: "TicketHistories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TicketId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Kind = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    OldValue = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    NewValue = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    ActorId = table.Column<string>(type: "TEXT", maxLength: 450, nullable: false),
-                    ActorName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    OccurredAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    TicketId = table.Column<Guid>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false),
+                    Kind = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 60, nullable: false),
+                    OldValue = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 500, nullable: true),
+                    NewValue = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 500, nullable: true),
+                    ActorId = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 450, nullable: false),
+                    ActorName = table.Column<string>(type: migrationBuilder.IsPostgres() ? null : "TEXT", maxLength: 200, nullable: false),
+                    OccurredAt = table.Column<DateTime>(type: migrationBuilder.IsPostgres() ? null : "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

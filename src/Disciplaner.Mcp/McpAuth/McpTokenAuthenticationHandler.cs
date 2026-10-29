@@ -1,6 +1,8 @@
 using Disciplaner.Domain.Common;
 using Disciplaner.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +22,12 @@ public sealed class McpTokenAuthenticationHandler(
     UrlEncoder encoder)
     : AuthenticationHandler<McpTokenAuthenticationOptions>(options, logger, encoder)
 {
+    /// <summary>Minimum delay between two LastUsedAt flushes for the same token.</summary>
+    public static readonly TimeSpan LastUsedFlushInterval = TimeSpan.FromMinutes(5);
+
+    /// <summary>MemoryCache key prefix gating LastUsedAt writes: prefix + token id.</summary>
+    public const string LastUsedCacheKeyPrefix = "mcp-lastuse-";
+
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authorization = Request.Headers.Authorization.ToString();
@@ -57,9 +65,34 @@ public sealed class McpTokenAuthenticationHandler(
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
 
+        // LastUsedAt telemetry: the UPDATE is persisted at most once per token per 5-minute
+        // sliding window. The token row itself is still loaded on every request, so
+        // revocation stays immediate; only the LastUsedAt write is deferred.
         token.RecordUse(now);
-        await uow.SaveChangesAsync(Context.RequestAborted);
+
+        var cache = Context.RequestServices.GetService<IMemoryCache>();
+        var lastUseKey = cache is null ? null : LastUsedCacheKeyPrefix + token.Id;
+        if (lastUseKey is null || !cache!.TryGetValue(lastUseKey, out _))
+        {
+            await uow.SaveChangesAsync(Context.RequestAborted);
+            cache?.Set(lastUseKey!, now, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = LastUsedFlushInterval
+            });
+        }
 
         return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
+    }
+
+    /// <summary>
+    /// 401 challenge (review fix C): points conforming MCP clients at the RFC 9728 Protected
+    /// Resource Metadata document, which itself explains the personal access token flow.
+    /// </summary>
+    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = StatusCodes.Status401Unauthorized;
+        var metadataUrl = $"{Request.Scheme}://{Request.Host}{ProtectedResource.Path}";
+        Response.Headers.WWWAuthenticate = $"Bearer resource_metadata=\"{metadataUrl}\"";
+        return Task.CompletedTask;
     }
 }
