@@ -449,6 +449,262 @@ void main() {
         expect(fakeRepo.uploadedTicketFiles.first.name, 'brief_client.pdf');
       },
     );
+
+    testWidgets(
+      'Mobile Viewer: previews image with zoom controls on mobile screen',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final sampleAtt = AttachmentDto(
+          id: 'att-img-1',
+          fileName: 'mockup_screen.png',
+          contentType: 'image/png',
+          sizeBytes: 1024,
+          uploadedById: 'user-1',
+          uploadedByName: 'Alexandre M.',
+          uploadedAt: DateTime(2026, 1, 15, 14, 0),
+          ticketId: 'ticket-1',
+        );
+
+        // Minimal 1x1 transparent PNG bytes
+        final pngBytes = Uint8List.fromList([
+          137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
+          0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196,
+          137, 0, 0, 0, 10, 73, 68, 65, 84, 120, 156, 99, 0, 1, 0, 0,
+          5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68,
+          174, 66, 96, 130
+        ]);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              attachmentDownloadProvider('att-img-1').overrideWith(
+                (ref) async => (pngBytes, 'image/png'),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('fr'),
+              theme: NeoTheme.lightTheme,
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => FilePreviewDialog.show(
+                      context,
+                      attachment: sampleAtt,
+                    ),
+                    child: const Text('Ouvrir Image'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump();
+
+        // Tap open button
+        await tester.tap(find.text('Ouvrir Image'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        // Should display fullscreen viewer on mobile
+        expect(find.byType(FilePreviewDialog), findsOneWidget);
+        expect(find.text('mockup_screen.png'), findsOneWidget);
+
+        // Zoom controls should be available
+        expect(find.byTooltip('Zoom avant'), findsOneWidget);
+        expect(find.byTooltip('Zoom arrière'), findsOneWidget);
+        expect(find.byTooltip('Réinitialiser le zoom'), findsOneWidget);
+
+        // Test zooming in and resetting
+        await tester.tap(find.byTooltip('Zoom avant'));
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.tap(find.byTooltip('Réinitialiser le zoom'));
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Close viewer
+        await tester.tap(find.byTooltip('Fermer'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        expect(find.byType(FilePreviewDialog), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Mobile Viewer: previews PDF document and provides pagination / download fallback',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final sampleAtt = AttachmentDto(
+          id: 'att-pdf-1',
+          fileName: 'specifications_techniques.pdf',
+          contentType: 'application/pdf',
+          sizeBytes: 15360,
+          uploadedById: 'user-1',
+          uploadedByName: 'Alexandre M.',
+          uploadedAt: DateTime(2026, 1, 15, 14, 0),
+          ticketId: 'ticket-1',
+        );
+
+        final dummyPdfBytes = Uint8List.fromList(
+          utf8.encode('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF'),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              attachmentDownloadProvider('att-pdf-1').overrideWith(
+                (ref) async => (dummyPdfBytes, 'application/pdf'),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('fr'),
+              theme: NeoTheme.lightTheme,
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => FilePreviewDialog.show(
+                      context,
+                      attachment: sampleAtt,
+                    ),
+                    child: const Text('Ouvrir PDF'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pump();
+
+        await tester.tap(find.text('Ouvrir PDF'));
+        await tester.pump();
+        // Allow async _loadPdf to finish resolving
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(FilePreviewDialog), findsOneWidget);
+        expect(find.text('specifications_techniques.pdf'), findsOneWidget);
+
+        // The PDF viewer header is present with close button
+        expect(
+          find.byTooltip('Fermer'),
+          findsOneWidget,
+        );
+
+        // Close viewer
+        await tester.tap(find.byTooltip('Fermer'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byType(FilePreviewDialog), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Mobile Viewer: previews source code / Markdown with line numbers and copy button',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        const sampleMarkdown =
+            '# Cahier des charges\n\n1. Définir le périmètre\n2. Coder les tests\n3. Valider la livraison';
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
+            theme: NeoTheme.lightTheme,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => FilePreviewDialog.showBytes(
+                    context,
+                    bytes: Uint8List.fromList(utf8.encode(sampleMarkdown)),
+                    fileName: 'cahier_charges.md',
+                    contentType: 'text/markdown',
+                  ),
+                  child: const Text('Ouvrir Markdown'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ouvrir Markdown'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FilePreviewDialog), findsOneWidget);
+        expect(find.text('cahier_charges.md'), findsOneWidget);
+        expect(find.textContaining('Cahier des charges'), findsOneWidget);
+        expect(find.text('Copier'), findsOneWidget);
+
+        // Tap copy button
+        await tester.tap(find.text('Copier'));
+        await tester.pumpAndSettle();
+        expect(find.text('Contenu copié dans le presse-papier.'), findsOneWidget);
+
+        // Close viewer
+        await tester.tap(find.byTooltip('Fermer'));
+        await tester.pumpAndSettle();
+        expect(find.byType(FilePreviewDialog), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Mobile Viewer: displays fallback card and download button for binary/unsupported formats',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('fr'),
+            theme: NeoTheme.lightTheme,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => FilePreviewDialog.showBytes(
+                    context,
+                    bytes: Uint8List.fromList([80, 75, 3, 4]),
+                    fileName: 'archive_sources.zip',
+                    contentType: 'application/zip',
+                  ),
+                  child: const Text('Ouvrir ZIP'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Ouvrir ZIP'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FilePreviewDialog), findsOneWidget);
+        expect(find.text('archive_sources.zip'), findsWidgets);
+        expect(
+          find.text('L\'aperçu direct n\'est pas disponible pour ce type de fichier.'),
+          findsOneWidget,
+        );
+        expect(find.text('Télécharger le fichier'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Fermer'));
+        await tester.pumpAndSettle();
+        expect(find.byType(FilePreviewDialog), findsNothing);
+      },
+    );
   });
 }
 

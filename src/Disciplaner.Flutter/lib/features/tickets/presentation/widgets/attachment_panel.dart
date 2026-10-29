@@ -736,28 +736,37 @@ class PendingFilesStrip extends StatelessWidget {
                   ),
                 const SizedBox(width: 6),
                 Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        file.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: NeoColors.onSurface,
+                  child: InkWell(
+                    onTap: () => FilePreviewDialog.showBytes(
+                      context,
+                      bytes: file.bytes,
+                      fileName: file.name,
+                      contentType: file.contentType,
+                      fileSizeBytes: file.sizeBytes,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          file.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: NeoColors.onSurface,
+                          ),
                         ),
-                      ),
-                      Text(
-                        MediaUtils.formatFileSize(file.sizeBytes),
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 9.5,
-                          color: NeoColors.onSurfaceVariant,
+                        Text(
+                          MediaUtils.formatFileSize(file.sizeBytes),
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 9.5,
+                            color: NeoColors.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 6),

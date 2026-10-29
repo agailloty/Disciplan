@@ -156,7 +156,55 @@ class MediaUtils {
 
   static bool isTextContentType(String contentType) {
     final lower = contentType.toLowerCase();
-    return lower == 'text/plain' || lower == 'text/csv';
+    return lower == 'text/plain' ||
+        lower == 'text/csv' ||
+        lower == 'text/markdown' ||
+        lower.startsWith('text/') ||
+        lower == 'application/json' ||
+        lower == 'application/xml' ||
+        lower == 'application/x-yaml' ||
+        lower == 'application/javascript';
+  }
+
+  /// Returns whether a file is plain text, source code, data (JSON/CSV) or Markdown.
+  static bool isTextOrCode(String contentType, [String? fileName]) {
+    if (isTextContentType(contentType)) return true;
+    if (fileName != null) {
+      final ext = extractExtension(fileName);
+      const textExtensions = {
+        'txt',
+        'csv',
+        'tsv',
+        'json',
+        'xml',
+        'md',
+        'markdown',
+        'yaml',
+        'yml',
+        'html',
+        'htm',
+        'css',
+        'js',
+        'ts',
+        'jsx',
+        'tsx',
+        'dart',
+        'py',
+        'sql',
+        'sh',
+        'bash',
+        'bat',
+        'cmd',
+        'ps1',
+        'log',
+        'env',
+        'ini',
+        'conf',
+        'toml',
+      };
+      return textExtensions.contains(ext);
+    }
+    return false;
   }
 
   static bool isSpreadsheetContentType(String contentType) {
@@ -181,11 +229,11 @@ class MediaUtils {
     return lower.contains('zip');
   }
 
-  /// Returns whether the file can be previewed inline inside the modal.
-  static bool isPreviewable(String contentType) {
+  /// Returns whether the file can be previewed inline inside the viewer.
+  static bool isPreviewable(String contentType, [String? fileName]) {
     return isImageContentType(contentType) ||
         isPdfContentType(contentType) ||
-        isTextContentType(contentType);
+        isTextOrCode(contentType, fileName);
   }
 
   /// Formats a byte size into a human-readable French string (`o`, `Ko`, `Mo`).
