@@ -235,9 +235,11 @@ jobs:
       contents: write
 
     steps:
-      - name: Download all artifacts
+      - name: Download client artifacts
         uses: actions/download-artifact@v4
         with:
+          # Only the platform bundles; excludes buildx's *.dockerbuild provenance metadata
+          pattern: disciplaner-*
           path: dist
           merge-multiple: true
 
