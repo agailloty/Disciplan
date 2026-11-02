@@ -42,7 +42,10 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # PAT (write:packages): the existing package was created with a PAT
+          # and is not linked to this repository, so GITHUB_TOKEN has no write
+          # access to it (denied: permission_denied: write_package).
+          password: ${{ secrets.DISCIPLAN_TOKEN }}
 
       - name: Extract image metadata (tags, labels)
         id: meta
