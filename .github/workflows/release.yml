@@ -118,7 +118,7 @@ jobs:
       - name: Install desktop build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev zip
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -211,7 +211,9 @@ jobs:
         working-directory: src/Disciplaner.Flutter
         run: |
           cd build/macos/Build/Products/Release
-          ditto -c -k --keepParent disciplaner_flutter.app "Disciplaner-${VERSION}-macos.zip"
+          # The bundle is named after the Xcode target (Runner.app), not the pubspec name
+          APP=$(ls -d *.app | head -n 1)
+          ditto -c -k --keepParent "$APP" "Disciplaner-${VERSION}-macos.zip"
           mv "Disciplaner-${VERSION}-macos.zip" "${GITHUB_WORKSPACE}/src/Disciplaner.Flutter/"
 
       - name: Upload artifact
