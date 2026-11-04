@@ -78,3 +78,23 @@ final dashboardMyTicketsProvider = Provider<List<TicketDto>>((ref) {
       .where((t) => categories.contains(t.status.category))
       .toList();
 });
+
+
+/// Provider spécifique pour le widget d état des tickets.
+/// Retourne une map avec les tickets groupés par catégorie (inProgress et backlog).
+final ticketStatusWidgetProvider = Provider<Map<String, List<TicketDto>>>((ref) {
+  final tasks = ref.watch(myTasksProvider).asData?.value ?? const [];
+  
+  final inProgress = tasks
+      .where((t) => t.status.category == StatusCategory.inProgress)
+      .toList();
+  
+  final backlog = tasks
+      .where((t) => t.status.category == StatusCategory.backlog)
+      .toList();
+  
+  return {
+    "inProgress": inProgress,
+    "backlog": backlog,
+  };
+});
