@@ -1,4 +1,5 @@
 using Disciplaner.Mcp.McpAuth;
+using Disciplaner.Mcp.OAuth;
 using Disciplaner.Mcp.Resolution;
 using Disciplaner.Mcp.Tools;
 using Microsoft.AspNetCore.Authentication;
@@ -28,11 +29,14 @@ public static class DependencyInjection
             .Validate(o => o.MaxBatchTickets > 0, "Mcp:MaxBatchTickets must be positive.")
             .Validate(o => o.RateLimitPerMinute > 0, "Mcp:RateLimitPerMinute must be positive.");
 
-        // PAT authentication — additive scheme; the JWT bearer default is untouched.
+        // MCP authentication (supports OAuth 2.1 Access Tokens and Personal Access Tokens)
         services.AddAuthentication()
             .AddScheme<McpTokenAuthenticationOptions, McpTokenAuthenticationHandler>(
                 McpTokenDefaults.AuthenticationScheme, _ => { });
+
         services.AddScoped<McpTokenService>();
+        services.AddScoped<McpOAuthService>();
+
         // IMemoryCache gates the LastUsedAt flushes (one write per token per 5-minute window).
         // AddMemoryCache uses TryAdd: an existing registration is left untouched.
         services.AddMemoryCache();
@@ -67,7 +71,7 @@ public static class DependencyInjection
                 "Disciplaner is a self-hosted project management tool (projects, tickets, sprints). " +
                 "Tickets are referenced as KEY-number, e.g. DISC-42, where KEY is the short project key. " +
                 "All dates are ISO 8601 UTC.";
-            // A 'read' token only lists the tools it can call (review fix B).
+            // A 'read' token only lists the tools it can call.
             options.Filters.Request.ListToolsFilters.Add(McpScopeToolFilter.HideWriteToolsFromReadOnlyTokens);
         })
         .WithHttpTransport(options => options.Stateless = true)
@@ -78,7 +82,8 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Maps the MCP Streamable HTTP endpoint, authenticated with a Disciplaner PAT.
+    /// Maps the MCP Streamable HTTP endpoint, authenticated with an OAuth 2.1 access token or Disciplaner PAT,
+    /// alongside the OAuth 2.1 authorization server endpoints (RFC 6749, RFC 7591, RFC 7636, RFC 8414, RFC 9728).
     /// Returns null (and maps nothing → 404) when Mcp:Enabled is false.
     /// </summary>
     public static IEndpointConventionBuilder? MapDisciplanerMcp(this IEndpointRouteBuilder app, string pattern = "/mcp")
@@ -90,14 +95,17 @@ public static class DependencyInjection
             // so MCP clients get an unambiguous "not available" answer on any verb.
             app.Map(pattern, () => Results.NotFound());
             app.Map(ProtectedResource.Path, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.AuthorizationServerPath, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.OpenIdConfigurationPath, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.RegisterPath, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.AuthorizePath, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.TokenPath, () => Results.NotFound());
+            app.Map(McpOAuthEndpoints.RevokePath, () => Results.NotFound());
             return null;
         }
 
-        // RFC 9728 discovery document (review fix C): diagnostic signpost for MCP clients
-        // that start OAuth discovery, explaining the personal access token instead.
-        app.MapGet(ProtectedResource.Path, (HttpRequest request) => Results.Ok(
-            ProtectedResource.Metadata(
-                $"{request.Scheme}://{request.Host}", options.PatDocumentationUrl)));
+        // Map RFC-compliant OAuth 2.1 endpoints (metadata, registration, authorize, token, revoke)
+        app.MapMcpOAuth();
 
         return app.MapMcp(pattern)
             .RequireRateLimiting(RateLimitPolicy)

@@ -28,6 +28,9 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
     public DbSet<CalendarToken> CalendarTokens => Set<CalendarToken>();
     public DbSet<McpToken> McpTokens => Set<McpToken>();
+    public DbSet<McpOAuthClient> McpOAuthClients => Set<McpOAuthClient>();
+    public DbSet<McpOAuthAuthorizationCode> McpOAuthAuthorizationCodes => Set<McpOAuthAuthorizationCode>();
+    public DbSet<McpOAuthToken> McpOAuthTokens => Set<McpOAuthToken>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

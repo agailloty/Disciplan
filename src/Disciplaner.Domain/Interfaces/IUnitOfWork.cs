@@ -18,6 +18,7 @@ public interface IUnitOfWork
     IProjectMemberRepository ProjectMembers { get; }
     ICalendarTokenRepository CalendarTokens { get; }
     IMcpTokenRepository McpTokens { get; }
+    IMcpOAuthRepository McpOAuth { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<T> InTransactionAsync<T>(Func<Task<T>> action, CancellationToken cancellationToken = default);
