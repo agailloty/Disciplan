@@ -142,6 +142,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardStatusFilterTooltip => 'Displayed statuses';
 
   @override
+  String get dashboardTicketStatusOverview => 'Tickets overview';
+
+  @override
   String get dashboardNoTickets => 'No ticket matches the selected statuses.';
 
   @override

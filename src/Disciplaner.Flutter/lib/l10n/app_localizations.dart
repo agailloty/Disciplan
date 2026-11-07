@@ -356,6 +356,12 @@ abstract class AppLocalizations {
   /// **'Statuts affichés'**
   String get dashboardStatusFilterTooltip;
 
+  /// No description provided for @dashboardTicketStatusOverview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aperçu des tickets'**
+  String get dashboardTicketStatusOverview;
+
   /// No description provided for @dashboardNoTickets.
   ///
   /// In fr, this message translates to:

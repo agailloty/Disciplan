@@ -50,6 +50,7 @@
   "dashboardOpenProject": "Ouvrir",
   "dashboardMyTicketsSection": "Mes tickets",
   "dashboardStatusFilterTooltip": "Statuts affichés",
+  "dashboardTicketStatusOverview": "Aperçu des tickets",
   "dashboardNoTickets": "Aucun ticket ne correspond aux statuts sélectionnés.",
   "boardCreateTitle": "Nouveau tableau",
   "boardAddColumn": "Ajouter une colonne",

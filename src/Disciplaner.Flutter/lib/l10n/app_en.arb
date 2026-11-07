@@ -43,6 +43,7 @@
   "dashboardOpenProject": "Open",
   "dashboardMyTicketsSection": "My tickets",
   "dashboardStatusFilterTooltip": "Displayed statuses",
+  "dashboardTicketStatusOverview": "Tickets overview",
   "dashboardNoTickets": "No ticket matches the selected statuses.",
   "boardCreateTitle": "New board",
   "boardAddColumn": "Add a column",

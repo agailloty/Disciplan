@@ -70,7 +70,8 @@ class TicketStatusWidget extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.myticketsTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(l10n.dashboardTicketStatusOverview,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   _buildBadge(inProgress.length, l10n.statuscategoryInProgress, NeoColors.statusAmber),
