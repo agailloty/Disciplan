@@ -1,6 +1,7 @@
 using Disciplaner.Application.Interfaces;
 using Disciplaner.Application.Services;
 using Disciplaner.Domain.Interfaces;
+using Disciplaner.Infrastructure.Identity;
 using Disciplaner.Infrastructure.Repositories;
 using Disciplaner.Infrastructure.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
         services.AddScoped<ICalendarTokenRepository, CalendarTokenRepository>();
         services.AddScoped<IMcpTokenRepository, McpTokenRepository>();
+        services.AddScoped<IMcpOAuthRepository, McpOAuthRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Application services
@@ -47,6 +49,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IBoardMemberService, BoardMemberService>();
         services.AddScoped<IProjectMemberService, ProjectMemberService>();
         services.AddScoped<ICalendarService, CalendarService>();
+        services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 
         // File storage
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();

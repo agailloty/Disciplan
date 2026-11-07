@@ -2,8 +2,30 @@
 
 Le connecteur MCP expose Disciplaner aux assistants IA compatibles [Model Context Protocol](https://modelcontextprotocol.io) : Mistral, ChatGPT, Claude Desktop, Cursor, VS Code, etc. L'assistant peut alors consulter vos projets et, selon la portée du jeton, créer des tickets, commenter, gérer les sprints et enrichir le backlog en votre nom — sous le contrôle des mêmes rôles que l'application (un Guest ne lit que, un Member écrit, un Supervisor gère les sprints).
 
-## 1. Créer un jeton d'accès
+## 1. Authentification
 
+Le connecteur supporte deux modes d'authentification :
+
+### A. Authentification OAuth 2.1 (recommandée pour clients modernes)
+
+Disciplaner implémente la spécification standard **Model Context Protocol Authorization** basée sur OAuth 2.1 et les RFCs associées :
+- **RFC 9728 (OAuth Protected Resource Metadata)** : découverte automatique via `GET /.well-known/oauth-protected-resource`
+- **RFC 8414 (OAuth Authorization Server Metadata)** : métadonnées d'autorisation via `GET /.well-known/oauth-authorization-server`
+- **RFC 7591 (Dynamic Client Registration)** : enregistrement automatique des clients (`POST /oauth/register`)
+- **RFC 7636 (PKCE avec S256)** et Authorization Code Flow (`/oauth/authorize`, `/oauth/token`)
+- **RFC 7009 (Token Revocation)** : révocation via `POST /oauth/revoke`
+
+Les clients compatibles (Claude Desktop, Cursor, assistants web...) peuvent s'enregistrer et s'authentifier automatiquement :
+1. Le client contacte `https://<serveur>/mcp`.
+2. Le serveur répond avec un challenge HTTP 401 et l'en-tête `WWW-Authenticate: Bearer resource_metadata="https://<serveur>/.well-known/oauth-protected-resource"`.
+3. Le client découvre les métadonnées, s'enregistre dynamiquement et ouvre le navigateur pour le consentement.
+4. L'utilisateur valide l'autorisation sur l'écran d'approbation Disciplaner (portée `read` ou `read+write`).
+5. Le client échange le code avec PKCE et reçoit son jeton d'accès (`dcp_at_...`) et son jeton de rafraîchissement (`dcp_rt_...`).
+6. L'utilisateur peut lister et révoquer ses autorisations à tout moment via `GET /api/me/oauth-authorizations` et `DELETE /api/me/oauth-authorizations/{id}`.
+
+### B. Jetons d'accès personnels (PAT)
+
+Pour les clients ou configurations manuelles statiques :
 1. Ouvrez l'application → **Paramètres** → section **Jetons MCP**.
 2. **Créer un jeton** : donnez-lui un nom (ex. `Claude Desktop`) et choisissez la portée :
    - **Lecture seule** (`read`) : l'assistant peut consulter projets, tickets, sprints et commentaires.
@@ -83,12 +105,9 @@ Conventions utiles à connaître : les tickets sont référencés `CLE-numéro` 
 
 ### Erreurs d'authentification
 
-Le connecteur n'implémente **pas** OAuth 2.1 : l'authentification passe par un jeton personnel (`Authorization: Bearer dcp_...`). Un client conforme qui lancerait la découverte OAuth obtiendrait :
-
-- `/.well-known/oauth-protected-resource` → un document RFC 9728 identifiant la ressource et pointant vers cette documentation (pas de serveur d'autorisation) ;
-- un 401 sur `/mcp` portant `WWW-Authenticate: Bearer resource_metadata="https://<serveur>/.well-known/oauth-protected-resource"`.
-
-Ces réponses sont un garde-fou de diagnostic : configurez le jeton `dcp_...` directement dans le client (clé API / en-tête Bearer) au lieu de tenter un flux OAuth.
+Le connecteur implémente **OAuth 2.1** selon les spécifications MCP et accepte également les jetons personnels (`Authorization: Bearer dcp_...`) :
+- Si vous utilisez un flux automatique OAuth (Claude Desktop, Cursor...), le client est dirigé vers `/.well-known/oauth-protected-resource` et le serveur d'autorisation (`/oauth/authorize`, `/oauth/token`).
+- Si vous configurez manuellement un PAT, assurez-vous de renseigner le jeton `dcp_...` complet dans l'en-tête `Authorization: Bearer dcp_...`.
 
 ### Table des symptômes
 

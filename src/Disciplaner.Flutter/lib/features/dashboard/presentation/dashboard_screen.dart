@@ -18,6 +18,7 @@ import 'package:disciplaner_flutter/features/tickets/presentation/ticket_provide
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/dense_ticket_row.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/mobile_ticket_detail_sheet.dart';
 import 'package:disciplaner_flutter/features/tickets/presentation/widgets/split_inspector_panel.dart';
+import 'package:disciplaner_flutter/features/dashboard/presentation/widgets/ticket_status_widget.dart';
 
 /// Home dashboard (VS Code welcome page style): one summary rectangle per
 /// project, then a flat list of the tickets assigned to me filtered by the
@@ -135,6 +136,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 );
               },
             ),
+          const SizedBox(height: NeoSpacing.spaceLg),
+
+          // 3. Ticket Status Widget - Quick view for in-progress and backlog tickets
+          TicketStatusWidget(
+            showInProgress: categories.contains(StatusCategory.inProgress),
+            showBacklog: categories.contains(StatusCategory.backlog),
+            maxItems: 5,
+            onTap: () {},
+          ),
           const SizedBox(height: NeoSpacing.spaceLg),
 
           // 3. My assigned tickets, filtered by configured statuses
