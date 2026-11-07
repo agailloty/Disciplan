@@ -22,7 +22,8 @@ namespace Disciplaner.Mcp.McpAuth;
 public sealed class McpTokenAuthenticationHandler(
     IOptionsMonitor<McpTokenAuthenticationOptions> options,
     ILoggerFactory logger,
-    UrlEncoder encoder)
+    UrlEncoder encoder,
+    IOptions<McpOptions> mcpOptions)
     : AuthenticationHandler<McpTokenAuthenticationOptions>(options, logger, encoder)
 {
     /// <summary>Minimum delay between two LastUsedAt flushes for the same token.</summary>
@@ -130,7 +131,8 @@ public sealed class McpTokenAuthenticationHandler(
     protected override Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         Response.StatusCode = StatusCodes.Status401Unauthorized;
-        var metadataUrl = $"{Request.Scheme}://{Request.Host}{McpOAuthEndpoints.ProtectedResourcePath}";
+        var baseUrl = McpOAuthEndpoints.GetBaseUrl(Request, mcpOptions.Value);
+        var metadataUrl = $"{baseUrl}{McpOAuthEndpoints.ProtectedResourcePath}";
         Response.Headers.WWWAuthenticate = $"Bearer resource_metadata=\"{metadataUrl}\"";
         return Task.CompletedTask;
     }

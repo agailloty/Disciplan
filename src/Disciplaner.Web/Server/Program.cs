@@ -6,6 +6,7 @@ using Disciplaner.Infrastructure.Identity;
 using Disciplaner.Mcp;
 using Disciplaner.Web.Server.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -111,6 +112,22 @@ if (corsOrigins?.Length > 0)
                   .AllowAnyMethod()));
 }
 
+// ── Forwarded headers (reverse proxy / tunnel) ─────────────────────────────────
+// The server listens on a plain HTTP port behind a TLS-terminating reverse proxy
+// (or tunnel). Honor X-Forwarded-Proto/Host so URLs built from the request —
+// notably the MCP OAuth discovery documents (RFC 9728/8414) — use the public
+// https:// scheme instead of the internal http:// one. Disable with
+// ForwardedHeaders:Enabled=false when the app is exposed directly.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Every connection arrives through the proxy (the container port is not
+    // published directly), so accept forwarded headers from any source.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+var useForwardedHeaders = builder.Configuration.GetValue("ForwardedHeaders:Enabled", true);
+
 // ── Controllers + Swagger ─────────────────────────────────────────────────────
 builder.Services.AddControllers(options => options.Filters.Add<Disciplaner.Web.Server.ApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
@@ -127,6 +144,8 @@ await using (var scope = app.Services.CreateAsyncScope())
 await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
 
 // ── Middleware pipeline ───────────────────────────────────────────────────────
+if (useForwardedHeaders)
+    app.UseForwardedHeaders();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

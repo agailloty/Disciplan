@@ -20,4 +20,13 @@ public sealed class McpOptions
     /// </summary>
     public string PatDocumentationUrl { get; set; } =
         "https://github.com/agailloty/Disciplan/blob/master/docs/mcp-connector/02-guide-utilisateur.md";
+
+    /// <summary>
+    /// Public base URL (e.g. https://mcp.example.com) used to build the RFC 9728/8414
+    /// metadata documents and the WWW-Authenticate challenge. Set it when the server runs
+    /// behind a TLS-terminating reverse proxy that does not forward X-Forwarded-Proto,
+    /// so OAuth URLs are not advertised as http://. When empty, the request scheme and
+    /// host are used.
+    /// </summary>
+    public string? PublicBaseUrl { get; set; }
 }

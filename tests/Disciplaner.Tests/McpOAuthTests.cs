@@ -129,6 +129,33 @@ public class McpOAuthTests
         }
     }
 
+    [Fact]
+    public async Task Public_base_url_setting_rewrites_discovery_and_challenge_urls()
+    {
+        // Behind a TLS-terminating proxy that does not forward X-Forwarded-Proto,
+        // Mcp:PublicBaseUrl forces https discovery URLs (RFC 9728 §6.4 resource match).
+        using var factory = new ApiFactory();
+        await factory.SeedAsync();
+        using var client = factory
+            .WithWebHostBuilder(b => b.UseSetting("Mcp:PublicBaseUrl", "https://mcp-public.example.com/"))
+            .CreateClient(new WebApplicationFactoryClientOptions
+            {
+                BaseAddress = new Uri("https://localhost"),
+                AllowAutoRedirect = false
+            });
+
+        using var metadata = await client.GetAsync("/.well-known/oauth-protected-resource");
+        Assert.Equal(HttpStatusCode.OK, metadata.StatusCode);
+        using var payload = JsonDocument.Parse(await metadata.Content.ReadAsStringAsync());
+        Assert.Equal("https://mcp-public.example.com", payload.RootElement.GetProperty("resource").GetString());
+
+        using var challenge = await PostRpcAsync(client, InitializeRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, challenge.StatusCode);
+        Assert.Equal(
+            "Bearer resource_metadata=\"https://mcp-public.example.com/.well-known/oauth-protected-resource\"",
+            challenge.Headers.WwwAuthenticate.ToString());
+    }
+
     // ── 2. RFC 7591 Dynamic Client Registration ──────────────────────────────
 
     [Fact]

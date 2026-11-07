@@ -324,6 +324,8 @@ Copiez l'URL HTTPS fournie par ngrok (`https://xxxx.ngrok-free.app/mcp`).
 
 > [!IMPORTANT]
 > Si vous utilisez OAuth 2.1 avec un tunnel, assurez-vous que votre reverse-proxy ou tunnel transmet fidèlement les en-têtes `X-Forwarded-Proto: https` et `X-Forwarded-Host`, pour que les URLs de redirection et métadonnées RFC 9728 soient générées en HTTPS.
+>
+> Si votre proxy ne transmet pas ces en-têtes et ne peut pas être modifié, définissez la variable d'environnement `Mcp__PublicBaseUrl=https://votre-domaine.example.com` ; les documents de découverte RFC 9728/8414 et le défi d'authentification utiliseront alors cette URL publique en HTTPS. C'est la solution recommandée pour un serveur auto-hébergé déployé en HTTP derrière un reverse proxy TLS.
 
 ---
 
@@ -334,6 +336,7 @@ Copiez l'URL HTTPS fournie par ngrok (`https://xxxx.ngrok-free.app/mcp`).
 | **HTTP 401 Unauthorized** | Jeton manquant, mal orthographié ou révoqué. | Vérifiez le préfixe de l'en-tête `Authorization: Bearer dcp_...`. Ne confondez pas le token JWT applicatif avec un token MCP (`dcp_...` ou `dcp_at_...`). |
 | **HTTP 404 Not Found sur `/mcp`** | Le connecteur est désactivé côté serveur. | Vérifiez que `"Mcp": { "Enabled": true }` est présent dans `appsettings.json` et que l'URL est bien terminée par `/mcp`. |
 | **HTTP 429 Too Many Requests** | La limite de requêtes par minute est atteinte (par défaut : 60 req/min). | Ralentissez les requêtes de l'assistant ou augmentez `"RateLimitPerMinute"` dans la configuration serveur. |
+| **« Le serveur a renvoyé un statut HTTP autre que 200 ou 401/403 » à la connexion** | Les URLs de découverte OAuth sont générées en `http://` derrière un reverse proxy TLS : le client suit l'URL annoncée (ex. `http://…/.well-known/oauth-protected-resource`) et reçoit une redirection 301 au lieu d'un statut attendu. | Définissez `Mcp__PublicBaseUrl=https://votre-domaine.example.com` côté serveur, ou faites transmettre `X-Forwarded-Proto: https` par votre reverse proxy. |
 | **« This token is read-only »** | Tentative d'écriture (création/modification) avec un jeton configuré en portée `read`. | Créez un nouveau jeton dans Disciplaner avec la portée `read+write`. Notez qu'avec un jeton `read`, les outils d'écriture ne sont même pas listés. |
 | **Erreur SSL / HTTPS dans ChatGPT ou Mistral** | Le certificat SSL est invalide ou auto-signé, ou vous utilisez une URL `http://`. | Les services cloud exigent un certificat TLS public valide (Let's Encrypt, Cloudflare, etc.). Utilisez un tunnel HTTPS en développement. |
 | **Erreur de redirection OAuth (`redirect_uri_mismatch`)** | L'URL de redirection demandée par le client ne correspond pas à celle déclarée lors de l'enregistrement. | Vérifiez les paramètres de redirection de votre client chat. Disciplaner autorise les redirections déclarées lors du `POST /oauth/register`. |

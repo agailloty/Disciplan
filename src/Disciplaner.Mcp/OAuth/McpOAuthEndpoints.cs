@@ -26,7 +26,7 @@ public static class McpOAuthEndpoints
         // ── 1. RFC 9728 Protected Resource Metadata ─────────────────────────────
         app.MapGet(ProtectedResourcePath, (HttpRequest request, IOptions<McpOptions> options) =>
         {
-            var baseUrl = GetBaseUrl(request);
+            var baseUrl = GetBaseUrl(request, options.Value);
             var metadata = new McpOAuthModels.ProtectedResourceMetadata(
                 Resource: baseUrl,
                 AuthorizationServers: [baseUrl],
@@ -39,9 +39,9 @@ public static class McpOAuthEndpoints
         });
 
         // ── 2. RFC 8414 Authorization Server Metadata ───────────────────────────
-        var handleServerMetadata = (HttpRequest request) =>
+        var handleServerMetadata = (HttpRequest request, IOptions<McpOptions> options) =>
         {
-            var baseUrl = GetBaseUrl(request);
+            var baseUrl = GetBaseUrl(request, options.Value);
             var metadata = new McpOAuthModels.AuthorizationServerMetadata(
                 Issuer: baseUrl,
                 AuthorizationEndpoint: $"{baseUrl}{AuthorizePath}",
@@ -366,8 +366,15 @@ public static class McpOAuthEndpoints
         return app;
     }
 
-    private static string GetBaseUrl(HttpRequest request) =>
-        $"{request.Scheme}://{request.Host}";
+    /// <summary>
+    /// Absolute base URL advertised in the OAuth discovery documents. Uses
+    /// McpOptions.PublicBaseUrl when configured, otherwise falls back to the
+    /// request scheme and host (correct behind a proxy forwarding X-Forwarded-Proto).
+    /// </summary>
+    public static string GetBaseUrl(HttpRequest request, McpOptions options) =>
+        string.IsNullOrWhiteSpace(options.PublicBaseUrl)
+            ? $"{request.Scheme}://{request.Host}"
+            : options.PublicBaseUrl.TrimEnd('/');
 
     private static string BuildRedirectUrl(string redirectUri, IEnumerable<(string Key, string? Value)> queryParams)
     {
