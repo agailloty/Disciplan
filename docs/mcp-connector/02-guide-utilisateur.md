@@ -2,6 +2,10 @@
 
 Le connecteur MCP expose Disciplaner aux assistants IA compatibles [Model Context Protocol](https://modelcontextprotocol.io) : Mistral, ChatGPT, Claude Desktop, Cursor, VS Code, etc. L'assistant peut alors consulter vos projets et, selon la portée du jeton, créer des tickets, commenter, gérer les sprints et enrichir le backlog en votre nom — sous le contrôle des mêmes rôles que l'application (un Guest ne lit que, un Member écrit, un Supervisor gère les sprints).
 
+> [!TIP]
+> **Besoin d'un pas-à-pas pour connecter un client chat spécifique (ChatGPT, Mistral Le Chat, Claude Desktop, Cursor...) ?**  
+> Consultez le [**Guide de connexion aux clients chat (OAuth 2.1 & Bearer Token)**](03-connexion-clients-chat.md) pour des exemples complets de configuration et de requêtes.
+
 ## 1. Authentification
 
 Le connecteur supporte deux modes d'authentification :
