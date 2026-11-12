@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/auth_providers.dart';
@@ -59,24 +59,28 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const LandingScreen(),
+        builder: (context, state) => const SelectionArea(child: LandingScreen()),
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => const SelectionArea(child: LoginScreen()),
       ),
       GoRoute(
         path: '/setup',
-        builder: (context, state) => const SetupScreen(),
+        builder: (context, state) => const SelectionArea(child: SetupScreen()),
       ),
       GoRoute(
         path: '/setup-server',
-        builder: (context, state) => const SetupServerScreen(),
+        builder: (context, state) => const SelectionArea(child: SetupServerScreen()),
       ),
       ShellRoute(
         builder: (context, state, child) => AdaptiveAppShell(
           currentRoute: state.matchedLocation,
-          child: child,
+          // Autorise la sélection puis la copie (Ctrl+C / clic droit) du
+          // texte des écrans authentifiés. Le SelectionArea doit se
+          // trouver sous le Navigator pour disposer de l'Overlay du menu
+          // contextuel.
+          child: SelectionArea(child: child),
         ),
         routes: [
           GoRoute(
