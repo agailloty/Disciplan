@@ -2012,6 +2012,12 @@ abstract class AppLocalizations {
   /// **'Envoyer'**
   String get cardCommentSend;
 
+  /// No description provided for @commentComposerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrée : nouvelle ligne — Ctrl+Entrée : envoyer'**
+  String get commentComposerHint;
+
   /// No description provided for @cardEditTitle.
   ///
   /// In fr, this message translates to:

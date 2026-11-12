@@ -1034,6 +1034,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cardCommentSend => 'Send';
 
   @override
+  String get commentComposerHint => 'Enter: new line — Ctrl+Enter: send';
+
+  @override
   String get cardEditTitle => 'Edit card';
 
   @override

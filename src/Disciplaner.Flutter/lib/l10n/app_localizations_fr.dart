@@ -1038,6 +1038,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cardCommentSend => 'Envoyer';
 
   @override
+  String get commentComposerHint =>
+      'Entrée : nouvelle ligne — Ctrl+Entrée : envoyer';
+
+  @override
   String get cardEditTitle => 'Modifier la carte';
 
   @override

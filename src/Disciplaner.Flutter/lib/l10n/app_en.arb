@@ -318,6 +318,7 @@
   "cardNoComments": "No comments yet.",
   "cardEdited": "(edited)",
   "cardCommentSend": "Send",
+  "commentComposerHint": "Enter: new line — Ctrl+Enter: send",
   "cardEditTitle": "Edit card",
   "cardDeleteTitle": "Delete card",
   "cardDeleteConfirm": "Delete \"{name}\"?",

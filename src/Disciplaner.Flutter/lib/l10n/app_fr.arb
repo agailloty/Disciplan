@@ -490,6 +490,7 @@
   "cardNoComments": "Aucun commentaire pour l'instant.",
   "cardEdited": "(modifié)",
   "cardCommentSend": "Envoyer",
+  "commentComposerHint": "Entrée : nouvelle ligne — Ctrl+Entrée : envoyer",
   "cardEditTitle": "Modifier la carte",
   "cardDeleteTitle": "Supprimer la carte",
   "@cardDeleteConfirm": {

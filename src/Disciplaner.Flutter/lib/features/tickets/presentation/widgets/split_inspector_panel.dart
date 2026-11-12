@@ -12,6 +12,7 @@ import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
+import 'package:disciplaner_flutter/core/widgets/rich_comment_text.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
@@ -1320,6 +1321,8 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                                 child: TextField(
                                   controller: _editCommentController,
                                   style: NeoTypography.bodySm,
+                                  minLines: 1,
+                                  maxLines: 5,
                                   decoration: const InputDecoration(
                                     isDense: true,
                                   ),
@@ -1345,9 +1348,10 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
                             ],
                           )
                         else
-                          Text(
-                            comment.content,
-                            style: NeoTypography.bodyMd.copyWith(fontSize: 13),
+                          RichCommentText(
+                            content: comment.content,
+                            style:
+                                NeoTypography.bodyMd.copyWith(fontSize: 13),
                           ),
                         CommentAttachmentsList(
                           commentId: comment.id,
@@ -1373,45 +1377,61 @@ class _SplitInspectorPanelState extends ConsumerState<SplitInspectorPanel>
         // Comment composer
         Padding(
           padding: const EdgeInsets.only(top: NeoSpacing.spaceXs),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: l10n.attachmentAttachFiles,
-                icon: const Icon(
-                  Icons.attach_file,
-                  size: 18,
-                  color: NeoColors.onSurfaceVariant,
+          child: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.enter, control: true):
+                  _postComment,
+              const SingleActivator(LogicalKeyboardKey.enter, meta: true):
+                  _postComment,
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                IconButton(
+                  tooltip: l10n.attachmentAttachFiles,
+                  icon: const Icon(
+                    Icons.attach_file,
+                    size: 18,
+                    color: NeoColors.onSurfaceVariant,
+                  ),
+                  onPressed: _isAddingComment ? null : _pickCommentFiles,
                 ),
-                onPressed: _isAddingComment ? null : _pickCommentFiles,
-              ),
-              Expanded(
-                child: TextField(
-                  controller: _commentController,
-                  style: NeoTypography.bodySm,
-                  decoration: InputDecoration(
-                    hintText: l10n.ticketCommentAdd,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: NeoColors.borderWhisper),
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    style: NeoTypography.bodySm,
+                    minLines: 1,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: l10n.ticketCommentAdd,
+                      helperText: l10n.commentComposerHint,
+                      helperStyle: NeoTypography.labelSm
+                          .copyWith(color: NeoColors.muted),
+                      isDense: true,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide:
+                            const BorderSide(color: NeoColors.borderWhisper),
+                      ),
                     ),
                   ),
-                  onSubmitted: (_) => _postComment(),
                 ),
-              ),
-              const SizedBox(width: NeoSpacing.spaceXs),
-              IconButton(
-                icon: _isAddingComment
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send, size: 18, color: NeoColors.primary),
-                onPressed: _isAddingComment ? null : _postComment,
-              ),
-            ],
+                const SizedBox(width: NeoSpacing.spaceXs),
+                IconButton(
+                  icon: _isAddingComment
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send, size: 18, color: NeoColors.primary),
+                  onPressed: _isAddingComment ? null : _postComment,
+                  tooltip: l10n.cardCommentSend,
+                ),
+              ],
+            ),
           ),
         ),
       ],

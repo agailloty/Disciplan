@@ -11,6 +11,7 @@ import 'package:disciplaner_flutter/core/utils/media_utils.dart';
 import 'package:disciplaner_flutter/core/utils/ticket_share_links.dart';
 import 'package:disciplaner_flutter/core/widgets/priority_icon.dart'
     hide TicketType;
+import 'package:disciplaner_flutter/core/widgets/rich_comment_text.dart';
 import 'package:disciplaner_flutter/core/widgets/user_avatar.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_providers.dart';
 import 'package:disciplaner_flutter/features/auth/presentation/auth_state.dart';
@@ -1036,8 +1037,8 @@ class _MobileTicketDetailSheetState
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              comment.content,
+                            RichCommentText(
+                              content: comment.content,
                               style: NeoTypography.bodySm.copyWith(
                                 color: NeoColors.onSurfaceVariant,
                               ),
@@ -1098,6 +1099,7 @@ class _MobileTicketDetailSheetState
               border: Border.all(color: NeoColors.borderWhisper),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 IconButton(
                   tooltip: l10n.attachmentAttachFiles,
@@ -1110,16 +1112,26 @@ class _MobileTicketDetailSheetState
                   onPressed: _isAddingComment ? null : _pickCommentFiles,
                 ),
                 Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    style: NeoTypography.bodyMd,
-                    decoration: InputDecoration(
-                      hintText: l10n.ticketsAddNoteHint,
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.enter,
+                              control: true): _postComment,
+                      const SingleActivator(
+                          LogicalKeyboardKey.enter, meta: true): _postComment,
+                    },
+                    child: TextField(
+                      controller: _commentController,
+                      style: NeoTypography.bodyMd,
+                      minLines: 1,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: l10n.ticketsAddNoteHint,
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      ),
                     ),
-                    onSubmitted: (_) => _postComment(),
                   ),
                 ),
                 Container(
