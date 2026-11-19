@@ -24,7 +24,7 @@ jobs:
         run: dotnet test tests/Disciplaner.Tests/Disciplaner.Tests.csproj --no-build --configuration Release --logger trx --results-directory artifacts/test-results
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 3.38.9
           cache: true
       - name: Flutter analyze and tests
         working-directory: src/Disciplaner.Flutter
